@@ -1,0 +1,227 @@
+import { LEVELS, LEVEL_LOGIC, LEVEL_NAMES } from '../core/classic.ts';
+import type { Level } from '../core/types.ts';
+import { formatPuzzleId } from '../core/types.ts';
+import { POOL_SIZE, levelStats, unplayedNumbers } from '../game/storage.ts';
+import { buildStamp, el } from './dom.ts';
+import { clear } from './dom.ts';
+import { openOverlay, toast } from './overlay.ts';
+import { bindTap } from './pointer.ts';
+import { stars } from './stars.ts';
+import type { AppContext } from './app-context.ts';
+
+/**
+ * Choose Level. A tap deals a random unplayed number from that level; the #
+ * button picks a number outright. Numbers are deterministic, so 3-10 is the
+ * same deal — givens and deck order — on every device.
+ */
+export function buildMenu(
+  ctx: AppContext,
+  resume?: { label: string; run: () => void },
+): HTMLElement {
+  const screen = el('div', { class: 'screen' });
+
+  const menuBtn = el('button', { class: 'iconbtn', 'aria-label': 'Menu' });
+  menuBtn.append(el('i'), el('i'), el('i'));
+  menuBtn.addEventListener('click', () => openMainMenu(ctx));
+
+  screen.append(
+    el('div', { class: 'titlebar' }, menuBtn, el('span', { class: 'id' }, 'SOLDUKU')),
+    el(
+      'div',
+      { class: 'hero' },
+      el('h1', {}, 'Choose ', el('span', {}, 'Level')),
+      el('p', {}, 'Tap a level to deal · # to choose a deal number'),
+    ),
+  );
+
+  if (resume) {
+    const btn = el('button', { class: 'btn primary wide' }, resume.label);
+    btn.addEventListener('click', resume.run);
+    screen.append(el('div', { class: 'actions' }, btn));
+  }
+
+  const list = el('div', { class: 'levels' });
+  for (const level of LEVELS) list.append(buildLevelRow(ctx, level));
+  screen.append(list);
+
+  screen.append(
+    el(
+      'p',
+      { class: 'hint-line' },
+      'Sudoku rules place the cards; solitaire luck deals them. Levels grade the logic the grid demands.',
+    ),
+    el('p', { class: 'build-stamp' }, buildStamp()),
+  );
+  return screen;
+}
+
+function buildLevelRow(ctx: AppContext, level: Level): HTMLElement {
+  const left = unplayedNumbers(ctx.history, level).length;
+  const stat = levelStats(ctx.history, level);
+
+  const button = el(
+    'button',
+    { class: 'source', disabled: left === 0 },
+    el('span', { class: 'source-name' }, 'Deal'),
+    el(
+      'span',
+      { class: 'source-meta' },
+      `${left} left · ${LEVEL_LOGIC[level]}` +
+        (stat.bestScore === null ? '' : ` · best ${stat.bestScore}`),
+    ),
+  );
+  if (left > 0) {
+    bindTap(button, {
+      onTap: () => ctx.playRandom(level),
+      onLong: () => openPicker(ctx, level),
+    });
+  }
+
+  const pick = el('button', {
+    class: 'pick',
+    title: 'Choose a deal number',
+    'aria-label': `Choose a deal number for level ${level}`,
+  });
+  pick.textContent = '#';
+  pick.addEventListener('click', () => openPicker(ctx, level));
+
+  return el(
+    'div',
+    { class: 'level sol' },
+    el(
+      'div',
+      { class: 'level-head' },
+      stars(level, 10),
+      el('span', { class: 'name' }, LEVEL_NAMES[level]),
+    ),
+    el('div', { class: 'source-row' }, button, pick),
+  );
+}
+
+/** Deal numbers per range tab, so the list is not a wall of buttons. */
+const RANGE_SIZE = 100;
+
+export function openPicker(ctx: AppContext, level: Level): void {
+  const available = new Set(unplayedNumbers(ctx.history, level));
+
+  openOverlay((close) => {
+    const play = (n: number): void => {
+      close();
+      ctx.playPuzzle({ level, number: n });
+    };
+
+    const ranges: { from: number; to: number; free: number }[] = [];
+    for (let from = 1; from <= POOL_SIZE; from += RANGE_SIZE) {
+      const to = Math.min(from + RANGE_SIZE - 1, POOL_SIZE);
+      let free = 0;
+      for (let n = from; n <= to; n++) if (available.has(n)) free++;
+      ranges.push({ from, to, free });
+    }
+    let current = Math.max(
+      0,
+      ranges.findIndex((r) => r.free > 0),
+    );
+
+    const tabs = el('div', { class: 'picker-ranges' });
+    const grid = el('div', { class: 'picker' });
+    const summary = el('p', { class: 'summary' });
+
+    const draw = (): void => {
+      clear(tabs);
+      for (const [i, range] of ranges.entries()) {
+        const tab = el(
+          'button',
+          { class: `btn ${i === current ? 'on' : ''}`.trim(), disabled: range.free === 0 },
+          `${range.from}–${range.to}`,
+        );
+        tab.addEventListener('click', () => {
+          current = i;
+          draw();
+        });
+        tabs.append(tab);
+      }
+
+      const range = ranges[current];
+      clear(grid);
+      let shown = 0;
+      for (let n = range.from; n <= range.to; n++) {
+        if (!available.has(n)) continue;
+        shown++;
+        const b = el('button', { class: 'btn' }, formatPuzzleId({ level, number: n }));
+        b.addEventListener('click', () => play(n));
+        grid.append(b);
+      }
+      if (shown === 0) {
+        grid.append(el('p', { class: 'summary' }, 'Nothing left here — try another range.'));
+      }
+
+      summary.textContent =
+        available.size === 0
+          ? 'Every deal here has been played.'
+          : `${available.size} of ${POOL_SIZE} available · showing ${range.from}–${range.to}`;
+    };
+
+    const jump = el('input', {
+      type: 'number',
+      min: 1,
+      max: POOL_SIZE,
+      inputmode: 'numeric',
+      placeholder: 'no.',
+      'aria-label': 'Go to deal number',
+    });
+    const go = el('button', { class: 'btn' }, 'Go');
+    const goTo = (): void => {
+      const n = Number(jump.value);
+      if (!Number.isInteger(n) || n < 1 || n > POOL_SIZE) {
+        toast(`Pick a number between 1 and ${POOL_SIZE}`);
+        return;
+      }
+      play(n);
+    };
+    go.addEventListener('click', goTo);
+    jump.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') goTo();
+    });
+
+    const cancel = el('button', { class: 'btn wide' }, 'Cancel');
+    cancel.addEventListener('click', close);
+
+    draw();
+    return el(
+      'div',
+      { class: 'panel' },
+      el('h2', {}, `Level ${level} — ${LEVEL_NAMES[level]}`),
+      el('div', { class: 'picker-jump' }, el('label', {}, 'Go to'), jump, go),
+      tabs,
+      summary,
+      grid,
+      el('div', { class: 'panel-footer' }, cancel),
+    );
+  });
+}
+
+export function openMainMenu(ctx: AppContext): void {
+  openOverlay((close) => {
+    const item = (label: string, run: () => void): HTMLButtonElement => {
+      const b = el('button', { class: 'btn' }, label);
+      b.addEventListener('click', () => {
+        close();
+        run();
+      });
+      return b;
+    };
+    return el(
+      'div',
+      { class: 'panel' },
+      el('h2', {}, 'Menu'),
+      el(
+        'div',
+        { class: 'menu-list' },
+        item('Settings', () => ctx.openSettings()),
+        item('Scoring', () => ctx.openScoring()),
+        item('Help', () => ctx.openHelp()),
+        item('About', () => toast('Solduku — solitaire meets sudoku')),
+      ),
+    );
+  });
+}

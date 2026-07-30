@@ -1,0 +1,2072 @@
+/* Night is the default, matching the reference app's dark scheme; the Theme
+   setting swaps in the day or high-contrast palette. */
+:root {
+  --bg: #0a0d10;
+  --panel: #161c22;
+  --panel-2: #1e262e;
+  --line: #3a464f;
+  --line-strong: #7b8b98;
+  --cell: #12181d;
+  --text: #e6edf3;
+  --dim: #8fa3b3;
+  --accent: #56d1f5;
+  --accent-dim: #1f6b84;
+  --cage: #9aa8b5;
+  --sum: #f0c674;
+  /* Distinctly blue: at grey it read as another grid line. */
+  --mark: #7cc7ee;
+  /* A cell down to its last candidate. */
+  --single: #7fe6a8;
+  --single-bg: rgba(127, 230, 168, 0.14);
+  /* Cages counted into the tally — violet, a hue nothing else on the board
+     uses, so it cannot be mistaken for a selection or a matching digit. */
+  --tallied: rgba(190, 130, 255, 0.26);
+  /* Cells a hint is pointing at. */
+  --spotlit: rgba(86, 209, 245, 0.3);
+  --error: #ff6b6b;
+  --clash: #a8443f;
+  --sel: rgba(86, 209, 245, 0.26);
+  --peer: rgba(255, 255, 255, 0.05);
+  --cage-peer: rgba(240, 198, 116, 0.09);
+  --same: rgba(86, 209, 245, 0.14);
+  --shadow: rgba(0, 0, 0, 0.5);
+  /* Components for overlays you need to see through, mixed at --glass. */
+  --panel-rgb: 22 28 34;
+  --panel-2-rgb: 30 38 46;
+  /* Required / ruled-out keys, mixed at --glass like every other surface. */
+  --inc-rgb: 18 131 63;
+  --exc-rgb: 179 34 34;
+
+  /* Control groups, so a key's job is readable from its colour. */
+  --k-digit: #1e4d35;
+  --k-digit-line: #4aa878;
+  --k-digit-text: #dff6e8;
+  --k-edit: #4a3a1c;
+  --k-edit-line: #c39c4c;
+  --k-edit-text: #f8eed6;
+  --k-aid: #1d3a54;
+  --k-aid-line: #4f92c4;
+  --k-aid-text: #dcefff;
+  --k-session: #46243a;
+  --k-session-line: #b0648f;
+  --k-session-text: #ffe2f0;
+  /* Matches --tallied, the violet the counted cages are tinted with. */
+  --k-tally: #3a2550;
+  --k-tally-line: #b98bff;
+  --k-tally-text: #f1e4ff;
+}
+
+:root[data-theme='day'] {
+  --bg: #dfe4e9;
+  --panel: #f7f9fb;
+  --panel-2: #e7ecf1;
+  --line: #9aa7b2;
+  --line-strong: #2f3a44;
+  --cell: #ffffff;
+  --text: #131a20;
+  --dim: #5b6b78;
+  --accent: #0a6f96;
+  --accent-dim: #9fd4e6;
+  --cage: #9ba7b3;
+  --sum: #8a5a00;
+  --mark: #1f6390;
+  --single: #0d7a3d;
+  --single-bg: rgba(13, 122, 61, 0.12);
+  --tallied: rgba(140, 70, 210, 0.18);
+  --spotlit: rgba(10, 111, 150, 0.26);
+  --error: #c62828;
+  --clash: #e59b98;
+  --sel: rgba(10, 111, 150, 0.22);
+  --peer: rgba(0, 0, 0, 0.05);
+  --cage-peer: rgba(138, 90, 0, 0.08);
+  --same: rgba(10, 111, 150, 0.13);
+  --shadow: rgba(0, 0, 0, 0.25);
+  --panel-rgb: 247 249 251;
+  --panel-2-rgb: 231 236 241;
+  --inc-rgb: 15 122 58;
+  --exc-rgb: 176 32 32;
+
+  --k-digit: #d6f2e1;
+  --k-digit-line: #6fbf95;
+  --k-digit-text: #123723;
+  --k-edit: #fbeccd;
+  --k-edit-line: #d2a75a;
+  --k-edit-text: #4a3305;
+  --k-aid: #d8eafa;
+  --k-aid-line: #6ba6d4;
+  --k-aid-text: #0f3350;
+  --k-session: #f7dcec;
+  --k-session-line: #cd8cb4;
+  --k-session-text: #47102f;
+  --k-tally: #ece0fa;
+  --k-tally-line: #a173d6;
+  --k-tally-text: #37105e;
+}
+
+/* High contrast: pure black behind white text, and every hue drawn from the
+   Okabe-Ito colour-blind-safe set. Red and green never carry meaning on their
+   own here — vermillion against blue-green is the pair that survives all three
+   common kinds of colour blindness, and the rules further down add a shape cue
+   wherever colour alone was doing the work. */
+:root[data-theme='contrast'] {
+  --bg: #000000;
+  --panel: #000000;
+  --panel-2: #101014;
+  --line: #8a8a8a;
+  --line-strong: #ffffff;
+  --cell: #000000;
+  --text: #ffffff;
+  --dim: #c9c9c9;
+  --accent: #56b4e9;
+  --accent-dim: #0072b2;
+  --cage: #ffffff;
+  --sum: #f0e442;
+  --mark: #56b4e9;
+  --single: #33e0b0;
+  --single-bg: rgba(0, 158, 115, 0.22);
+  --tallied: rgba(204, 121, 167, 0.38);
+  --spotlit: rgba(86, 180, 233, 0.35);
+  --error: #d55e00;
+  --clash: #e69f00;
+  --sel: rgba(86, 180, 233, 0.34);
+  --peer: rgba(255, 255, 255, 0.1);
+  --cage-peer: rgba(240, 228, 66, 0.12);
+  --same: rgba(86, 180, 233, 0.18);
+  --shadow: rgba(0, 0, 0, 0.9);
+  --panel-rgb: 0 0 0;
+  --panel-2-rgb: 16 16 20;
+  /* Blue for required, vermillion for ruled out — not green and red. */
+  --inc-rgb: 0 114 178;
+  --exc-rgb: 213 94 0;
+
+  --k-digit: #002218;
+  --k-digit-line: #33e0b0;
+  --k-digit-text: #ffffff;
+  --k-edit: #262100;
+  --k-edit-line: #f0e442;
+  --k-edit-text: #ffffff;
+  --k-aid: #001d2e;
+  --k-aid-line: #56b4e9;
+  --k-aid-text: #ffffff;
+  --k-session: #2b1000;
+  --k-session-line: #e69f00;
+  --k-session-text: #ffffff;
+  --k-tally: #26001d;
+  --k-tally-line: #cc79a7;
+  --k-tally-text: #ffffff;
+}
+
+/* Heavier strokes: thin grey lines are the first thing to disappear. */
+:root[data-theme='contrast'] .cages path {
+  stroke-width: 0.055;
+}
+
+:root[data-theme='contrast'] .btn {
+  border-width: 2px;
+}
+
+/* Shape cues, so none of these states rely on colour alone. */
+:root[data-theme='contrast'] .cell.error .big {
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+}
+
+:root[data-theme='contrast'] .cell.single {
+  box-shadow: inset 0 0 0 2px var(--single);
+}
+
+:root[data-theme='contrast'] .cell.tallied::after {
+  content: '';
+  position: absolute;
+  top: 6%;
+  right: 6%;
+  width: 14%;
+  height: 14%;
+  border-radius: 50%;
+  background: var(--k-tally-line);
+  z-index: 3;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
+  -webkit-text-size-adjust: 100%;
+  overscroll-behavior: none;
+}
+
+#app {
+  min-height: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.screen {
+  width: 100%;
+  max-width: 520px;
+  padding: 8px 8px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ---------- title bar ---------- */
+
+.titlebar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 6px 8px;
+  min-height: 42px;
+}
+
+.titlebar .id {
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.titlebar .candidates {
+  margin-left: auto;
+  display: flex;
+  gap: 5px;
+  color: var(--mark);
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  min-height: 18px;
+}
+
+.titlebar .candidates b {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+/* The selected cell's pencil marks, bracketed so they read as candidates
+   rather than as more of the cage description beside them. */
+.titlebar .candidates .cands {
+  color: var(--mark);
+  letter-spacing: 0.5px;
+}
+
+.iconbtn {
+  width: 32px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  gap: 3px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  cursor: pointer;
+  padding: 5px 6px;
+  flex: 0 0 auto;
+}
+
+.iconbtn i {
+  display: block;
+  width: 100%;
+  height: 2px;
+  background: var(--text);
+}
+
+/* ---------- board ---------- */
+
+/* minmax(0, 1fr) on both axes, not plain 1fr: with content-sized rows a big
+   entry digit stretches its whole row and the grid stops being square. */
+.board {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  grid-template-rows: repeat(9, minmax(0, 1fr));
+  aspect-ratio: 1;
+  width: 100%;
+  border: 2px solid var(--line-strong);
+  background: var(--cell);
+  /* `none`, not `manipulation`: manipulation still leaves panning on the table,
+     so a tap with the smallest drag can be reinterpreted as a scroll, and the
+     pointer is cancelled mid-gesture. There is nothing to scroll here. */
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.cell {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border-top: 1px solid var(--line);
+  border-left: 1px solid var(--line);
+  background: var(--cell);
+  display: grid;
+  place-items: center;
+  font-size: min(6.4vw, 33px);
+  cursor: pointer;
+}
+
+/* The nine row elements exist for screen readers only; `contents` leaves the
+   cells as direct children of the grid, so the layout is unaffected. */
+.board .row {
+  display: contents;
+}
+
+.row .cell:first-child {
+  border-left: none;
+}
+
+.row:first-child .cell {
+  border-top: none;
+}
+
+/* Keyboard focus has to be visible in its own right: the selection tint alone
+   is easy to miss, and inside the grid an outline must sit within the cell. */
+.cell:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: -3px;
+  z-index: 3;
+}
+
+.cell.box-l {
+  border-left: 2px solid var(--line-strong);
+}
+
+.cell.box-t {
+  border-top: 2px solid var(--line-strong);
+}
+
+.cell.peer {
+  background: var(--peer);
+}
+
+.cell.cage-peer {
+  background: var(--cage-peer);
+}
+
+.cell.same {
+  background: var(--same);
+}
+
+/* Counted into the tally. Sits above the peer and matching-digit tints but
+   below the selection and error colours, which are the transient states. */
+.cell.tallied {
+  background: var(--tallied);
+}
+
+.cell.sel {
+  background: var(--sel);
+}
+
+.cell.clash .big {
+  color: var(--clash);
+}
+
+.cell.error {
+  background: var(--error);
+}
+
+.cell.error .big {
+  color: #fff;
+}
+
+/* One dashed outline per cage, drawn over the whole board so corners close
+   and the dashes run continuously along a cage edge. */
+.cages {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* A continuous rounded outline per cage, not a dash per cell edge. */
+.cages path {
+  fill: none;
+  stroke: var(--cage);
+  stroke-width: 0.038;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+/* Sits inside the cage outline (6%), not on top of it. Sized to stay legible
+   on a phone, where a cell is only about 40px across. */
+.sum {
+  position: absolute;
+  top: 10%;
+  left: 12%;
+  font-size: 0.36em;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--sum);
+  z-index: 2;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The answer should read at a glance and clearly outrank the pencil marks. */
+.big {
+  font-weight: 700;
+  line-height: 1;
+  color: var(--text);
+  z-index: 2;
+}
+
+/* The same box in every cell, whether or not it carries a cage total, so
+   candidates line up across the grid. The top strip is reserved everywhere,
+   and the sides clear the cage outline. */
+.marks {
+  position: absolute;
+  /* Tucked in from the sides so the 3x3 reads as one compact block in the
+     middle of the cell, and low enough to clear the cage total above it. */
+  inset: 35% 17% 19%;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  font-size: 0.29em;
+  line-height: 1;
+  color: var(--mark);
+  font-weight: 700;
+  z-index: 1;
+}
+
+.mark {
+  display: grid;
+  place-items: center;
+}
+
+/* Cells a hint is pointing at. Loud on purpose and short-lived. */
+.cell.spotlit {
+  background: var(--spotlit);
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+
+/* Down to one candidate: the cell is answered, it just has not been written in. */
+.cell.single {
+  background: var(--single-bg);
+}
+
+.cell.single .marks {
+  color: var(--single);
+  font-weight: 800;
+}
+
+/* ---------- keypad and controls ---------- */
+
+.controls {
+  display: flex;
+  gap: 8px;
+}
+
+/*
+ * Keypad on the right: the digits go under a right thumb and the action
+ * buttons cross to the other side. Left is the default and the layout the
+ * reference app uses. One flip covers both orientations — in landscape the
+ * controls sit beside the board, so reversing them lands the keypad out at
+ * the edge on the same side.
+ */
+:root[data-keypad='right'] .controls {
+  flex-direction: row-reverse;
+}
+
+/*
+ * The mirror goes all the way down: New, Restart, the clock and Pause belong
+ * out at the screen edge whichever side the controls are on, so their strips
+ * reverse too. `direction` is what flips a grid's columns; each button is put
+ * back to ltr so its own text is unaffected. The digits themselves never
+ * mirror — 1-9 has one order.
+ */
+:root[data-keypad='right'] .controls .actions {
+  direction: rtl;
+}
+
+:root[data-keypad='right'] .controls .actions > * {
+  direction: ltr;
+}
+
+:root[data-keypad='right'] .under-keys,
+:root[data-keypad='right'] .under-actions {
+  flex-direction: row-reverse;
+}
+
+/* Two columns, each with a strip of its own underneath. */
+.controls-left {
+  flex: 0 0 54%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.controls-right {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Phone keypad: 1-9 in a 3x3 block. */
+.numpad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+/* CLEAR and undo/redo span the keypad; the tally and Pause span the buttons. */
+.under-keys,
+.under-actions {
+  display: flex;
+  gap: 6px;
+  min-width: 0;
+}
+
+.under-keys .key.clear,
+.under-keys .undo-pair {
+  flex: 1 1 0;
+  min-width: 0;
+  margin: 0;
+}
+
+.under-actions .tally {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+}
+
+/* Actions sit beside the keypad, small, two to a row. */
+.controls .actions {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: repeat(3, 1fr);
+  /* Column by column, so each column is a group that belongs together. */
+  grid-auto-flow: column;
+  gap: 5px;
+  margin: 0;
+}
+
+.controls .actions .btn {
+  font-size: 13px;
+  padding: 4px 2px;
+}
+
+/* Undo and redo share one cell of the actions grid. */
+.undo-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+  min-width: 0;
+}
+
+.btn.icon {
+  display: grid;
+  place-items: center;
+  padding: 0;
+}
+
+.btn.icon svg {
+  display: block;
+}
+
+.pause-btn {
+  flex: 0 0 48px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  touch-action: manipulation;
+}
+
+.pause-btn i {
+  display: block;
+  width: 4px;
+  height: 16px;
+  border-radius: 1px;
+  background: var(--text);
+}
+
+.pause-btn:active {
+  background: var(--accent-dim);
+}
+
+.key,
+.btn {
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  font-size: 20px;
+  font-weight: 600;
+  padding: 10px 4px;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  position: relative;
+}
+
+.key:active,
+.btn:active {
+  background: var(--accent-dim);
+}
+
+/* Four groups, so what a control does is legible before you read it:
+   digits, the editing keys, the solving aids, and the session buttons. */
+.numpad .key {
+  background: var(--k-digit);
+  border-color: var(--k-digit-line);
+  color: var(--k-digit-text);
+}
+
+.key.clear,
+.undo-pair .btn.icon {
+  background: var(--k-edit);
+  border-color: var(--k-edit-line);
+  color: var(--k-edit-text);
+}
+
+.btn.aid {
+  background: var(--k-aid);
+  border-color: var(--k-aid-line);
+  color: var(--k-aid-text);
+}
+
+/* The tally wears the same violet it marks counted cages with, so the button
+   and its effect on the board are plainly the same thing. */
+.tally {
+  background: var(--k-tally);
+  border-color: var(--k-tally-line);
+  color: var(--k-tally-text);
+}
+
+.btn.session {
+  background: var(--k-session);
+  border-color: var(--k-session-line);
+  color: var(--k-session-text);
+}
+
+.key.done {
+  color: var(--dim);
+  opacity: 0.45;
+}
+
+.key .count {
+  position: absolute;
+  top: 1px;
+  right: 3px;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--dim);
+}
+
+.key.clear {
+  font-size: 14px;
+  letter-spacing: 1px;
+  padding: 12px 4px;
+}
+
+.tally,
+.timer {
+  border-radius: 5px;
+  border: 1px solid var(--line);
+  padding: 6px 4px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.tally {
+  font-weight: 700;
+  font-size: 18px;
+  flex: 1 1 auto;
+  display: grid;
+  place-items: center;
+  line-height: 1.1;
+}
+
+.tally small {
+  display: block;
+  font-size: 10px;
+  font-weight: 500;
+  opacity: 0.75;
+}
+
+/* The box stretches to the row, so centre the time inside it rather than
+   letting it sit on the top padding. */
+.timer {
+  display: grid;
+  place-items: center;
+  line-height: 1;
+  background: var(--panel);
+  color: var(--text);
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.btn {
+  font-size: 15px;
+  padding: 11px 4px;
+}
+
+.btn[disabled] {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.btn.wide {
+  grid-column: span 3;
+}
+
+.btn.primary {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+}
+
+/* ---------- menu / level select ---------- */
+
+.hero {
+  text-align: center;
+  padding: 10px 0 2px;
+}
+
+.hero h1 {
+  margin: 0;
+  font-size: 30px;
+  letter-spacing: 1px;
+  font-weight: 800;
+}
+
+.hero h1 span {
+  color: var(--accent);
+}
+
+.hero p {
+  margin: 4px 0 0;
+  color: var(--dim);
+  font-size: 13px;
+}
+
+/* Six levels stacked, each showing both of its pools. */
+.levels {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+/* Three columns per level: the difficulty, then each of its two pools. */
+.level {
+  display: grid;
+  grid-template-columns: minmax(64px, 0.85fr) minmax(0, 1fr) minmax(0, 1fr);
+  align-items: stretch;
+  gap: 6px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 7px 8px;
+  min-width: 0;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.level-head {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+  min-width: 0;
+}
+
+.level .stars {
+  display: flex;
+  gap: 1px;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  min-height: 10px;
+}
+
+.level .name {
+  font-weight: 700;
+  font-size: 13.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.source-row {
+  display: flex;
+  gap: 4px;
+  min-width: 0;
+}
+
+.source {
+  flex: 1 1 auto;
+  min-width: 0;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 6px 5px;
+  cursor: pointer;
+  text-align: left;
+  color: var(--text);
+  display: block;
+  touch-action: manipulation;
+}
+
+/* Opens the puzzle-number picker for that pool. */
+.pick {
+  flex: 0 0 26px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  color: var(--dim);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.pick:active {
+  background: var(--accent-dim);
+  color: var(--text);
+}
+
+.pick[disabled] {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.source:active {
+  background: var(--accent-dim);
+}
+
+.source[disabled] {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.source-name {
+  display: block;
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+.source.random .source-name {
+  color: var(--accent);
+}
+
+.source-meta {
+  display: block;
+  color: var(--dim);
+  font-size: 11.5px;
+  line-height: 1.2;
+  margin-top: 2px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hint-line {
+  color: var(--dim);
+  font-size: 12px;
+  text-align: center;
+}
+
+/* Which build is actually running — useful when a phone is holding a cached
+   service worker. */
+.build-stamp {
+  margin: 2px 0 0;
+  color: var(--dim);
+  opacity: 0.65;
+  font-size: 10.5px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- overlays ---------- */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.72);
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  z-index: 50;
+}
+
+/* Just opened, and still ignoring the tail of the gesture that opened it — see
+   TAP_GUARD_MS. The backdrop keeps taking pointer events, so nothing falls
+   through to the game underneath; only the panel's own controls are inert. */
+.overlay.guarded > * {
+  pointer-events: none;
+}
+
+/* The sum calculator is read against the board, so the board can be made
+   visible through it. --glass is driven by the slider in its footer, and
+   starts solid every time the panel is opened. */
+.overlay.see-through {
+  --glass: 1;
+  background: rgb(0 0 0 / calc(var(--glass) * 0.22));
+}
+
+.overlay.see-through .panel {
+  background: rgb(var(--panel-rgb) / var(--glass));
+  border-color: var(--accent-dim);
+}
+
+.overlay.see-through .panel-footer {
+  background: rgb(var(--panel-rgb) / var(--glass));
+}
+
+/* Every surface inside follows the slider: the results, the keys, and the
+   sum and cell-count fields. */
+.overlay.see-through .results,
+.overlay.see-through .calc-keys .btn:not(.inc):not(.exc),
+.overlay.see-through .calc input[type='number'] {
+  background: rgb(var(--panel-2-rgb) / calc(var(--glass) * 0.88));
+}
+
+.glass-slider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--dim);
+}
+
+.glass-slider svg {
+  flex: 0 0 auto;
+  display: block;
+}
+
+.glass-slider input[type='range'] {
+  flex: 1 1 auto;
+  min-width: 0;
+  accent-color: var(--accent);
+  height: 20px;
+}
+
+.footer-buttons {
+  display: grid;
+  gap: 6px;
+}
+
+.footer-buttons.three {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px;
+  width: 100%;
+  max-width: 480px;
+  max-height: 86vh;
+  overflow: auto;
+  box-shadow: 0 10px 40px var(--shadow);
+}
+
+.panel h2 {
+  margin: 0 0 10px;
+  font-size: 19px;
+  color: var(--accent);
+}
+
+/* Stays put while the panel body scrolls, so the way out is always on screen. */
+.panel-footer {
+  position: sticky;
+  bottom: -14px;
+  margin: 10px -14px -14px;
+  padding: 10px 14px calc(14px + env(safe-area-inset-bottom, 0px));
+  background: var(--panel);
+  border-top: 1px solid var(--line);
+  display: grid;
+  gap: 6px;
+}
+
+.panel-footer.two {
+  grid-template-columns: 1fr 1fr;
+}
+
+.panel-footer.three {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.panel h3 {
+  margin: 14px 0 6px;
+  font-size: 14px;
+  color: var(--accent);
+}
+
+.panel p,
+.panel li {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.paused {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  color: var(--accent);
+  display: grid;
+  place-items: center;
+  z-index: 60;
+  text-align: center;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.paused h2 {
+  font-size: 40px;
+  margin: 0;
+  letter-spacing: 3px;
+}
+
+.paused p {
+  color: var(--dim);
+  margin: 8px 0 0;
+}
+
+.menu-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.menu-list button {
+  text-align: left;
+  font-size: 15px;
+}
+
+.setting {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 2px;
+  border-bottom: 1px solid var(--line);
+  font-size: 13.5px;
+  cursor: pointer;
+}
+
+.setting:last-child {
+  border-bottom: none;
+}
+
+/* A row whose control is a group of buttons rather than a switch: the label
+   sits above it, and the row itself is not the click target. */
+.setting.stacked {
+  display: block;
+  cursor: default;
+}
+
+.setting.stacked .tabs {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.setting.stacked .tabs .btn {
+  flex: 1 1 0;
+  font-size: 13px;
+  padding: 7px 4px;
+}
+
+.setting.stacked .tabs .btn.on {
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.setting .label {
+  flex: 1 1 auto;
+}
+
+.setting .label small {
+  display: block;
+  color: var(--dim);
+  font-size: 11px;
+  line-height: 1.3;
+  margin-top: 1px;
+}
+
+.switch {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 24px;
+  border-radius: 12px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  position: relative;
+  transition: background 0.15s;
+}
+
+.switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--dim);
+  transition: transform 0.15s;
+}
+
+.switch.on {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+}
+
+.switch.on::after {
+  transform: translateX(20px);
+  background: var(--accent);
+}
+
+/* ---------- picker and stats ---------- */
+
+.picker {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
+  gap: 5px;
+  max-height: 46vh;
+  overflow-y: auto;
+}
+
+/* Jump straight to a number, for pools too big to browse. */
+.picker-jump {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  font-size: 12px;
+  color: var(--dim);
+}
+
+.picker-jump input[type='number'] {
+  flex: 0 0 74px;
+  width: 74px;
+  padding: 6px;
+  font-size: 15px;
+  text-align: center;
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+}
+
+.picker-jump .btn {
+  flex: 0 0 auto;
+  padding: 7px 14px;
+}
+
+/* One range of numbers at a time; ranges with nothing left are disabled. */
+.picker-ranges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.picker-ranges .btn {
+  flex: 0 0 auto;
+  padding: 5px 8px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.picker-ranges .btn.on {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+}
+
+.picker button {
+  padding: 9px 2px;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.statrow {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  gap: 8px;
+  padding: 7px 8px;
+  font-size: 13px;
+  border-radius: 4px;
+  align-items: center;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+
+.statrow.locked {
+  background: rgba(220, 120, 160, 0.18);
+}
+
+.statrow.released {
+  background: rgba(120, 210, 140, 0.16);
+}
+
+/* Unfinished games: the row picks the game up, the ✕ resets it. */
+.unfinished-row {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 5px;
+}
+
+.unfinished-row .statrow.open {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin-bottom: 0;
+}
+
+.rowx {
+  flex: 0 0 38px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  color: var(--dim);
+  font-size: 14px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.rowx:active {
+  background: var(--error);
+  color: #fff;
+}
+
+.statrow.open {
+  width: 100%;
+  /* One more column than the level rows: the hold badge on the end. */
+  grid-template-columns: 1fr auto auto auto auto;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  color: var(--text);
+  text-align: left;
+  margin-bottom: 5px;
+  font-size: 13px;
+}
+
+/* Says what the row wants, on the row itself — resuming is a long press, so
+   a stray tap while scrolling a long list cannot drop you into a puzzle. */
+.statrow .hold {
+  color: var(--dim);
+  font-size: 9.5px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  padding: 1px 4px;
+}
+
+/* Heading over the second half of the Stats screen. */
+.section-label {
+  margin: 14px 0 6px;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+
+.statrow.open:active {
+  background: var(--accent-dim);
+}
+
+.statrow .when {
+  color: var(--dim);
+  font-size: 11.5px;
+}
+
+.tabs {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 8px;
+}
+
+.tabs button {
+  flex: 1 1 auto;
+  padding: 8px 2px;
+  font-size: 14px;
+}
+
+.tabs button.on {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+}
+
+.summary {
+  color: var(--dim);
+  font-size: 12.5px;
+  margin: 0 0 8px;
+}
+
+/* ---------- sum calculator ---------- */
+
+.calc .row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.calc label {
+  font-size: 13px;
+  color: var(--dim);
+}
+
+.calc input[type='number'] {
+  width: 66px;
+  padding: 7px;
+  font-size: 15px;
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+}
+
+/* Keypad beside the results. Both are fixed height so the panel never
+   changes size as combinations are filtered — otherwise the buttons
+   underneath move while you are aiming at them. */
+/* The keypad column and the combinations sit side by side, both bounded, so
+   the panel is a fixed size whatever the list is doing. */
+.calc-body {
+  display: grid;
+  grid-template-columns: 126px minmax(0, 1fr);
+  gap: 8px;
+  align-items: stretch;
+}
+
+/* The calculator's digits go on the same side as the ones you play with —
+   placed explicitly rather than by direction, so the 3x3 pad inside is not
+   itself mirrored. */
+:root[data-keypad='right'] .calc-body {
+  grid-template-columns: minmax(0, 1fr) 126px;
+}
+
+:root[data-keypad='right'] .calc-body > .calc-left {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+:root[data-keypad='right'] .calc-body > .results {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.calc-left {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.calc-keys {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 4px;
+  height: 156px;
+}
+
+/* Sum and cell count live under the keypad, leaving the combinations the
+   full height of the panel. */
+.calc-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.calc-fields label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--dim);
+}
+
+/* Two digits at most, so no wider than that. The spinners are dropped: they
+   would take more room than the number does. */
+.calc-fields input[type='number'] {
+  flex: 0 0 46px;
+  width: 46px;
+  min-width: 0;
+  padding: 4px 2px;
+  font-size: 14px;
+  text-align: center;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.calc-fields input[type='number']::-webkit-outer-spin-button,
+.calc-fields input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.calc-keys button {
+  padding: 0;
+  font-size: 17px;
+}
+
+/* Required and ruled-out keys. They fade with everything else, so the colour
+   is carried by an opaque border and shadowed white text rather than by the
+   fill alone. */
+.calc-keys button.inc {
+  background: rgb(var(--inc-rgb) / var(--glass, 1));
+  border-color: #64e39b;
+  color: #ffffff;
+  font-weight: 800;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 0.75);
+}
+
+.calc-keys button.exc {
+  background: rgb(var(--exc-rgb) / var(--glass, 1));
+  border-color: #ff9090;
+  color: #ffffff;
+  font-weight: 800;
+  text-decoration: line-through;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 0.75);
+}
+
+/*
+ * Sat on the bottom edge rather than centred. Two reasons, both about the
+ * footer: its buttons stay solid whatever the transparency slider says, so they
+ * must not sit over the grid — down here they cover the keypad instead, which
+ * is not in use while the calculator is open. And an anchored bottom keeps the
+ * buttons still while the list of combinations above them changes, as well as
+ * within reach of a thumb.
+ */
+.overlay.calc-overlay {
+  align-items: end;
+  padding: 8px 16px calc(8px + env(safe-area-inset-bottom, 0px));
+}
+
+.calc .results {
+  /* No taller than the keypad column beside it, so the panel is as short as it
+     can be and the footer stays well clear of the grid. A longer list scrolls
+     inside the box rather than pushing the buttons down the screen. */
+  max-height: 220px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  font-variant-numeric: tabular-nums;
+  font-size: 14px;
+  line-height: 1.55;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 5px 7px;
+}
+
+.calc .results div.none {
+  color: var(--dim);
+  letter-spacing: 0;
+}
+
+/* Each combination can be struck off by hand: some eliminations come from
+   reasoning no digit filter can express. */
+.calc .combo {
+  cursor: pointer;
+  border-radius: 3px;
+  padding: 1px 5px;
+  position: relative;
+}
+
+.calc .combo:hover {
+  background: var(--panel);
+}
+
+.calc .combo .d {
+  display: inline-block;
+  min-width: 1.05em;
+  text-align: center;
+}
+
+/* Digits already entered in this cage. */
+.calc .combo .d.placed {
+  color: var(--accent);
+  font-weight: 800;
+  border-bottom: 2px solid var(--accent);
+}
+
+/* Digits the selected cell cannot take: already in its row, column or box. */
+.calc .combo .d.blocked {
+  color: var(--error);
+  opacity: 0.8;
+  border-bottom: 2px dotted var(--error);
+}
+
+/* Each digit is its own inline-block, and text-decoration does not reach into
+   those — so the strike is drawn as a rule across the whole row instead. */
+.calc .combo.struck {
+  opacity: 0.5;
+}
+
+.calc .combo.struck::after {
+  content: '';
+  position: absolute;
+  left: 3px;
+  right: 3px;
+  top: 50%;
+  height: 2px;
+  margin-top: -1px;
+  border-radius: 1px;
+  background: var(--error);
+  pointer-events: none;
+}
+
+.calc .combo.struck .d.placed {
+  color: var(--dim);
+  border-bottom-color: transparent;
+}
+
+/* Running totals at the top of Stats. */
+.totals {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.totals .tile {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 7px 4px;
+  text-align: center;
+  min-width: 0;
+}
+
+.totals .tile b {
+  display: block;
+  font-size: 19px;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.totals .tile small {
+  display: block;
+  color: var(--dim);
+  font-size: 10.5px;
+  margin-top: 2px;
+  /* A long label ("best · 3-N411") must not stretch its column. */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.totals .spread {
+  grid-column: 1 / -1;
+  margin: 0;
+  text-align: center;
+  color: var(--dim);
+  font-size: 11.5px;
+}
+
+.won {
+  text-align: center;
+}
+
+/* What the puzzle needed of you, on the win screen. */
+.summary.techniques {
+  color: var(--mark);
+}
+
+.won .time {
+  font-size: 34px;
+  font-weight: 800;
+  color: var(--accent);
+  margin: 6px 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 22px;
+  transform: translateX(-50%);
+  background: var(--panel);
+  border: 1px solid var(--accent);
+  color: var(--text);
+  padding: 9px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  z-index: 70;
+  box-shadow: 0 6px 20px var(--shadow);
+  pointer-events: none;
+}
+
+.spinner {
+  width: 34px;
+  height: 34px;
+  border: 3px solid var(--line);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 12px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 380px) {
+  .btn {
+    font-size: 13.5px;
+  }
+  .key {
+    font-size: 18px;
+    padding: 9px 4px;
+  }
+}
+
+/*
+ * Landscape on a phone: stacked, the controls end up a screen and a half below
+ * the board and cannot be reached. Side by side instead — the board takes the
+ * height it can get and the controls fill the width beside it. The board stays
+ * square by being given the same value for width and height, worked out from
+ * whichever of the two runs out first.
+ */
+@media (orientation: landscape) and (max-height: 560px) {
+  #app {
+    align-items: flex-start;
+  }
+
+  .screen.play {
+    /* 56px covers the title bar, the page padding and the gap under it;
+       236px reserves a usable width for the keypad column. */
+    --board: min(calc(100dvh - 56px), calc(100vw - 236px));
+    max-width: none;
+    height: 100dvh;
+    padding: 6px;
+    gap: 6px;
+    display: grid;
+    grid-template-columns: var(--board) minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  .screen.play > .titlebar {
+    grid-column: 1 / -1;
+    min-height: 34px;
+    padding: 3px 8px;
+  }
+
+  /* Keypad on the left: the board moves across and the controls take its
+     place, so the keypad ends up at the left edge — the mirror image of the
+     right-hand layout, where the controls reverse instead (.controls above). */
+  :root[data-keypad='left'] .screen.play {
+    grid-template-columns: minmax(0, 1fr) var(--board);
+  }
+
+  :root[data-keypad='left'] .screen.play > .board {
+    grid-column: 2;
+  }
+
+  :root[data-keypad='left'] .screen.play > .controls {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .screen.play > .board {
+    width: var(--board);
+    height: var(--board);
+    font-size: min(3.4vh, 26px);
+  }
+
+  /* Every row of controls shares out the height beside the board, rather than
+     each taking the height its text wants. */
+  .screen.play > .controls {
+    height: 100%;
+  }
+
+  .controls-left {
+    flex: 0 0 52%;
+  }
+
+  .numpad {
+    flex: 1 1 auto;
+    grid-auto-rows: minmax(0, 1fr);
+  }
+
+  .controls .actions {
+    grid-template-rows: repeat(3, minmax(0, 1fr));
+  }
+
+  .key,
+  .btn {
+    padding: 2px 4px;
+    font-size: 17px;
+  }
+
+  .key.clear {
+    padding: 2px 4px;
+  }
+
+  .controls .actions .btn {
+    font-size: 12.5px;
+  }
+
+  .under-keys,
+  .under-actions {
+    flex: 0 0 34px;
+  }
+
+  .pause-btn {
+    flex: 0 0 40px;
+  }
+}
+
+
+/* ================= Solduku: cards, tray, and board additions ================= */
+
+/* Suit colours per theme. Red suits get their own var so they never collide
+   with the error state; black suits ride the ordinary text colour. */
+:root {
+  --suit-red: #ff8a7a;
+  --joker: #b98bff;
+  --card-bg: #1c242c;
+  --card-line: #55636e;
+}
+
+:root[data-theme='day'] {
+  --suit-red: #c62828;
+  --joker: #7b3fd4;
+  --card-bg: #ffffff;
+  --card-line: #6b7986;
+}
+
+:root[data-theme='contrast'] {
+  --suit-red: #e69f00;
+  --joker: #cc79a7;
+  --card-bg: #000000;
+  --card-line: #ffffff;
+}
+
+/* Level rows have one pool, not two. */
+.level.sol {
+  grid-template-columns: minmax(84px, 1fr) minmax(0, 1.8fr);
+}
+
+.titlebar .lvl {
+  color: var(--dim);
+  font-size: 12.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.titlebar .scorebox {
+  margin-left: auto;
+  font-weight: 800;
+  font-size: 17px;
+  color: var(--sum);
+  font-variant-numeric: tabular-nums;
+}
+
+.titlebar .timerbox {
+  color: var(--dim);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  min-width: 42px;
+  text-align: right;
+}
+
+/* Givens are printed digits; they should read quieter than played cards. */
+.cell .big.given {
+  color: var(--dim);
+  font-weight: 600;
+}
+
+/* Where the selected card could legally go. */
+.cell.legal {
+  background: var(--single-bg);
+  box-shadow: inset 0 0 0 1.5px var(--single);
+  cursor: pointer;
+}
+
+/* A played card, drawn as a mini card face inside its cell. */
+.scard {
+  width: 82%;
+  height: 88%;
+  background: var(--card-bg);
+  border: 1px solid var(--card-line);
+  border-radius: 10%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  gap: 4%;
+}
+
+.scard .d {
+  font-size: 0.52em;
+  font-weight: 700;
+}
+
+.scard .st {
+  font-size: 0.3em;
+}
+
+.scard.red .d,
+.scard.red .st {
+  color: var(--suit-red);
+}
+
+.scard.black .d,
+.scard.black .st {
+  color: var(--text);
+}
+
+.scard.joker .d {
+  color: var(--joker);
+  font-size: 0.46em;
+}
+
+.scard.joker .st {
+  color: var(--joker);
+  font-size: 0.22em;
+  letter-spacing: 0.5px;
+}
+
+/* ---------- the tray: hand, free cells, deck ---------- */
+
+.tray {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 8px;
+}
+
+.tray-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 64px;
+}
+
+.tray-label {
+  flex: 0 0 34px;
+  color: var(--dim);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.cardrow {
+  display: flex;
+  gap: 6px;
+  flex: 1 1 auto;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.tray-empty {
+  color: var(--dim);
+  font-size: 12px;
+}
+
+/* A card in the hand or a free cell. Sized for thumbs. */
+.pcard {
+  width: 46px;
+  height: 62px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-line);
+  border-radius: 7px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  line-height: 1;
+  padding: 0;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.pcard .d {
+  font-size: 21px;
+  font-weight: 800;
+}
+
+.pcard .st {
+  font-size: 13px;
+}
+
+.pcard.red .d,
+.pcard.red .st {
+  color: var(--suit-red);
+}
+
+.pcard.black .d,
+.pcard.black .st {
+  color: var(--text);
+}
+
+.pcard.joker .d {
+  color: var(--joker);
+}
+
+.pcard.joker .st {
+  color: var(--joker);
+  font-size: 10px;
+  letter-spacing: 0.5px;
+}
+
+.pcard.sel {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+.pcard.empty {
+  background: transparent;
+  border: 1.5px dashed var(--line);
+  color: var(--dim);
+  font-size: 18px;
+  font-weight: 400;
+}
+
+.pcard.empty:active {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.pcard:active {
+  background: var(--accent-dim);
+}
+
+/* Deck counter sits at the end of the hand row. */
+.deckpile {
+  margin-left: auto;
+  flex: 0 0 auto;
+  min-width: 46px;
+  height: 62px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--panel-2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.deckpile .count {
+  font-size: 18px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.deckpile small {
+  font-size: 9px;
+  color: var(--dim);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+/* Landscape: board beside the tray, as the killer layout does with controls. */
+@media (orientation: landscape) and (max-height: 560px) {
+  .screen.play {
+    max-width: none;
+    display: grid;
+    grid-template-columns: minmax(0, 44vh) minmax(220px, 1fr);
+    grid-template-rows: auto auto 1fr;
+    align-items: start;
+    column-gap: 8px;
+  }
+
+  .screen.play .titlebar {
+    grid-column: 1 / -1;
+  }
+
+  .screen.play .board {
+    grid-row: 2 / span 2;
+    width: auto;
+    height: min(44vh, 92vw);
+  }
+}
+
+/* Score in the titlebar doubles as the way into the scoring panel. */
+.titlebar .scorebox {
+  background: none;
+  border: none;
+  padding: 2px 4px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+/* Flush prospects in the scoring panel. */
+.prospects {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.prospect {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 5px 8px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--panel-2);
+  font-size: 13px;
+}
+
+.prospect .p-unit {
+  flex: 0 0 76px;
+  font-weight: 700;
+}
+
+.prospect .p-state {
+  color: var(--dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.prospect.alive .p-unit {
+  color: var(--single);
+}
+
+.prospect.lost {
+  opacity: 0.6;
+}
