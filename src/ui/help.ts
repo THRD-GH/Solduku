@@ -26,7 +26,7 @@ export function openHelp(): void {
       el(
         'p',
         {},
-        'Free cells park one card each, like FreeCell. The ★ joker is fully wild: it can be played onto any empty cell and counts as whatever digit and suit the cell needs.',
+        'Free cells park one card each, like FreeCell. The joker — the jester card — is fully wild: it can be played onto any empty cell and counts as whatever digit and suit the cell needs.',
       ),
       el('h3', {}, 'Scoring'),
       el(

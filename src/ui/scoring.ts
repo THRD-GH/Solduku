@@ -74,7 +74,7 @@ export function openScoring(game: Game | null): void {
       } else {
         const list = el('div', { class: 'prospects' });
         for (const p of prospects) {
-          const suit = p.suit === -1 ? '★' : SUIT_GLYPHS[p.suit];
+          const suit = p.suit === -1 ? 'jokers' : SUIT_GLYPHS[p.suit];
           list.append(
             el(
               'div',

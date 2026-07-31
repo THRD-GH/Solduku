@@ -15,10 +15,52 @@ import { bindTap } from './pointer.ts';
 import { openMainMenu } from './menu.ts';
 import type { AppContext } from './app-context.ts';
 
+const SVG_NS = 'http://www.w3.org/2000/svg';
+
+/** A three-pronged jester cap with bells — the joker's face, drawn rather
+ *  than shipped as an image so it recolours with the theme. */
+function jesterCap(): SVGSVGElement {
+  const svg = document.createElementNS(SVG_NS, 'svg');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('class', 'jhat');
+  svg.setAttribute('aria-hidden', 'true');
+
+  const cap = document.createElementNS(SVG_NS, 'path');
+  cap.setAttribute(
+    'd',
+    'M5 15 C4.5 12 3.5 9 4 7 C6 9 7.5 10 8.7 11.2 C9.5 8 10.5 5 12 3.5 ' +
+      'C13.5 5 14.5 8 15.3 11.2 C16.5 10 18 9 20 7 C20.5 9 19.5 12 19 15 Z',
+  );
+  cap.setAttribute('fill', 'currentColor');
+
+  const band = document.createElementNS(SVG_NS, 'rect');
+  band.setAttribute('x', '4.2');
+  band.setAttribute('y', '15.6');
+  band.setAttribute('width', '15.6');
+  band.setAttribute('height', '3.2');
+  band.setAttribute('rx', '1.6');
+  band.setAttribute('fill', 'currentColor');
+
+  svg.append(cap, band);
+  for (const [cx, cy] of [
+    [4, 6.2],
+    [12, 3],
+    [20, 6.2],
+  ] as const) {
+    const bell = document.createElementNS(SVG_NS, 'circle');
+    bell.setAttribute('cx', String(cx));
+    bell.setAttribute('cy', String(cy));
+    bell.setAttribute('r', '1.7');
+    bell.setAttribute('fill', 'currentColor');
+    svg.append(bell);
+  }
+  return svg;
+}
+
 /** A card's face, at cell size (.scard) or tray size (.pcard content). */
-function cardFace(card: Card): HTMLElement[] {
+function cardFace(card: Card): (HTMLElement | SVGSVGElement)[] {
   if (isJoker(card)) {
-    return [el('span', { class: 'd' }, '★'), el('span', { class: 'st' }, 'wild')];
+    return [jesterCap(), el('span', { class: 'st' }, 'JOKER')];
   }
   return [
     el('span', { class: 'd' }, String(card.digit)),

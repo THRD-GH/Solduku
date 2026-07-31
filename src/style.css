@@ -1830,16 +1830,17 @@ body {
   align-items: center;
   justify-content: center;
   line-height: 1;
-  gap: 4%;
+  gap: 2%;
 }
 
 .scard .d {
-  font-size: 0.52em;
+  font-size: 0.5em;
   font-weight: 700;
 }
 
 .scard .st {
-  font-size: 0.3em;
+  font-size: 0.44em;
+  font-weight: 700;
 }
 
 .scard.red .d,
@@ -1860,7 +1861,23 @@ body {
 .scard.joker .st {
   color: var(--joker);
   font-size: 0.22em;
+  font-weight: 700;
   letter-spacing: 0.5px;
+}
+
+/* The jester cap, sized against its card: em on the board, px in the tray. */
+.scard .jhat {
+  width: 0.62em;
+  height: 0.62em;
+  color: var(--joker);
+  display: block;
+}
+
+.pcard .jhat {
+  width: 26px;
+  height: 26px;
+  color: var(--joker);
+  display: block;
 }
 
 /* ---------- the tray: hand, free cells, deck ---------- */
@@ -1916,7 +1933,7 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 3px;
+  gap: 2px;
   line-height: 1;
   padding: 0;
   touch-action: manipulation;
@@ -1925,12 +1942,13 @@ body {
 }
 
 .pcard .d {
-  font-size: 21px;
+  font-size: 20px;
   font-weight: 800;
 }
 
 .pcard .st {
-  font-size: 13px;
+  font-size: 18px;
+  font-weight: 700;
 }
 
 .pcard.red .d,
@@ -1950,6 +1968,7 @@ body {
 .pcard.joker .st {
   color: var(--joker);
   font-size: 10px;
+  font-weight: 700;
   letter-spacing: 0.5px;
 }
 
