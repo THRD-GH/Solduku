@@ -12,7 +12,7 @@ import {
 } from '../core/grid.ts';
 import { CLASSIC_CONS, LEVEL_CONFIG } from '../core/classic.ts';
 import { propagatedCandidates } from '../core/solver.ts';
-import { isJoker } from '../core/types.ts';
+import { isJoker, JOKER_SUIT } from '../core/types.ts';
 import type { Card, Puzzle, PuzzleId } from '../core/types.ts';
 import type { SavedGame } from './storage.ts';
 
@@ -86,6 +86,9 @@ export class Game {
   placed: (Card | null)[];
   hand: Card[];
   free: (Card | null)[];
+  /** Jokers waiting in their own pile, separate from the number deck. */
+  jokerPile = 0;
+  private initialJokers = 0;
   /** Cards drawn so far — deck[0..deckPos) are gone. */
   deckPos = 0;
   score = 0;
@@ -110,6 +113,8 @@ export class Game {
     this.puzzle = puzzle;
     const cfg = LEVEL_CONFIG[puzzle.difficulty];
     if (restore) {
+      this.initialJokers = restore.initialJokers ?? (puzzle.jokerCount === undefined ? 0 : puzzle.jokerCount);
+      this.jokerPile = restore.jokerPile ?? this.initialJokers;
       this.placed = restore.placed.map((c) => (c ? { ...c } : null));
       this.hand = restore.hand.map((c) => ({ ...c }));
       this.free = restore.free.map((c) => (c ? { ...c } : null));
@@ -129,6 +134,8 @@ export class Game {
       this.dead = !this.completed && !this.anyMove();
       this.completable = this.checkCompletable();
     } else {
+      this.initialJokers = puzzle.jokerCount ?? cfg.jokers;
+      this.jokerPile = this.initialJokers;
       this.placed = new Array<Card | null>(CELLS).fill(null);
       this.hand = [];
       this.free = new Array<Card | null>(cfg.free).fill(null);
@@ -216,7 +223,7 @@ export class Game {
   /** Digit cards and wilds still to come: hand, free cells and deck. */
   private supply(): { have: number[]; wild: number } {
     const have = new Array<number>(10).fill(0);
-    let wild = 0;
+    let wild = this.jokerPile;
     const count = (card: Card): void => {
       if (isJoker(card)) wild++;
       else have[card.digit]++;
@@ -370,12 +377,18 @@ export class Game {
       for (let i = 0; i < CELLS; i++) if (this.legal(i, card)) return true;
     }
     if (this.hand.length > 0 && this.free.some((f) => f === null)) return true;
+    if (this.canDrawJoker()) return true;
     return this.canDraw();
   }
 
   /** The deck can be tapped whenever it can fill at least one hand slot. */
   canDraw(): boolean {
     return !this.completed && !this.dead && this.hand.length < this.handSize && this.deckLeft > 0;
+  }
+
+  /** A banked joker may enter even a dead deal, provided there is hand room. */
+  canDrawBankedJoker(): boolean {
+    return !this.completed;
   }
 
   private refill(): number {
@@ -391,6 +404,47 @@ export class Game {
   draw(): number {
     if (!this.canDraw()) return 0;
     return this.refill();
+  }
+
+  /** Load one player-earned joker into the separate joker pile. */
+  addBankedJokerToPile(): boolean {
+    if (!this.canDrawBankedJoker()) return false;
+    this.jokerPile++;
+    this.selected = null;
+    this.dead = !this.anyMove();
+    this.completable = this.checkCompletable();
+    return true;
+  }
+
+  /** Whether one further joker would restore a valid continuation. */
+  canCompleteWithExtraJoker(): boolean {
+    if (this.completed) return false;
+    this.jokerPile++;
+    const completable = this.checkCompletable();
+    this.jokerPile--;
+    return completable;
+  }
+
+  /** A joker can be drawn from its own pile into an open hand slot. */
+  canDrawJoker(): boolean {
+    return !this.completed && this.hand.length < this.handSize && this.jokerPile > 0;
+  }
+
+  drawJoker(): boolean {
+    if (!this.canDrawJoker()) return false;
+    this.jokerPile--;
+    this.hand.push({ digit: 0, suit: JOKER_SUIT });
+    this.selected = null;
+    this.dead = !this.anyMove();
+    return true;
+  }
+
+  /** Add one empty free cell from the player's earned bonus-slot bank. */
+  addBonusFreeSlot(): boolean {
+    if (this.completed) return false;
+    this.free.push(null);
+    this.dead = !this.anyMove();
+    return true;
   }
 
   private takeFrom(zone: Zone): Card | null {
@@ -589,6 +643,7 @@ export class Game {
     this.placed = new Array<Card | null>(CELLS).fill(null);
     this.hand = [];
     this.free = new Array<Card | null>(cfg.free).fill(null);
+    this.jokerPile = this.initialJokers;
     this.deckPos = 0;
     this.score = 0;
     this.scoredUnits.clear();
@@ -608,6 +663,8 @@ export class Game {
       placed: this.placed,
       hand: this.hand,
       free: this.free,
+      jokerPile: this.jokerPile,
+      initialJokers: this.initialJokers,
       deckPos: this.deckPos,
       score: this.score,
       scoredUnits: [...this.scoredUnits],

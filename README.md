@@ -18,10 +18,8 @@ and storage model.
   can wedge the deal.
 - **Hand and free cells** — tap the draw pile to fill open hand slots; free
   cells park awkward cards, FreeCell-style.
-  Free cells park one card each, FreeCell-style.
-- **Joker** — fully wild: any empty cell, counts as whatever digit and suit
-  the position needs. Its digit is missing from the deck, so it must be spent
-  wisely.
+- **Joker pile** — each level has its own visible joker pile. Jokers are
+  fully wild and are drawn into an open hand slot when you choose.
 - **Scoring** — +1 per card placed, +10 per completed row/column/box, and
   +12 per played card when a completed unit is a flush (every card you played
   into it shares one suit, three cards minimum, jokers wild).
@@ -31,9 +29,12 @@ and storage model.
   winning continuation; red destinations are legal but cannot finish with the
   remaining cards. Turn it off in Settings to play blind.
 - **Joker aid** — optional Assist and Generous settings raise the joker count
-  for new deals while keeping one card per open cell.
+  in the separate pile for new deals while keeping the number deck intact.
 - **Joker bank** — the first win of a deal earns one single-use joker. Banked
-  jokers can be added to a new deal from Settings and are then spent.
+  jokers can be added to a new deal from Settings or loaded into the Joker
+  Pile during play; either way, they are spent.
+- **Bonus free slots** — every tenth first-time deal win earns one single-use
+  bonus free slot, which can be added from its own pile during a deal.
 
 ## Levels
 

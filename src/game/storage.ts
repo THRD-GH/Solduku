@@ -65,6 +65,10 @@ export interface SavedGame {
   placed: (Card | null)[];
   hand: Card[];
   free: (Card | null)[];
+  /** Jokers still waiting in the separate joker pile. */
+  jokerPile?: number;
+  /** The pile size at the deal's start, used when restarting. */
+  initialJokers?: number;
   /** Cards drawn so far — the deck itself lives in the puzzle. */
   deckPos: number;
   score: number;
@@ -100,17 +104,33 @@ export const saveSettings = (s: Settings): void => write(KEY.settings, s);
 
 interface Rewards {
   jokers: number;
+  successfulGames: number;
+  freeSlots: number;
 }
 
-const loadRewards = (): Rewards => ({ jokers: 0, ...read<Partial<Rewards>>(KEY.rewards, {}) });
+const loadRewards = (): Rewards => ({ jokers: 0, successfulGames: 0, freeSlots: 0, ...read<Partial<Rewards>>(KEY.rewards, {}) });
 export const jokerBank = (): number => loadRewards().jokers;
+export const freeSlotBank = (): number => loadRewards().freeSlots;
+export const winsToNextFreeSlot = (): number => {
+  const progress = loadRewards().successfulGames % 10;
+  return progress === 0 ? 10 : 10 - progress;
+};
 
-/** A first-time deal win earns one single-use joker. */
-export function earnJoker(): number {
+export interface WinReward {
+  jokers: number;
+  freeSlots: number;
+  earnedFreeSlot: boolean;
+}
+
+/** A first-time deal win earns a joker; every tenth earns a bonus free slot. */
+export function earnWinReward(): WinReward {
   const rewards = loadRewards();
   rewards.jokers++;
+  rewards.successfulGames++;
+  const earnedFreeSlot = rewards.successfulGames % 10 === 0;
+  if (earnedFreeSlot) rewards.freeSlots++;
   write(KEY.rewards, rewards);
-  return rewards.jokers;
+  return { jokers: rewards.jokers, freeSlots: rewards.freeSlots, earnedFreeSlot };
 }
 
 /** Spend banked jokers atomically when starting a new deal. */
@@ -119,6 +139,15 @@ export function spendJokers(amount: number): boolean {
   const rewards = loadRewards();
   if (amount > rewards.jokers) return false;
   rewards.jokers -= amount;
+  write(KEY.rewards, rewards);
+  return true;
+}
+
+/** Spend one earned bonus free-slot token. */
+export function spendFreeSlot(): boolean {
+  const rewards = loadRewards();
+  if (rewards.freeSlots < 1) return false;
+  rewards.freeSlots--;
   write(KEY.rewards, rewards);
   return true;
 }

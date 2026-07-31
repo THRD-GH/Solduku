@@ -1911,8 +1911,8 @@ body {
 }
 
 .pcard .jhat {
-  width: 26px;
-  height: 26px;
+  width: 31px;
+  height: 31px;
   color: var(--joker);
   display: block;
 }
@@ -2037,32 +2037,61 @@ body {
   background: var(--accent-dim);
 }
 
-/* Deck counter sits at the end of the hand row. */
+/* The deck's count sits below the card back, leaving the back fully visible. */
 .deckpile {
   margin-left: auto;
   flex: 0 0 auto;
-  min-width: 46px;
-  height: 62px;
-  border: 1px solid var(--line);
-  border-radius: 7px;
-  background: var(--panel-2);
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 2px;
+  gap: 3px;
+  background: transparent;
+  border: 0;
   color: var(--text);
   cursor: pointer;
   font-family: inherit;
   padding: 0;
-  overflow: hidden;
-  position: relative;
-  box-shadow: 3px 3px 0 color-mix(in srgb, var(--line) 80%, transparent);
+}
+
+/* Keep each hand's full shape visible. Face-down slots make it clear that
+   cards are waiting in the draw pile, without leaking their rank or suit. */
+.pcard.undrawn {
+  border-color: var(--accent);
+  background:
+    repeating-linear-gradient(45deg, color-mix(in srgb, var(--accent) 24%, var(--panel-2)) 0 3px, var(--panel-2) 3px 6px);
+  box-shadow: inset 0 0 0 3px var(--panel), inset 0 0 0 4px color-mix(in srgb, var(--accent) 65%, transparent);
+  cursor: default;
+}
+
+.pcard.undrawn.spent {
+  border-color: var(--line);
+  background: transparent;
+  box-shadow: none;
+  opacity: 0.5;
+}
+
+.undrawn-mark {
+  color: var(--text);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.7px;
+  text-shadow: 0 1px 2px var(--shadow);
 }
 
 /* A face-down playing card: suit pattern and inner border make the draw pile
-   read as a deck at a glance, while the count remains legible in front. */
-.deckpile::before {
+   read as a deck at a glance. */
+.deck-back {
+  width: 46px;
+  height: 62px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--panel-2);
+  box-shadow: 3px 3px 0 color-mix(in srgb, var(--line) 80%, transparent);
+  overflow: hidden;
+  position: relative;
+}
+
+.deck-back::before {
   content: '♠';
   position: absolute;
   inset: 4px;
@@ -2078,11 +2107,127 @@ body {
     var(--panel-2);
 }
 
-.deckpile .count,
-.deckpile small {
-  position: relative;
-  z-index: 1;
-  text-shadow: 0 1px 2px var(--shadow);
+.deck-count {
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+  min-height: 13px;
+  font-size: 12px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.deck-count small {
+  color: var(--dim);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+/* The Joker Bank is a second card-sized pile so earned jokers are always in
+   view during a deal, rather than hidden away in Settings. */
+.jokerpile,
+.bankpile {
+  flex: 0 0 auto;
+  width: 46px;
+  height: 62px;
+  border: 1px solid var(--joker);
+  border-radius: 7px;
+  background: var(--card-bg);
+  color: var(--joker);
+  cursor: pointer;
+  display: grid;
+  grid-template-rows: 1fr auto auto;
+  place-items: center;
+  font-family: inherit;
+  line-height: 1;
+  padding: 3px 0 4px;
+}
+
+.jokerpile .jhat,
+.bankpile .jhat {
+  width: 24px;
+  height: 24px;
+  color: var(--joker);
+}
+
+.jokerpile .count,
+.bankpile .count {
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.jokerpile small,
+.bankpile small {
+  color: var(--dim);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.jokerpile:disabled,
+.bankpile:disabled {
+  border-color: var(--line);
+  cursor: default;
+  opacity: 0.48;
+}
+
+.jokerpile:not(:disabled):active,
+.bankpile:not(:disabled):active {
+  background: color-mix(in srgb, var(--joker) 20%, var(--card-bg));
+}
+
+/* Earned every tenth first-time win, this pile creates an extra empty FreeCell
+   when spent. It deliberately has a different plus mark from the joker art. */
+.slotpile {
+  flex: 0 0 auto;
+  width: 46px;
+  height: 62px;
+  border: 1px solid var(--single);
+  border-radius: 7px;
+  background: var(--card-bg);
+  color: var(--single);
+  cursor: pointer;
+  display: grid;
+  grid-template-rows: 1fr auto auto;
+  place-items: center;
+  font-family: inherit;
+  line-height: 1;
+  padding: 3px 0 4px;
+}
+
+.slotpile strong {
+  font-size: 25px;
+  font-weight: 500;
+}
+
+.slotpile .count {
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.slotpile small {
+  color: var(--dim);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.slotpile:disabled {
+  border-color: var(--line);
+  cursor: default;
+  opacity: 0.48;
+}
+
+.slotpile:not(:disabled):active {
+  background: color-mix(in srgb, var(--single) 18%, var(--card-bg));
 }
 
 .deckpile:disabled {
@@ -2090,22 +2235,9 @@ body {
   opacity: 0.55;
 }
 
-.deckpile:not(:disabled):active {
+.deckpile:not(:disabled):active .deck-back {
   background: var(--accent-dim);
   border-color: var(--accent);
-}
-
-.deckpile .count {
-  font-size: 18px;
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-}
-
-.deckpile small {
-  font-size: 9px;
-  color: var(--dim);
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
 }
 
 /* Landscape: board beside the tray, as the killer layout does with controls. */

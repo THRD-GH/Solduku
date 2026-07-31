@@ -5,10 +5,15 @@ import type { Card } from '../core/types.ts';
 import type { Game, PlaceResult, Zone } from '../game/state.ts';
 import {
   clearSaveFor,
-  earnJoker,
+  earnWinReward,
+  freeSlotBank,
+  jokerBank,
   markFinished,
   saveGame,
   saveHistory,
+  spendFreeSlot,
+  spendJokers,
+  winsToNextFreeSlot,
 } from '../game/storage.ts';
 import { buildStamp, el, formatTime } from './dom.ts';
 import { confirmDialog, openOverlay, toast } from './overlay.ts';
@@ -26,34 +31,30 @@ function jesterCap(): SVGSVGElement {
   svg.setAttribute('class', 'jhat');
   svg.setAttribute('aria-hidden', 'true');
 
-  const cap = document.createElementNS(SVG_NS, 'path');
-  cap.setAttribute(
-    'd',
-    'M5 15 C4.5 12 3.5 9 4 7 C6 9 7.5 10 8.7 11.2 C9.5 8 10.5 5 12 3.5 ' +
-      'C13.5 5 14.5 8 15.3 11.2 C16.5 10 18 9 20 7 C20.5 9 19.5 12 19 15 Z',
-  );
-  cap.setAttribute('fill', 'currentColor');
+  const add = (tag: string, attrs: Record<string, string>): SVGElement => {
+    const part = document.createElementNS(SVG_NS, tag);
+    for (const [key, value] of Object.entries(attrs)) part.setAttribute(key, value);
+    svg.append(part);
+    return part;
+  };
 
-  const band = document.createElementNS(SVG_NS, 'rect');
-  band.setAttribute('x', '4.2');
-  band.setAttribute('y', '15.6');
-  band.setAttribute('width', '15.6');
-  band.setAttribute('height', '3.2');
-  band.setAttribute('rx', '1.6');
-  band.setAttribute('fill', 'currentColor');
-
-  svg.append(cap, band);
+  add('path', {
+    d: 'M4 13.7 C3.8 10.4 3.3 7.8 4.5 5.7 C6.4 7.7 8.2 9.2 9.8 10.5 C10.2 7.1 11.2 4.3 12 2.8 C12.8 4.3 13.8 7.1 14.2 10.5 C15.8 9.2 17.6 7.7 19.5 5.7 C20.7 7.8 20.2 10.4 20 13.7 Z',
+    fill: 'currentColor',
+  });
+  add('path', { d: 'M5.5 14.2 H18.5 L16.6 17.1 L14.6 15.8 L12 18.1 L9.4 15.8 L7.4 17.1 Z', fill: 'currentColor' });
+  add('ellipse', { cx: '12', cy: '15.2', rx: '4.5', ry: '5.1', fill: 'var(--card-bg)', stroke: 'currentColor', 'stroke-width': '1.25' });
+  add('circle', { cx: '10.35', cy: '14.5', r: '0.7', fill: 'currentColor' });
+  add('circle', { cx: '13.65', cy: '14.5', r: '0.7', fill: 'currentColor' });
+  add('path', { d: 'M10 17 C11.15 18 12.85 18 14 17', fill: 'none', stroke: 'currentColor', 'stroke-width': '1.05', 'stroke-linecap': 'round' });
+  add('path', { d: 'M10.5 20.2 L12 18.1 L13.5 20.2', fill: 'none', stroke: 'currentColor', 'stroke-width': '1.35', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' });
   for (const [cx, cy] of [
-    [4, 6.2],
-    [12, 3],
-    [20, 6.2],
+    [4.4, 5.6],
+    [12, 2.8],
+    [19.6, 5.6],
   ] as const) {
-    const bell = document.createElementNS(SVG_NS, 'circle');
-    bell.setAttribute('cx', String(cx));
-    bell.setAttribute('cy', String(cy));
-    bell.setAttribute('r', '1.7');
-    bell.setAttribute('fill', 'currentColor');
-    svg.append(bell);
+    add('circle', { cx: String(cx), cy: String(cy), r: '1.55', fill: 'currentColor' });
+    add('circle', { cx: String(cx), cy: String(cy), r: '0.42', fill: 'var(--card-bg)' });
   }
   return svg;
 }
@@ -97,6 +98,12 @@ export class PlayScreen {
   private doomBar!: HTMLElement;
   private handRow: HTMLElement;
   private freeRow: HTMLElement;
+  private freeSlotPile: HTMLButtonElement;
+  private freeSlotCount: HTMLElement;
+  private bankPile: HTMLButtonElement;
+  private bankCount: HTMLElement;
+  private jokerPile: HTMLButtonElement;
+  private jokerCount: HTMLElement;
   private deckPile: HTMLButtonElement;
   private deckCount: HTMLElement;
   private scoreBox: HTMLElement;
@@ -165,10 +172,37 @@ export class PlayScreen {
     this.deckPile = el(
       'button',
       { class: 'deckpile', title: 'Draw cards until the hand is full', 'aria-label': 'Draw cards' },
-      this.deckCount,
-      el('small', {}, 'draw'),
+      el('span', { class: 'deck-back', 'aria-hidden': 'true' }),
+      el('span', { class: 'deck-count' }, this.deckCount, el('small', {}, 'cards')),
     );
     this.deckPile.addEventListener('click', () => this.drawCards());
+    this.jokerCount = el('span', { class: 'count' }, String(game.jokerPile));
+    this.jokerPile = el(
+      'button',
+      { class: 'jokerpile', title: 'Draw a joker into an open hand slot', 'aria-label': 'Joker pile' },
+      jesterCap(),
+      this.jokerCount,
+      el('small', {}, 'jokers'),
+    );
+    this.jokerPile.addEventListener('click', () => this.drawJoker());
+    this.bankCount = el('span', { class: 'count' }, String(jokerBank()));
+    this.bankPile = el(
+      'button',
+      { class: 'bankpile', title: 'Add a banked joker to the joker pile', 'aria-label': 'Joker bank' },
+      jesterCap(),
+      this.bankCount,
+      el('small', {}, 'bank'),
+    );
+    this.bankPile.addEventListener('click', () => this.loadBankedJoker());
+    this.freeSlotCount = el('span', { class: 'count' }, String(freeSlotBank()));
+    this.freeSlotPile = el(
+      'button',
+      { class: 'slotpile', title: 'Add a bonus free slot', 'aria-label': 'Bonus free-slot bank' },
+      el('strong', {}, '+'),
+      this.freeSlotCount,
+      el('small', {}, 'slots'),
+    );
+    this.freeSlotPile.addEventListener('click', () => this.useBonusFreeSlot());
 
     const tray = el(
       'div',
@@ -179,12 +213,15 @@ export class PlayScreen {
         el('span', { class: 'tray-label' }, 'Hand'),
         this.handRow,
         this.deckPile,
+        this.jokerPile,
+        this.bankPile,
       ),
       el(
         'div',
         { class: 'tray-row' },
         el('span', { class: 'tray-label' }, 'Free'),
         this.freeRow,
+        this.freeSlotPile,
       ),
     );
 
@@ -296,8 +333,19 @@ export class PlayScreen {
       btn.addEventListener('click', () => this.toggleSelect(zone));
       this.handRow.append(btn);
     });
-    if (game.hand.length === 0) {
-      this.handRow.append(el('span', { class: 'tray-empty' }, 'empty'));
+    for (let slot = game.hand.length; slot < game.handSize; slot++) {
+      const canDraw = game.deckLeft > 0;
+      this.handRow.append(
+        el(
+          'div',
+          {
+            class: `pcard undrawn ${canDraw ? '' : 'spent'}`.trim(),
+            role: 'img',
+            'aria-label': canDraw ? 'Card not yet drawn' : 'Empty hand slot',
+          },
+          el('span', { class: 'undrawn-mark' }, canDraw ? 'DRAW' : '—'),
+        ),
+      );
     }
 
     this.freeRow.replaceChildren();
@@ -323,6 +371,37 @@ export class PlayScreen {
       : game.deckLeft === 0
         ? 'Deck empty'
         : 'Hand full';
+    this.jokerCount.textContent = String(game.jokerPile);
+    this.jokerPile.disabled = !game.canDrawJoker();
+    this.jokerPile.title =
+      game.jokerPile === 0
+        ? 'Joker pile empty'
+        : game.canDrawJoker()
+          ? `Draw one joker · ${game.jokerPile} available`
+          : 'Hand full';
+    const banked = jokerBank();
+    this.bankCount.textContent = String(banked);
+    this.bankPile.disabled = banked === 0 || !game.canDrawBankedJoker();
+    this.bankPile.title =
+      banked === 0
+        ? 'No banked jokers'
+        : game.canDrawBankedJoker()
+          ? `Draw one banked joker · ${banked} available`
+          : 'Hand full';
+    this.bankPile.disabled = banked === 0 || !game.canDrawBankedJoker();
+    this.bankPile.title =
+      banked === 0
+        ? 'No banked jokers'
+        : game.canDrawBankedJoker()
+          ? `Add one earned joker to the joker pile · ${banked} available`
+          : 'Deal complete';
+    const freeSlots = freeSlotBank();
+    this.freeSlotCount.textContent = String(freeSlots);
+    this.freeSlotPile.disabled = freeSlots === 0 || game.completed;
+    this.freeSlotPile.title =
+      freeSlots === 0
+        ? `No bonus free slots · ${winsToNextFreeSlot()} wins to the next`
+        : `Add one bonus free slot · ${freeSlots} available`;
     this.scoreBox.textContent = String(game.score);
     // The doomed marker follows the setting, so purists can play blind.
     const doomed = !game.completable && this.ctx.settings.warnDeadGrid;
@@ -402,10 +481,46 @@ export class PlayScreen {
     this.save();
   }
 
+  private drawJoker(): void {
+    if (!this.game.drawJoker()) return;
+    this.render();
+    this.save();
+  }
+
+  private loadBankedJoker(): void {
+    const banked = jokerBank();
+    if (banked === 0 || !this.game.canDrawBankedJoker()) return;
+    confirmDialog(
+      `Add one earned joker to this deal's joker pile? ${banked - 1} will remain.`,
+      () => {
+        if (!spendJokers(1) || !this.game.addBankedJokerToPile()) return;
+        this.render();
+        this.save();
+      },
+    );
+  }
+
+  private useBonusFreeSlot(): void {
+    const banked = freeSlotBank();
+    if (banked === 0 || this.game.completed) return;
+    confirmDialog(
+      `Use one bonus free slot in this deal? ${banked - 1} will remain.`,
+      () => {
+        if (!spendFreeSlot() || !this.game.addBonusFreeSlot()) return;
+        this.render();
+        this.save();
+      },
+    );
+  }
+
   private afterMove(result: PlaceResult | null): void {
     this.render();
 
     if (result !== null && result.killedGrid && this.ctx.settings.warnDeadGrid) {
+      if (jokerBank() > 0 && this.game.canCompleteWithExtraJoker()) {
+        this.extraJokerPanel();
+        return;
+      }
       this.doomPanel();
       return;
     }
@@ -443,7 +558,7 @@ export class PlayScreen {
     markFinished(this.ctx.history, game.id, game.score, Date.now());
     saveHistory(this.ctx.history);
     clearSaveFor(game.id);
-    const bank = firstCompletion ? earnJoker() : null;
+    const reward = firstCompletion ? earnWinReward() : null;
 
     const isBest = previous === undefined || game.score > previous;
     openOverlay(
@@ -475,9 +590,15 @@ export class PlayScreen {
               ? 'No flushes this time.'
               : `${game.flushUnits.size} flush${game.flushUnits.size === 1 ? '' : 'es'} along the way.`,
           ),
-          bank === null
+          reward === null
             ? ''
-            : el('p', { class: 'summary' }, `You earned a joker · ${bank} now banked.`),
+            : el(
+                'p',
+                { class: 'summary' },
+                reward.earnedFreeSlot
+                  ? `You earned a joker and a bonus free slot · ${reward.jokers} jokers and ${reward.freeSlots} slots now banked.`
+                  : `You earned a joker · ${reward.jokers} now banked.`,
+              ),
           el('div', { class: 'actions', style: 'grid-template-columns: 1fr 1fr; margin-top: 12px' }, next, menu),
         );
       },
@@ -524,6 +645,40 @@ export class PlayScreen {
           on,
           restart,
         ),
+      );
+    });
+  }
+
+  /** The completion solver found that one earned joker repairs this position. */
+  private extraJokerPanel(): void {
+    const banked = jokerBank();
+    openOverlay((close) => {
+      const use = el('button', { class: 'btn primary' }, 'Use extra joker');
+      use.addEventListener('click', () => {
+        if (!spendJokers(1) || !this.game.addBankedJokerToPile()) return;
+        close();
+        this.render();
+        this.save();
+      });
+      const on = el('button', { class: 'btn' }, 'Play on');
+      on.addEventListener('click', close);
+      const restart = el('button', { class: 'btn' }, 'Restart');
+      restart.addEventListener('click', () => {
+        close();
+        this.game.restart();
+        this.render();
+        this.save();
+      });
+      return el(
+        'div',
+        { class: 'panel' },
+        el('h2', {}, 'An extra joker can save this'),
+        el(
+          'p',
+          { class: 'summary' },
+          `The normal joker pile cannot complete this grid, but the solver found a valid continuation with one extra joker. Use one of your ${banked} banked jokers to add it to the joker pile.`,
+        ),
+        el('div', { class: 'actions', style: 'grid-template-columns: 1fr 1fr 1fr; margin-top: 12px' }, use, on, restart),
       );
     });
   }

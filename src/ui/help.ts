@@ -26,7 +26,7 @@ export function openHelp(): void {
       el(
         'p',
         {},
-        'Free cells park one card each, like FreeCell. The joker — the jester card — is fully wild: it can be played onto any empty cell and counts as whatever digit and suit the cell needs.',
+        'Free cells park one card each, like FreeCell. The joker — the jester card — is fully wild: it can be played onto any empty cell and counts as whatever digit and suit the cell needs. Draw level jokers from their own pile beside the number deck.',
       ),
       el('p', {}, 'Tap the draw pile beside your hand whenever you want to refill its open slots.'),
       el('h3', {}, 'Scoring'),
@@ -61,13 +61,14 @@ export function openHelp(): void {
       el(
         'p',
         {},
-        'Settings also lets you turn on safe-move previews and add joker help to new deals. Joker help replaces ordinary cards, so every deal still has exactly one card per open cell.',
+        'Settings also lets you turn on safe-move previews and add joker help to new deals. Joker help adds to the separate joker pile; the number deck always keeps every card the solution needs.',
       ),
       el(
         'p',
         {},
-        'The first win of each deal also earns one single-use joker. Choose how many banked jokers to add before a new deal in Settings; they are spent when that deal is created.',
+        'The first win of each deal earns one single-use joker. Every tenth first win also earns a bonus free slot. Choose banked jokers for a new deal in Settings, or load them directly into the joker pile during play.',
       ),
+      el('p', {}, 'During a deal, the Joker Bank and Bonus Slot piles show your balances. Tap the Joker Bank to load one into the Joker Pile, or tap the Bonus Slot pile to add an empty free cell.'),
       el('h3', {}, 'Levels'),
       el(
         'p',

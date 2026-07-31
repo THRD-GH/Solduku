@@ -33,6 +33,8 @@ export interface Puzzle {
   solution: number[];
   /** Cards for the open cells, already shuffled — drawn front to back. */
   deck: Card[];
+  /** Jokers held in the separate joker pile, not mixed into the number deck. */
+  jokerCount?: number;
   /** Level this puzzle was generated for. */
   difficulty: Level;
   seed: number;

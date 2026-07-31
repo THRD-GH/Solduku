@@ -1,6 +1,7 @@
 /**
  * Classic-sudoku generation for Solduku: a solved grid, givens dug out under a
- * uniqueness proof, and the remaining cells dealt as a shuffled deck of cards.
+ * uniqueness proof, and the remaining cells dealt as a shuffled number deck.
+ * Jokers live in their own pile so they are always visible and optional.
  *
  * The technique stack (techniques.ts) is shared with the killer build. With no
  * cages, only the classic rungs can ever fire — naked/hidden singles (1),
@@ -215,10 +216,9 @@ export function digLadder(
 }
 
 /**
- * The deck: one card per open cell, so the digit multiset always matches what
- * the grid needs. Suits are spread evenly, then jokers replace whole cards —
- * a joker's digit is gone from the deck and must be covered by playing the
- * joker wild.
+ * The number deck: one card per open cell, so its digit multiset always
+ * matches what the grid needs. Jokers live in their own, separately drawn
+ * pile rather than replacing a needed digit card.
  */
 export function buildDeck(
   solution: number[],
@@ -291,11 +291,12 @@ export function generatePuzzle(level: Level, number: number): Puzzle {
   }
 
   if (!best) throw new Error(`could not generate puzzle ${level}-${number}`);
-  const deck = buildDeck(best.solution, best.givens, cfg.jokers, rnd);
+  const deck = buildDeck(best.solution, best.givens, 0, rnd);
   return {
     givens: best.givens,
     solution: best.solution,
     deck,
+    jokerCount: cfg.jokers,
     difficulty: level,
     seed,
     rating: best.rating,

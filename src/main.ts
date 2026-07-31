@@ -190,10 +190,13 @@ class App implements AppContext {
         }
         const aidJokers =
           aid === 'off' ? 0 : JOKER_AID_COUNTS[aid][id.level] - LEVEL_CONFIG[id.level].jokers;
-        const adjusted =
-          aidJokers + spend === 0
-            ? puzzle
-            : { ...puzzle, deck: deckWithJokers(puzzle, LEVEL_CONFIG[id.level].jokers + aidJokers + spend) };
+        const adjusted = {
+          ...puzzle,
+          // Normal number cards always stay in the deck. Jokers are drawn
+          // from their own visible pile, including any selected aids.
+          deck: deckWithJokers(puzzle, 0),
+          jokerCount: LEVEL_CONFIG[id.level].jokers + aidJokers + spend,
+        };
         this.startGame(new Game(id, adjusted));
         const pool = unplayedNumbers(this.history, id.level).filter((n) => n !== id.number);
         if (pool.length > 0) prefetch({ level: id.level, number: pool[0] });
