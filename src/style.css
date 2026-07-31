@@ -2101,3 +2101,38 @@ body {
   margin: 0 0 2px;
   order: -1;
 }
+
+/* The grid is unwinnable: a strip that stays up until it is undone, because
+   a toast for this was a game-ending event announced in passing. */
+.doombar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border: 1px solid var(--error);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--error) 16%, var(--panel));
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.doombar[hidden] {
+  display: none;
+}
+
+.doombar span {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.doombar .btn {
+  flex: 0 0 auto;
+  padding: 6px 14px;
+  font-size: 13px;
+  border-color: var(--error);
+}
+
+.panel h2.bad {
+  color: var(--error);
+}

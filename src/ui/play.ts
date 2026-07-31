@@ -89,6 +89,7 @@ export class PlayScreen {
   readonly game: Game;
   private cells: HTMLElement[] = [];
   private idBox!: HTMLElement;
+  private doomBar!: HTMLElement;
   private handRow: HTMLElement;
   private freeRow: HTMLElement;
   private deckCount: HTMLElement;
@@ -187,11 +188,26 @@ export class PlayScreen {
     const help = el('button', { class: 'btn' }, 'Help');
     help.addEventListener('click', () => ctx.openHelp());
 
+    /*
+     * The grid dying is the one thing that ends a deal without ending the
+     * game, and it used to announce itself with a toast that was gone in two
+     * seconds. It gets a strip of its own, which stays up for as long as the
+     * position is lost and carries the way out with it.
+     */
+    this.doomBar = el('div', { class: 'doombar', role: 'alert', hidden: true });
+    const doomUndo = el('button', { class: 'btn' }, 'Undo');
+    doomUndo.addEventListener('click', () => this.doUndo());
+    this.doomBar.append(
+      el('span', {}, 'This grid can no longer be completed.'),
+      doomUndo,
+    );
+
     this.root = el(
       'div',
       { class: 'screen play' },
       el('p', { class: 'build-stamp top' }, buildStamp()),
       titlebar,
+      this.doomBar,
       board,
       tray,
       el('div', { class: 'actions' }, this.undoBtn, restart, help),
@@ -286,6 +302,7 @@ export class PlayScreen {
     const doomed = !game.completable && this.ctx.settings.warnDeadGrid;
     this.idBox.classList.toggle('doomed', doomed);
     this.idBox.title = doomed ? 'The grid can no longer be completed' : '';
+    this.doomBar.hidden = !doomed;
     this.timerBox.textContent = this.ctx.settings.showTimer ? formatTime(game.elapsedMs) : '';
     this.undoBtn.disabled = !game.canUndo();
   }
@@ -357,8 +374,10 @@ export class PlayScreen {
     this.render();
 
     if (result !== null && result.killedGrid && this.ctx.settings.warnDeadGrid) {
-      toast('That placement makes the sudoku impossible — undo to stay alive');
-    } else if (result !== null && result.units.length > 0) {
+      this.doomPanel();
+      return;
+    }
+    if (result !== null && result.units.length > 0) {
       toast(
         result.units
           .map((u) =>
@@ -427,6 +446,49 @@ export class PlayScreen {
       },
       { dismissable: false },
     );
+  }
+
+  /**
+   * The move that just ended the deal. Shown as a panel rather than a toast:
+   * from here the grid cannot be finished however well it is played, and the
+   * undo that fixes it is only one move deep — but only until the next move
+   * buries it.
+   */
+  private doomPanel(): void {
+    this.save();
+    openOverlay((close) => {
+      const undo = el('button', { class: 'btn primary' }, 'Undo that move');
+      undo.addEventListener('click', () => {
+        close();
+        this.doUndo();
+      });
+      const on = el('button', { class: 'btn' }, 'Play on');
+      on.addEventListener('click', close);
+      const restart = el('button', { class: 'btn' }, 'Restart');
+      restart.addEventListener('click', () => {
+        close();
+        this.game.restart();
+        this.render();
+        this.save();
+      });
+      return el(
+        'div',
+        { class: 'panel' },
+        el('h2', { class: 'bad' }, 'That move ended the deal'),
+        el(
+          'p',
+          { class: 'summary' },
+          'The card was legal, but it contradicts the only way this grid can be finished — no run of play from here fills the board. Undo puts it back.',
+        ),
+        el(
+          'div',
+          { class: 'actions', style: 'grid-template-columns: 1fr 1fr 1fr; margin-top: 12px' },
+          undo,
+          on,
+          restart,
+        ),
+      );
+    });
   }
 
   private deadPanel(): void {
