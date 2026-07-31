@@ -2070,3 +2070,8 @@ body {
 .prospect.lost {
   opacity: 0.6;
 }
+
+/* The deal number turns hostile when the grid can no longer be completed. */
+.titlebar .id.doomed {
+  color: var(--error);
+}

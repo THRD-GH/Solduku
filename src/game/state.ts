@@ -1,5 +1,6 @@
-import { CELLS, PEERS, UNITS, boxOf, colOf, rowOf } from '../core/grid.ts';
-import { LEVEL_CONFIG } from '../core/classic.ts';
+import { ALL_DIGITS, CELLS, PEERS, UNITS, bit, boxOf, colOf, rowOf } from '../core/grid.ts';
+import { CLASSIC_CONS, LEVEL_CONFIG } from '../core/classic.ts';
+import { solve } from '../core/solver.ts';
 import { isJoker } from '../core/types.ts';
 import type { Card, Puzzle, PuzzleId } from '../core/types.ts';
 import type { SavedGame } from './storage.ts';
@@ -26,6 +27,8 @@ export interface UnitScore {
 export interface PlaceResult {
   gained: number;
   units: UnitScore[];
+  /** This placement was the one that made the grid impossible to complete. */
+  killedGrid: boolean;
 }
 
 /** A unit still worth chasing, for the scoring panel. */
@@ -75,6 +78,13 @@ export class Game {
   completed = false;
   /** No card can be played or stashed — the deal is lost as it stands. */
   dead = false;
+  /**
+   * Whether the partial grid still has any sudoku completion. The deck always
+   * holds exactly the digits the open cells need, so the deal is winnable
+   * precisely as long as this stays true — when it flips, some legal-but-wrong
+   * placement has doomed the endgame, however far away that endgame is.
+   */
+  completable = true;
   private history: Move[] = [];
 
   constructor(id: PuzzleId, puzzle: Puzzle, restore?: SavedGame) {
@@ -92,6 +102,7 @@ export class Game {
       this.elapsedMs = restore.elapsedMs;
       this.completed = this.emptyCount === 0;
       this.dead = !this.completed && !this.anyMove();
+      this.completable = this.checkCompletable();
     } else {
       this.placed = new Array<Card | null>(CELLS).fill(null);
       this.hand = [];
@@ -155,6 +166,23 @@ export class Game {
     const out: number[] = [];
     for (let i = 0; i < CELLS; i++) if (this.legal(i, card)) out.push(i);
     return out;
+  }
+
+  /**
+   * True while the current partial grid still has at least one sudoku
+   * completion. Joker cells are wild, so they enter the check as open cells
+   * the solver may assign any digit — whatever it picks is what the joker is
+   * already standing in for.
+   */
+  private checkCompletable(): boolean {
+    const cand = new Uint16Array(CELLS).fill(ALL_DIGITS);
+    for (let i = 0; i < CELLS; i++) {
+      const d = this.digitAt(i);
+      if (d !== 0) cand[i] = bit(d);
+    }
+    const r = solve(CLASSIC_CONS, { start: cand, maxSolutions: 1, nodeLimit: 20000 });
+    // An aborted search proves nothing — give the deal the benefit of the doubt.
+    return r.aborted || r.count > 0;
   }
 
   /** Whether anything at all can still be done from this position. */
@@ -257,7 +285,13 @@ export class Game {
     this.selected = null;
     this.completed = this.emptyCount === 0;
     this.dead = !this.completed && !this.anyMove();
-    return { gained, units };
+    // Jokers never clash, so only a digit card can newly doom the grid.
+    let killedGrid = false;
+    if (!this.completed && this.completable && !isJoker(card)) {
+      this.completable = this.checkCompletable();
+      killedGrid = !this.completable;
+    }
+    return { gained, units, killedGrid };
   }
 
   /** Park a hand card in an empty stash slot. */
@@ -351,6 +385,7 @@ export class Game {
     this.selected = null;
     this.completed = false;
     this.dead = false;
+    if (!this.completable) this.completable = this.checkCompletable();
     return true;
   }
 
@@ -367,6 +402,7 @@ export class Game {
     this.selected = null;
     this.completed = false;
     this.dead = false;
+    this.completable = true;
     this.history = [];
     this.refill();
   }

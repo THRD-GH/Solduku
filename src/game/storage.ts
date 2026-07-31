@@ -21,6 +21,8 @@ export interface Settings {
   /** Hold a wake lock while a deal is open, so the screen stops dimming. */
   keepAwake: boolean;
   showTimer: boolean;
+  /** Flag the placement that makes completing the sudoku impossible. */
+  warnDeadGrid: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -28,6 +30,7 @@ export const DEFAULT_SETTINGS: Settings = {
   highlightLegal: true,
   keepAwake: true,
   showTimer: true,
+  warnDeadGrid: true,
 };
 
 export interface PuzzleRecord {

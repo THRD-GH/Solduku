@@ -40,6 +40,7 @@ export class PlayScreen {
   private readonly ctx: AppContext;
   readonly game: Game;
   private cells: HTMLElement[] = [];
+  private idBox!: HTMLElement;
   private handRow: HTMLElement;
   private freeRow: HTMLElement;
   private deckCount: HTMLElement;
@@ -66,11 +67,12 @@ export class PlayScreen {
     this.scoreBox.textContent = '0';
     this.scoreBox.addEventListener('click', () => ctx.openScoring());
     this.timerBox = el('span', { class: 'timerbox' }, '00:00');
+    this.idBox = el('span', { class: 'id' }, formatPuzzleId(game.id));
     const titlebar = el(
       'div',
       { class: 'titlebar' },
       menuBtn,
-      el('span', { class: 'id' }, formatPuzzleId(game.id)),
+      this.idBox,
       el('span', { class: 'lvl' }, LEVEL_NAMES[game.puzzle.difficulty]),
       this.scoreBox,
       this.timerBox,
@@ -218,6 +220,10 @@ export class PlayScreen {
 
     this.deckCount.textContent = String(game.deckLeft);
     this.scoreBox.textContent = String(game.score);
+    // The doomed marker follows the setting, so purists can play blind.
+    const doomed = !game.completable && this.ctx.settings.warnDeadGrid;
+    this.idBox.classList.toggle('doomed', doomed);
+    this.idBox.title = doomed ? 'The grid can no longer be completed' : '';
     this.timerBox.textContent = this.ctx.settings.showTimer ? formatTime(game.elapsedMs) : '';
     this.undoBtn.disabled = !game.canUndo();
   }
@@ -288,7 +294,9 @@ export class PlayScreen {
   private afterMove(result: PlaceResult | null): void {
     this.render();
 
-    if (result !== null && result.units.length > 0) {
+    if (result !== null && result.killedGrid && this.ctx.settings.warnDeadGrid) {
+      toast('That placement makes the sudoku impossible — undo to stay alive');
+    } else if (result !== null && result.units.length > 0) {
       toast(
         result.units
           .map((u) =>
@@ -385,7 +393,9 @@ export class PlayScreen {
         el(
           'p',
           { class: 'summary' },
-          'Nothing in the hand or free cells can be placed, and there is nowhere to stash. The deal is dead as it stands.',
+          this.game.completable
+            ? 'Nothing in the hand or free cells can be placed, and there is nowhere to stash — the draw order got you. Undo a few moves and route differently.'
+            : 'The grid stopped being completable somewhere back there: a legal placement contradicted the only solution. Undo until the warning clears, or restart.',
         ),
         el('div', { class: 'actions', style: 'margin-top: 12px' }, undo, restart, menu),
       );

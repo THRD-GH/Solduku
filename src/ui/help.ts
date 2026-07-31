@@ -51,6 +51,12 @@ export function openHelp(): void {
         {},
         'Fill the grid and the deal is won. If no card in your hand or free cells can be placed and there is nowhere left to stash, the deal is dead — undo or restart.',
       ),
+      el(
+        'p',
+        {},
+        'Every deal is winnable: the deck holds exactly the digits the grid needs. What kills a deal is a legal placement that contradicts the one true solution. ',
+        'By default the game flags that moment — the deal number turns red and a warning appears — so you can undo at once. Turn the warning off in Settings to play blind.',
+      ),
       el('h3', {}, 'Levels'),
       el(
         'p',

@@ -83,6 +83,15 @@ export function openSettings(ctx: AppContext): void {
         },
       ),
       toggle(
+        'Warn when the grid dies',
+        'Every deal is winnable until a placement makes the sudoku impossible — flag that moment.',
+        () => ctx.settings.warnDeadGrid,
+        (v) => {
+          ctx.settings.warnDeadGrid = v;
+          ctx.refreshBoard();
+        },
+      ),
+      toggle(
         'Keep the screen awake',
         'Hold a wake lock while a deal is open.',
         () => ctx.settings.keepAwake,
