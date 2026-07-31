@@ -19,6 +19,8 @@ export interface Settings {
   theme: Theme;
   /** Tint every cell the selected card could legally go — the training wheels. */
   highlightLegal: boolean;
+  /** Mark legal moves that have no winning continuation. */
+  showSafeMoves: boolean;
   /** Hold a wake lock while a deal is open, so the screen stops dimming. */
   keepAwake: boolean;
   showTimer: boolean;
@@ -29,6 +31,7 @@ export interface Settings {
 export const DEFAULT_SETTINGS: Settings = {
   theme: 'night',
   highlightLegal: true,
+  showSafeMoves: true,
   keepAwake: true,
   showTimer: true,
   warnDeadGrid: true,

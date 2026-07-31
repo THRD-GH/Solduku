@@ -198,7 +198,7 @@ export class PlayScreen {
     const doomUndo = el('button', { class: 'btn' }, 'Undo');
     doomUndo.addEventListener('click', () => this.doUndo());
     this.doomBar.append(
-      el('span', {}, 'This grid can no longer be completed.'),
+      el('span', {}, 'No completion can use the cards still available.'),
       doomUndo,
     );
 
@@ -236,6 +236,10 @@ export class PlayScreen {
       selected !== null && this.ctx.settings.highlightLegal
         ? new Set(game.legalCells(selected))
         : null;
+    const safety =
+      game.selected !== null && this.ctx.settings.highlightLegal && this.ctx.settings.showSafeMoves
+        ? game.placementSafety(game.selected)
+        : null;
     // A joker on the board counts as whatever the grid has forced it into, so
     // it answers to that digit here as much as a printed one does.
     const roles = game.jokerRoles();
@@ -259,6 +263,8 @@ export class PlayScreen {
           );
         } else if (legal?.has(i)) {
           cell.classList.add('legal');
+          if (safety?.safe.has(i)) cell.classList.add('safe');
+          if (safety?.doomed.has(i)) cell.classList.add('danger');
         }
       }
 
@@ -478,7 +484,7 @@ export class PlayScreen {
         el(
           'p',
           { class: 'summary' },
-          'The card was legal, but it contradicts the only way this grid can be finished — no run of play from here fills the board. Undo puts it back.',
+          'The card was legal, but after it was played no valid completion could use the cards still available. Undo puts it back.',
         ),
         el(
           'div',

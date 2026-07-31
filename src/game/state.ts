@@ -42,6 +42,12 @@ export interface PlaceResult {
   killedGrid: boolean;
 }
 
+/** Legal destinations split by whether playing there still leaves a win. */
+export interface PlacementSafety {
+  safe: Set<number>;
+  doomed: Set<number>;
+}
+
 /** A unit still worth chasing, for the scoring panel. */
 export interface FlushProspect {
   unit: number;
@@ -185,6 +191,26 @@ export class Game {
     const out: number[] = [];
     for (let i = 0; i < CELLS; i++) if (this.legal(i, card)) out.push(i);
     return out;
+  }
+
+  /** Preview every legal destination without changing the deal. */
+  placementSafety(zone: Zone): PlacementSafety {
+    const card = this.cardIn(zone);
+    const safe = new Set<number>();
+    const doomed = new Set<number>();
+    if (card === null || this.completed || this.dead || !this.completable) return { safe, doomed };
+
+    const cells = this.legalCells(card);
+    this.takeFrom(zone);
+    for (const cell of cells) {
+      this.placed[cell] = card;
+      if (this.checkCompletable()) safe.add(cell);
+      else doomed.add(cell);
+      this.placed[cell] = null;
+    }
+    if (zone.kind === 'hand') this.hand.splice(zone.index, 0, card);
+    else this.free[zone.index] = card;
+    return { safe, doomed };
   }
 
   /** Digit cards and wilds still to come: hand, free cells and deck. */

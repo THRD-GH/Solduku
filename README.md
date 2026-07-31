@@ -26,6 +26,9 @@ and storage model.
   into it shares one suit, three cards minimum, jokers wild).
 - **Dead deal** — nothing in the hand or free cells can be placed and there is
   nowhere to stash. Undo or restart.
+- **Safe-move preview** — when a card is selected, green destinations keep a
+  winning continuation; red destinations are legal but cannot finish with the
+  remaining cards. Turn it off in Settings to play blind.
 
 ## Levels
 

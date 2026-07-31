@@ -1818,6 +1818,12 @@ body {
   cursor: pointer;
 }
 
+/* Red is a warning, not a block: deliberate risk and blind play remain possible. */
+.cell.legal.danger {
+  background: color-mix(in srgb, var(--error) 16%, var(--cell));
+  box-shadow: inset 0 0 0 1.5px var(--error);
+}
+
 /* A played card, drawn as a mini card face inside its cell. */
 .scard {
   width: 82%;

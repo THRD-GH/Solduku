@@ -83,6 +83,15 @@ export function openSettings(ctx: AppContext): void {
         },
       ),
       toggle(
+        'Preview safe moves',
+        'Green cells still leave a winning route; red cells are legal but end the deal.',
+        () => ctx.settings.showSafeMoves,
+        (v) => {
+          ctx.settings.showSafeMoves = v;
+          ctx.refreshBoard();
+        },
+      ),
+      toggle(
         'Warn when the grid dies',
         'Every deal is winnable until a placement makes the sudoku impossible — flag that moment.',
         () => ctx.settings.warnDeadGrid,
