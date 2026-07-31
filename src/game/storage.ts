@@ -1,5 +1,6 @@
 import type { Card, Level, Puzzle, PuzzleId } from '../core/types.ts';
 import { formatPuzzleId } from '../core/types.ts';
+import type { Move } from './state.ts';
 
 const KEY = {
   settings: 'sd:v1:settings',
@@ -59,6 +60,9 @@ export interface SavedGame {
   scoredUnits: number[];
   flushUnits: number[];
   elapsedMs: number;
+  /** Undo stack, so a refresh or a parked deal keeps its history.
+   *  Absent in saves written before it was persisted. */
+  moves?: Move[];
   /** When it was last written, so the newest can be resumed. */
   savedAt?: number;
 }

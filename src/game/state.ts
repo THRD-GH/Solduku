@@ -47,8 +47,9 @@ export interface FlushProspect {
 }
 
 /** One user action, kept so undo can put everything back — including the
- *  cards drawn after the move and any scoring it triggered. */
-interface Move {
+ *  cards drawn after the move and any scoring it triggered. Saved with the
+ *  game, so putting a deal down does not cost the history. */
+export interface Move {
   from: Zone;
   card: Card;
   /** Cell played to, or null when the card went to a stash slot. */
@@ -100,6 +101,13 @@ export class Game {
       this.scoredUnits = new Set(restore.scoredUnits);
       this.flushUnits = new Set(restore.flushUnits);
       this.elapsedMs = restore.elapsedMs;
+      this.history = (restore.moves ?? []).map((m) => ({
+        ...m,
+        from: { ...m.from },
+        card: { ...m.card },
+        unitsScored: [...m.unitsScored],
+        flushUnits: [...m.flushUnits],
+      }));
       this.completed = this.emptyCount === 0;
       this.dead = !this.completed && !this.anyMove();
       this.completable = this.checkCompletable();
@@ -419,6 +427,7 @@ export class Game {
       scoredUnits: [...this.scoredUnits],
       flushUnits: [...this.flushUnits],
       elapsedMs: this.elapsedMs,
+      moves: this.history,
     };
   }
 }

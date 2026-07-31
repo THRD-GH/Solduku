@@ -369,7 +369,7 @@ export class PlayScreen {
 
   private deadPanel(): void {
     openOverlay((close) => {
-      const undo = el('button', { class: 'btn primary' }, 'Undo last move');
+      const undo = el('button', { class: 'btn primary', disabled: !this.game.canUndo() }, 'Undo last move');
       undo.addEventListener('click', () => {
         close();
         this.doUndo();
