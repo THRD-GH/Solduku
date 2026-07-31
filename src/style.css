@@ -729,6 +729,11 @@ body {
   gap: 6px;
 }
 
+/* The always-visible way out of a deal belongs alongside its core controls. */
+.game-actions {
+  grid-template-columns: repeat(4, 1fr);
+}
+
 .btn {
   font-size: 15px;
   padding: 11px 4px;

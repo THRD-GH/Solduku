@@ -245,6 +245,17 @@ export class PlayScreen {
     );
     const help = el('button', { class: 'btn' }, 'Help');
     help.addEventListener('click', () => ctx.openHelp());
+    const home = el('button', { class: 'btn' }, 'Home');
+    home.addEventListener('click', () =>
+      confirmDialog(
+        'Return to the home screen? This deal will be saved so you can resume it later.',
+        () => {
+          this.save();
+          ctx.goMenu();
+        },
+        'Go home',
+      ),
+    );
 
     /*
      * The grid dying is the one thing that ends a deal without ending the
@@ -268,7 +279,7 @@ export class PlayScreen {
       this.doomBar,
       board,
       tray,
-      el('div', { class: 'actions' }, this.undoBtn, restart, help),
+      el('div', { class: 'actions game-actions' }, this.undoBtn, restart, help, home),
     );
 
     this.tickId = window.setInterval(() => this.tick(), 1000);
@@ -538,8 +549,10 @@ export class PlayScreen {
           ? `${unitName(u.unit)} ${u.played}-card flush ${SUIT_GLYPHS[u.suit]} +${u.points}`
           : `${unitName(u.unit)} +${u.points}`,
       );
+      scoreEvents.push('CARD +1');
       if (result.riskBonus > 0) scoreEvents.push(`FULL HAND BONUS +${result.riskBonus}`);
       if (result.questBonus > 0) scoreEvents.push(`FLUSH QUEST +${result.questBonus}`);
+      scoreEvents.push(`TOTAL +${result.gained}`);
       toast(scoreEvents.join(' · '), result.units.some((u) => u.flush) || result.riskBonus > 0 || result.questBonus > 0);
     }
 
