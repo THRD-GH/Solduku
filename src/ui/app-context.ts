@@ -13,6 +13,7 @@ export interface AppContext {
   goMenu(): void;
   openHelp(): void;
   openSettings(): void;
+  openProgress(): void;
   /** The scoring table and tips — with live flush prospects mid-deal. */
   openScoring(): void;
   playPuzzle(id: PuzzleId): void;

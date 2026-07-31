@@ -68,6 +68,15 @@ export function openScoring(game: Game | null): void {
 
     if (game !== null) {
       const prospects = game.flushProspects().slice(0, 6);
+      parts.push(
+        el(
+          'p',
+          { class: 'summary' },
+          game.questComplete
+            ? `Flush quest complete: ${SUIT_GLYPHS[game.questSuit]} +25 banked.`
+            : `Flush quest: complete any ${SUIT_GLYPHS[game.questSuit]} flush for +25.`,
+        ),
+      );
       parts.push(el('h3', {}, 'On this board'));
       if (prospects.length === 0) {
         parts.push(el('p', { class: 'summary' }, 'No cards played into open units yet.'));

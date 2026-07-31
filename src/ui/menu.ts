@@ -218,6 +218,7 @@ export function openMainMenu(ctx: AppContext): void {
         'div',
         { class: 'menu-list' },
         item('Settings', () => ctx.openSettings()),
+        item('Progress', () => ctx.openProgress()),
         item('Scoring', () => ctx.openScoring()),
         item('Help', () => ctx.openHelp()),
         item('About', () => toast('Solduku — solitaire meets sudoku')),

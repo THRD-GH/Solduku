@@ -86,6 +86,14 @@ function suitClass(card: Card): string {
 }
 
 const unitName = (unit: number): string => (unit < 9 ? 'Row' : unit < 18 ? 'Column' : 'Box');
+const ACHIEVEMENT_NAMES: Record<string, string> = {
+  'first-deal': 'First Deal',
+  'flush-finder': 'Flush Finder',
+  'risk-taker': 'Risk Taker',
+  'quest-chaser': 'Quest Chaser',
+  'last-laugh': 'Last Laugh',
+  'clean-streak-3': 'Clean Streak',
+};
 
 export class PlayScreen {
   readonly root: HTMLElement;
@@ -524,7 +532,7 @@ export class PlayScreen {
       this.doomPanel();
       return;
     }
-    if (result !== null && result.units.length > 0) {
+    if (result !== null && (result.units.length > 0 || result.riskBonus > 0 || result.questBonus > 0)) {
       toast(
         result.units
           .map((u) =>
@@ -555,10 +563,25 @@ export class PlayScreen {
     const key = formatPuzzleId(game.id);
     const previous = this.ctx.history[key]?.bestScore;
     const firstCompletion = !this.ctx.history[key]?.finished;
-    markFinished(this.ctx.history, game.id, game.score, Date.now());
+    markFinished(this.ctx.history, game.id, game.score, Date.now(), {
+      elapsedMs: game.elapsedMs,
+      flushes: game.flushUnits.size,
+      aids: game.usedBankedAid ? 1 : 0,
+    });
     saveHistory(this.ctx.history);
     clearSaveFor(game.id);
-    const reward = firstCompletion ? earnWinReward() : null;
+    const reward =
+      firstCompletion
+        ? earnWinReward({
+            level: game.puzzle.difficulty,
+            score: game.score,
+            flushes: game.flushUnits.size,
+            usedAid: game.usedBankedAid,
+            riskBonuses: game.riskBonuses,
+            questComplete: game.questComplete,
+            rescuedWithJoker: game.rescuedWithJoker,
+          })
+        : null;
 
     const isBest = previous === undefined || game.score > previous;
     openOverlay(
@@ -599,6 +622,13 @@ export class PlayScreen {
                   ? `You earned a joker and a bonus free slot · ${reward.jokers} jokers and ${reward.freeSlots} slots now banked.`
                   : `You earned a joker · ${reward.jokers} now banked.`,
               ),
+          reward !== null && reward.newAchievements.length > 0
+            ? el(
+                'p',
+                { class: 'summary' },
+                `Unlocked: ${reward.newAchievements.map((id) => ACHIEVEMENT_NAMES[id] ?? id).join(' · ')}`,
+              )
+            : '',
           el('div', { class: 'actions', style: 'grid-template-columns: 1fr 1fr; margin-top: 12px' }, next, menu),
         );
       },

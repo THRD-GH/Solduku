@@ -28,6 +28,7 @@ import { openScoring } from './ui/scoring.ts';
 import { closeTopOverlay, onOverlayOpen, openOverlay, toast } from './ui/overlay.ts';
 import { PlayScreen } from './ui/play.ts';
 import { openSettings } from './ui/settings.ts';
+import { openProgress } from './ui/progress.ts';
 import type { AppContext } from './ui/app-context.ts';
 
 /** The browser chrome colour that matches each board, for the PWA title bar. */
@@ -95,6 +96,7 @@ class App implements AppContext {
 
   applyTheme(): void {
     document.documentElement.dataset.theme = this.settings.theme;
+    document.documentElement.dataset.cardBack = this.settings.cardBack;
     setThemeColour(THEME_COLOUR[this.settings.theme]);
   }
 
@@ -139,6 +141,10 @@ class App implements AppContext {
 
   openSettings(): void {
     openSettings(this);
+  }
+
+  openProgress(): void {
+    openProgress(this);
   }
 
   openScoring(): void {

@@ -1,5 +1,5 @@
-import { jokerBank, saveSettings } from '../game/storage.ts';
-import type { JokerAid, Theme } from '../game/storage.ts';
+import { jokerBank, saveSettings, unlockedCardBacks } from '../game/storage.ts';
+import type { CardBack, JokerAid, Theme } from '../game/storage.ts';
 import { el } from './dom.ts';
 import { openOverlay } from './overlay.ts';
 import type { AppContext } from './app-context.ts';
@@ -14,6 +14,12 @@ const JOKER_AID: { value: JokerAid; label: string }[] = [
   { value: 'off', label: 'Off' },
   { value: 'assist', label: 'Assist' },
   { value: 'generous', label: 'Generous' },
+];
+
+const CARD_BACKS: { value: CardBack; label: string }[] = [
+  { value: 'classic', label: 'Classic' },
+  { value: 'royal', label: 'Royal' },
+  { value: 'aurora', label: 'Aurora' },
 ];
 
 export function openSettings(ctx: AppContext): void {
@@ -46,6 +52,36 @@ export function openSettings(ctx: AppContext): void {
         { class: 'setting stacked' },
         el('span', { class: 'label' }, 'Theme'),
         tabs,
+      ),
+    );
+
+    const unlocked = new Set(unlockedCardBacks());
+    const backTabs = el('div', { class: 'tabs' });
+    const drawBackTabs = (): void => {
+      backTabs.replaceChildren();
+      for (const back of CARD_BACKS) {
+        const available = unlocked.has(back.value);
+        const b = el(
+          'button',
+          { class: `btn ${ctx.settings.cardBack === back.value ? 'on' : ''}`.trim(), disabled: !available },
+          available ? back.label : 'Locked',
+        );
+        b.addEventListener('click', () => {
+          ctx.settings.cardBack = back.value;
+          saveSettings(ctx.settings);
+          ctx.applyTheme();
+          drawBackTabs();
+        });
+        backTabs.append(b);
+      }
+    };
+    drawBackTabs();
+    rows.push(
+      el(
+        'div',
+        { class: 'setting stacked' },
+        el('span', { class: 'label' }, 'Card back', el('small', {}, 'Royal unlocks after 5 wins; Aurora after a gold mastery.')),
+        backTabs,
       ),
     );
 

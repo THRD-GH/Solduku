@@ -15,6 +15,7 @@ export const POOL_SIZE = 500;
 
 export type Theme = 'night' | 'day' | 'contrast';
 export type JokerAid = 'off' | 'assist' | 'generous';
+export type CardBack = 'classic' | 'royal' | 'aurora';
 
 export interface Settings {
   /** Which palette to draw. 'contrast' is the accessible high-contrast one. */
@@ -27,6 +28,7 @@ export interface Settings {
   jokerAid: JokerAid;
   /** Banked jokers to add to the next newly dealt puzzle. */
   jokerSpend: number;
+  cardBack: CardBack;
   /** Hold a wake lock while a deal is open, so the screen stops dimming. */
   keepAwake: boolean;
   showTimer: boolean;
@@ -40,6 +42,7 @@ export const DEFAULT_SETTINGS: Settings = {
   showSafeMoves: false,
   jokerAid: 'off',
   jokerSpend: 0,
+  cardBack: 'classic',
   keepAwake: true,
   showTimer: true,
   warnDeadGrid: true,
@@ -54,6 +57,9 @@ export interface PuzzleRecord {
   startedAt?: number;
   bestScore?: number;
   bestAt?: number;
+  bestTimeMs?: number;
+  mostFlushes?: number;
+  fewestAids?: number;
 }
 
 export type History = Record<string, PuzzleRecord>;
@@ -69,6 +75,10 @@ export interface SavedGame {
   jokerPile?: number;
   /** The pile size at the deal's start, used when restarting. */
   initialJokers?: number;
+  questComplete?: boolean;
+  riskBonuses?: number;
+  usedBankedAid?: boolean;
+  rescuedWithJoker?: boolean;
   /** Cards drawn so far — the deck itself lives in the puzzle. */
   deckPos: number;
   score: number;
@@ -106,11 +116,37 @@ interface Rewards {
   jokers: number;
   successfulGames: number;
   freeSlots: number;
+  cleanStreak: number;
+  bestCleanStreak: number;
+  achievements: string[];
+  mastery: Partial<Record<Level, number>>;
 }
 
-const loadRewards = (): Rewards => ({ jokers: 0, successfulGames: 0, freeSlots: 0, ...read<Partial<Rewards>>(KEY.rewards, {}) });
+const loadRewards = (): Rewards => {
+  const saved = read<Partial<Rewards>>(KEY.rewards, {});
+  return {
+    jokers: saved.jokers ?? 0,
+    successfulGames: saved.successfulGames ?? 0,
+    freeSlots: saved.freeSlots ?? 0,
+    cleanStreak: saved.cleanStreak ?? 0,
+    bestCleanStreak: saved.bestCleanStreak ?? 0,
+    achievements: saved.achievements ?? [],
+    mastery: saved.mastery ?? {},
+  };
+};
 export const jokerBank = (): number => loadRewards().jokers;
 export const freeSlotBank = (): number => loadRewards().freeSlots;
+export const progression = (): Pick<Rewards, 'successfulGames' | 'cleanStreak' | 'bestCleanStreak' | 'achievements' | 'mastery'> => {
+  const rewards = loadRewards();
+  return rewards;
+};
+export const unlockedCardBacks = (): CardBack[] => {
+  const progress = progression();
+  const backs: CardBack[] = ['classic'];
+  if (progress.successfulGames >= 5) backs.push('royal');
+  if (Object.values(progress.mastery).some((tier) => tier >= 3)) backs.push('aurora');
+  return backs;
+};
 export const winsToNextFreeSlot = (): number => {
   const progress = loadRewards().successfulGames % 10;
   return progress === 0 ? 10 : 10 - progress;
@@ -120,17 +156,56 @@ export interface WinReward {
   jokers: number;
   freeSlots: number;
   earnedFreeSlot: boolean;
+  newAchievements: string[];
+  mastery: number;
+  cleanStreak: number;
 }
 
 /** A first-time deal win earns a joker; every tenth earns a bonus free slot. */
-export function earnWinReward(): WinReward {
+export function earnWinReward(details?: {
+  level: Level;
+  score: number;
+  flushes: number;
+  usedAid: boolean;
+  riskBonuses: number;
+  questComplete: boolean;
+  rescuedWithJoker: boolean;
+}): WinReward {
   const rewards = loadRewards();
   rewards.jokers++;
   rewards.successfulGames++;
   const earnedFreeSlot = rewards.successfulGames % 10 === 0;
   if (earnedFreeSlot) rewards.freeSlots++;
+  if (details) {
+    rewards.cleanStreak = details.usedAid ? 0 : rewards.cleanStreak + 1;
+    rewards.bestCleanStreak = Math.max(rewards.bestCleanStreak, rewards.cleanStreak);
+    const earned = new Set(rewards.achievements);
+    const unlock = (id: string, when: boolean): void => {
+      if (when) earned.add(id);
+    };
+    unlock('first-deal', rewards.successfulGames === 1);
+    unlock('flush-finder', details.flushes > 0);
+    unlock('risk-taker', details.riskBonuses > 0);
+    unlock('quest-chaser', details.questComplete);
+    unlock('last-laugh', details.rescuedWithJoker);
+    unlock('clean-streak-3', rewards.bestCleanStreak >= 3);
+    const newAchievements = [...earned].filter((id) => !rewards.achievements.includes(id));
+    rewards.achievements = [...earned];
+    const target = 90 + details.level * 20;
+    const tier = details.questComplete && !details.usedAid ? 3 : details.score >= target ? 2 : 1;
+    rewards.mastery[details.level] = Math.max(rewards.mastery[details.level] ?? 0, tier);
+    write(KEY.rewards, rewards);
+    return {
+      jokers: rewards.jokers,
+      freeSlots: rewards.freeSlots,
+      earnedFreeSlot,
+      newAchievements,
+      mastery: rewards.mastery[details.level] ?? 0,
+      cleanStreak: rewards.cleanStreak,
+    };
+  }
   write(KEY.rewards, rewards);
-  return { jokers: rewards.jokers, freeSlots: rewards.freeSlots, earnedFreeSlot };
+  return { jokers: rewards.jokers, freeSlots: rewards.freeSlots, earnedFreeSlot, newAchievements: [], mastery: 0, cleanStreak: rewards.cleanStreak };
 }
 
 /** Spend banked jokers atomically when starting a new deal. */
@@ -246,14 +321,38 @@ export function markStarted(history: History, id: PuzzleId, now = Date.now()): H
 }
 
 /** Record a win, keeping the best score. */
-export function markFinished(history: History, id: PuzzleId, score: number, now: number): History {
+export interface ResultDetails {
+  elapsedMs: number;
+  flushes: number;
+  aids: number;
+}
+
+/** Record a win, keeping the best score and separate personal-best splits. */
+export function markFinished(
+  history: History,
+  id: PuzzleId,
+  score: number,
+  now: number,
+  details?: ResultDetails,
+): History {
   const key = formatPuzzleId(id);
   const rec = history[key] ?? { finished: false, released: false };
-  if (rec.bestScore === undefined || score > rec.bestScore) {
-    history[key] = { ...rec, finished: true, released: false, bestScore: score, bestAt: now };
-  } else {
-    history[key] = { ...rec, finished: true, released: false };
-  }
+  const improvedScore = rec.bestScore === undefined || score > rec.bestScore;
+  history[key] = {
+    ...rec,
+    finished: true,
+    released: false,
+    ...(improvedScore ? { bestScore: score, bestAt: now } : {}),
+    ...(details && (rec.bestTimeMs === undefined || details.elapsedMs < rec.bestTimeMs)
+      ? { bestTimeMs: details.elapsedMs }
+      : {}),
+    ...(details && (rec.mostFlushes === undefined || details.flushes > rec.mostFlushes)
+      ? { mostFlushes: details.flushes }
+      : {}),
+    ...(details && (rec.fewestAids === undefined || details.aids < rec.fewestAids)
+      ? { fewestAids: details.aids }
+      : {}),
+  };
   return history;
 }
 

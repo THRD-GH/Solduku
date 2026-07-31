@@ -2107,6 +2107,24 @@ body {
     var(--panel-2);
 }
 
+:root[data-card-back='royal'] .deck-back::before,
+:root[data-card-back='royal'] .pcard.undrawn {
+  color: #f0c674;
+  border-color: #f0c674;
+  background:
+    repeating-linear-gradient(135deg, rgba(240, 198, 116, 0.2) 0 3px, var(--panel-2) 3px 7px);
+}
+
+:root[data-card-back='aurora'] .deck-back::before,
+:root[data-card-back='aurora'] .pcard.undrawn {
+  color: #c58cff;
+  border-color: #c58cff;
+  background:
+    radial-gradient(circle at 20% 25%, rgba(86, 209, 245, 0.45), transparent 35%),
+    radial-gradient(circle at 80% 75%, rgba(197, 140, 255, 0.42), transparent 38%),
+    var(--panel-2);
+}
+
 .deck-count {
   display: flex;
   align-items: baseline;
@@ -2305,6 +2323,36 @@ body {
 
 .prospect.lost {
   opacity: 0.6;
+}
+
+/* Progress is deliberately compact: one line per mastery, collection or
+   achievement so the long-term game reads at a glance on a phone. */
+.progress-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.progress-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 5px 8px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--panel-2);
+}
+
+.progress-row b {
+  min-width: 92px;
+}
+
+.progress-row small {
+  color: var(--dim);
+}
+
+.progress-row.done b {
+  color: var(--single);
 }
 
 /* The deal number turns hostile when the grid can no longer be completed. */

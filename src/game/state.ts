@@ -38,6 +38,8 @@ export interface UnitScore {
 export interface PlaceResult {
   gained: number;
   units: UnitScore[];
+  riskBonus: number;
+  questBonus: number;
   /** This placement was the one that made the grid impossible to complete. */
   killedGrid: boolean;
 }
@@ -89,6 +91,12 @@ export class Game {
   /** Jokers waiting in their own pile, separate from the number deck. */
   jokerPile = 0;
   private initialJokers = 0;
+  /** One suit flush per deal becomes an optional score quest. */
+  readonly questSuit: number;
+  questComplete = false;
+  riskBonuses = 0;
+  usedBankedAid = false;
+  rescuedWithJoker = false;
   /** Cards drawn so far — deck[0..deckPos) are gone. */
   deckPos = 0;
   score = 0;
@@ -111,10 +119,15 @@ export class Game {
   constructor(id: PuzzleId, puzzle: Puzzle, restore?: SavedGame) {
     this.id = id;
     this.puzzle = puzzle;
+    this.questSuit = puzzle.seed % 4;
     const cfg = LEVEL_CONFIG[puzzle.difficulty];
     if (restore) {
       this.initialJokers = restore.initialJokers ?? (puzzle.jokerCount === undefined ? 0 : puzzle.jokerCount);
       this.jokerPile = restore.jokerPile ?? this.initialJokers;
+      this.questComplete = restore.questComplete ?? false;
+      this.riskBonuses = restore.riskBonuses ?? 0;
+      this.usedBankedAid = restore.usedBankedAid ?? false;
+      this.rescuedWithJoker = restore.rescuedWithJoker ?? false;
       this.placed = restore.placed.map((c) => (c ? { ...c } : null));
       this.hand = restore.hand.map((c) => ({ ...c }));
       this.free = restore.free.map((c) => (c ? { ...c } : null));
@@ -410,6 +423,8 @@ export class Game {
   addBankedJokerToPile(): boolean {
     if (!this.canDrawBankedJoker()) return false;
     this.jokerPile++;
+    this.usedBankedAid = true;
+    if (!this.completable) this.rescuedWithJoker = true;
     this.selected = null;
     this.dead = !this.anyMove();
     this.completable = this.checkCompletable();
@@ -443,6 +458,7 @@ export class Game {
   addBonusFreeSlot(): boolean {
     if (this.completed) return false;
     this.free.push(null);
+    this.usedBankedAid = true;
     this.dead = !this.anyMove();
     return true;
   }
@@ -509,11 +525,17 @@ export class Game {
     const card = this.cardIn(zone);
     if (card === null || !this.legal(cell, card)) return null;
 
+    const fullHandRisk = zone.kind === 'hand' && this.hand.length === this.handSize;
     this.takeFrom(zone);
     this.placed[cell] = card;
 
     const units = this.settleUnits(cell);
-    const gained = POINTS.place + units.reduce((t, u) => t + u.points, 0);
+    const riskBonus = fullHandRisk && units.length > 0 ? 5 : 0;
+    const questBonus =
+      !this.questComplete && units.some((u) => u.flush && u.suit === this.questSuit) ? 25 : 0;
+    if (questBonus > 0) this.questComplete = true;
+    if (riskBonus > 0) this.riskBonuses++;
+    const gained = POINTS.place + units.reduce((t, u) => t + u.points, 0) + riskBonus + questBonus;
     this.score += gained;
 
     this.history.push({
@@ -540,7 +562,7 @@ export class Game {
       this.completable = this.checkCompletable();
       killedGrid = !this.completable;
     }
-    return { gained, units, killedGrid };
+    return { gained, units, riskBonus, questBonus, killedGrid };
   }
 
   /** Park a hand card in an empty stash slot. */
@@ -644,6 +666,10 @@ export class Game {
     this.hand = [];
     this.free = new Array<Card | null>(cfg.free).fill(null);
     this.jokerPile = this.initialJokers;
+    this.questComplete = false;
+    this.riskBonuses = 0;
+    this.usedBankedAid = false;
+    this.rescuedWithJoker = false;
     this.deckPos = 0;
     this.score = 0;
     this.scoredUnits.clear();
@@ -665,6 +691,10 @@ export class Game {
       free: this.free,
       jokerPile: this.jokerPile,
       initialJokers: this.initialJokers,
+      questComplete: this.questComplete,
+      riskBonuses: this.riskBonuses,
+      usedBankedAid: this.usedBankedAid,
+      rescuedWithJoker: this.rescuedWithJoker,
       deckPos: this.deckPos,
       score: this.score,
       scoredUnits: [...this.scoredUnits],
