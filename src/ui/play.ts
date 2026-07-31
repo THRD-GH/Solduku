@@ -9,7 +9,7 @@ import {
   saveGame,
   saveHistory,
 } from '../game/storage.ts';
-import { el, formatTime } from './dom.ts';
+import { buildStamp, el, formatTime } from './dom.ts';
 import { confirmDialog, openOverlay, toast } from './overlay.ts';
 import { bindTap } from './pointer.ts';
 import { openMainMenu } from './menu.ts';
@@ -57,10 +57,16 @@ function jesterCap(): SVGSVGElement {
   return svg;
 }
 
-/** A card's face, at cell size (.scard) or tray size (.pcard content). */
-function cardFace(card: Card): (HTMLElement | SVGSVGElement)[] {
+/**
+ * A card's face, at cell size (.scard) or tray size (.pcard content).
+ *
+ * `role` is the digit a placed joker has been forced into by the grid around
+ * it; it wears that digit in place of its name, because on the board what
+ * matters is what the cell now counts as.
+ */
+function cardFace(card: Card, role = 0): (HTMLElement | SVGSVGElement)[] {
   if (isJoker(card)) {
-    return [jesterCap(), el('span', { class: 'st' }, 'JOKER')];
+    return [jesterCap(), el('span', { class: 'st' }, role === 0 ? 'JOKER' : String(role))];
   }
   return [
     el('span', { class: 'd' }, String(card.digit)),
@@ -184,6 +190,7 @@ export class PlayScreen {
     this.root = el(
       'div',
       { class: 'screen play' },
+      el('p', { class: 'build-stamp top' }, buildStamp()),
       titlebar,
       board,
       tray,
@@ -213,6 +220,10 @@ export class PlayScreen {
       selected !== null && this.ctx.settings.highlightLegal
         ? new Set(game.legalCells(selected))
         : null;
+    // A joker on the board counts as whatever the grid has forced it into, so
+    // it answers to that digit here as much as a printed one does.
+    const roles = game.jokerRoles();
+    const wanted = selected !== null && !isJoker(selected) ? selected.digit : 0;
 
     for (let i = 0; i < CELLS; i++) {
       const cell = this.cells[i];
@@ -226,10 +237,19 @@ export class PlayScreen {
       } else {
         const card = game.cardAt(i);
         if (card !== null) {
-          cell.append(el('div', { class: `scard ${suitClass(card)}` }, ...cardFace(card)));
+          const role = roles.get(i) ?? 0;
+          cell.append(
+            el('div', { class: `scard ${suitClass(card)}` }, ...cardFace(card, role)),
+          );
         } else if (legal?.has(i)) {
           cell.classList.add('legal');
         }
+      }
+
+      // Every cell already answering to the selected digit, jokers included.
+      if (wanted !== 0) {
+        const digit = game.digitAt(i) || (roles.get(i) ?? 0);
+        if (digit === wanted) cell.classList.add('same');
       }
     }
 

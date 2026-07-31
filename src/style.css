@@ -2094,3 +2094,10 @@ body {
 .titlebar .id.doomed {
   color: var(--error);
 }
+
+/* Build stamp pinned at the top of every screen, so the running version is
+   visible without going back to the menu. */
+.build-stamp.top {
+  margin: 0 0 2px;
+  order: -1;
+}

@@ -1,6 +1,17 @@
-import { ALL_DIGITS, CELLS, PEERS, UNITS, bit, boxOf, colOf, rowOf } from '../core/grid.ts';
+import {
+  ALL_DIGITS,
+  CELLS,
+  PEERS,
+  UNITS,
+  bit,
+  boxOf,
+  colOf,
+  maskToDigit,
+  popcount,
+  rowOf,
+} from '../core/grid.ts';
 import { CLASSIC_CONS, LEVEL_CONFIG } from '../core/classic.ts';
-import { solve } from '../core/solver.ts';
+import { propagatedCandidates } from '../core/solver.ts';
 import { isJoker } from '../core/types.ts';
 import type { Card, Puzzle, PuzzleId } from '../core/types.ts';
 import type { SavedGame } from './storage.ts';
@@ -176,21 +187,155 @@ export class Game {
     return out;
   }
 
+  /** Digit cards and wilds still to come: hand, free cells and deck. */
+  private supply(): { have: number[]; wild: number } {
+    const have = new Array<number>(10).fill(0);
+    let wild = 0;
+    const count = (card: Card): void => {
+      if (isJoker(card)) wild++;
+      else have[card.digit]++;
+    };
+    for (const card of this.hand) count(card);
+    for (const card of this.free) if (card !== null) count(card);
+    for (let k = this.deckPos; k < this.puzzle.deck.length; k++) count(this.puzzle.deck[k]);
+    return { have, wild };
+  }
+
   /**
-   * True while the current partial grid still has at least one sudoku
-   * completion. Joker cells are wild, so they enter the check as open cells
-   * the solver may assign any digit — whatever it picks is what the joker is
-   * already standing in for.
+   * True while the deal can still be finished.
+   *
+   * A completable *grid* is not enough: the cards have to be able to spell
+   * that completion out. The deck holds a fixed multiset of digits plus a
+   * few wilds, so a grid whose last cell wants a 6 is lost if the only card
+   * left is a 3 — legal sudoku, unplayable hand. The search therefore fills
+   * the board and spends the supply at the same time, and only a completion
+   * that does both counts.
+   *
+   * Cells fall into two kinds: empty ones, which cost a card of that digit
+   * (or a wild), and cells already holding a joker, which are paid for and
+   * may take any digit the grid allows.
    */
   private checkCompletable(): boolean {
     const cand = new Uint16Array(CELLS).fill(ALL_DIGITS);
+    const needsCard: boolean[] = new Array<boolean>(CELLS).fill(false);
+    const open: number[] = [];
     for (let i = 0; i < CELLS; i++) {
       const d = this.digitAt(i);
-      if (d !== 0) cand[i] = bit(d);
+      if (d !== 0) {
+        cand[i] = bit(d);
+        continue;
+      }
+      // Either empty (a card must pay for it) or a placed joker (already paid).
+      open.push(i);
+      needsCard[i] = this.placed[i] === null;
     }
-    const r = solve(CLASSIC_CONS, { start: cand, maxSolutions: 1, nodeLimit: 20000 });
-    // An aborted search proves nothing — give the deal the benefit of the doubt.
-    return r.aborted || r.count > 0;
+    if (open.length === 0) return true;
+
+    // Peers of a settled cell can never repeat its digit.
+    for (let i = 0; i < CELLS; i++) {
+      const d = this.digitAt(i);
+      if (d === 0) continue;
+      for (const p of PEERS[i]) if (this.digitAt(p) === 0) cand[p] &= ~bit(d);
+    }
+
+    const { have, wild } = this.supply();
+    let nodes = 0;
+    let aborted = false;
+
+    const search = (cells: number[], cand: Uint16Array, have: number[], wild: number): boolean => {
+      if (++nodes > 30000) {
+        aborted = true;
+        return false;
+      }
+      if (cells.length === 0) return true;
+
+      // A digit card with nowhere left to go is dead weight, and every card
+      // must be played — so that position is already lost, however far off.
+      for (let d = 1; d <= 9; d++) {
+        if (have[d] === 0) continue;
+        let room = 0;
+        for (const c of cells) if (needsCard[c] && cand[c] & bit(d)) room++;
+        if (room < have[d]) return false;
+      }
+
+      // Most-constrained cell first, as everywhere else in the solver.
+      let best = -1;
+      let bestCount = 10;
+      for (const c of cells) {
+        const n = popcount(cand[c]);
+        if (n === 0) return false;
+        if (n < bestCount) {
+          bestCount = n;
+          best = c;
+          if (n === 1) break;
+        }
+      }
+
+      const rest = cells.filter((c) => c !== best);
+      let mask = cand[best];
+      while (mask) {
+        const b = mask & -mask;
+        mask ^= b;
+        const digit = maskToDigit(b);
+
+        // Pay for the cell: a matching card, or a wild. A joker already on
+        // the board costs nothing — it was paid for when it was played.
+        let nextHave = have;
+        let nextWild = wild;
+        if (needsCard[best]) {
+          if (have[digit] > 0) {
+            nextHave = [...have];
+            nextHave[digit]--;
+          } else if (wild > 0) {
+            nextWild = wild - 1;
+          } else {
+            continue;
+          }
+        }
+
+        const nextCand = Uint16Array.from(cand);
+        nextCand[best] = b;
+        // The digit is spoken for in this cell's row, column and box.
+        for (const p of PEERS[best]) nextCand[p] &= ~b;
+        let ok = true;
+        for (const c of rest) if (nextCand[c] === 0) ok = false;
+        if (ok && search(rest, nextCand, nextHave, nextWild)) return true;
+        if (aborted) return false;
+      }
+      return false;
+    };
+
+    const alive = search(open, cand, have, wild);
+    // An exhausted budget proves nothing — give the deal the benefit of the doubt.
+    return alive || aborted;
+  }
+
+  /**
+   * What each placed joker is actually standing in for. A joker has no
+   * identity of its own — it earns one as the grid around it fills. A digit
+   * is reported only when the solver's propagation forces it: every
+   * completion of the current board gives that joker that digit. Unforced
+   * jokers map to 0.
+   */
+  jokerRoles(): Map<number, number> {
+    const roles = new Map<number, number>();
+    const jokers: number[] = [];
+    for (let i = 0; i < CELLS; i++) {
+      const card = this.placed[i];
+      if (card !== null && isJoker(card)) jokers.push(i);
+    }
+    if (jokers.length === 0) return roles;
+
+    const start = new Uint16Array(CELLS).fill(ALL_DIGITS);
+    for (let i = 0; i < CELLS; i++) {
+      const d = this.digitAt(i);
+      if (d !== 0) start[i] = bit(d);
+    }
+    const cand = propagatedCandidates(CLASSIC_CONS, start);
+    for (const j of jokers) {
+      roles.set(j, cand !== null && popcount(cand[j]) === 1 ? maskToDigit(cand[j]) : 0);
+    }
+    return roles;
   }
 
   /** Whether anything at all can still be done from this position. */
@@ -293,9 +438,14 @@ export class Game {
     this.selected = null;
     this.completed = this.emptyCount === 0;
     this.dead = !this.completed && !this.anyMove();
-    // Jokers never clash, so only a digit card can newly doom the grid.
+    /*
+     * Jokers can doom a position too, even though they never clash: spending
+     * a wild on a cell a plain card could have covered can strand a digit
+     * that now has nowhere to go. So every placement is checked, not just
+     * the digit ones.
+     */
     let killedGrid = false;
-    if (!this.completed && this.completable && !isJoker(card)) {
+    if (!this.completed && this.completable) {
       this.completable = this.checkCompletable();
       killedGrid = !this.completable;
     }

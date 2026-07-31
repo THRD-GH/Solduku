@@ -25,6 +25,7 @@ export function buildMenu(
   menuBtn.addEventListener('click', () => openMainMenu(ctx));
 
   screen.append(
+    el('p', { class: 'build-stamp top' }, buildStamp()),
     el('div', { class: 'titlebar' }, menuBtn, el('span', { class: 'id' }, 'SOLDUKU')),
     el(
       'div',
@@ -50,7 +51,6 @@ export function buildMenu(
       { class: 'hint-line' },
       'Sudoku rules place the cards; solitaire luck deals them. Levels grade the logic the grid demands.',
     ),
-    el('p', { class: 'build-stamp' }, buildStamp()),
   );
   return screen;
 }
