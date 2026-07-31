@@ -61,6 +61,14 @@ export const LEVEL_CONFIG: Record<Level, LevelConfig> = {
   6: { checkpoints: [24, 23], hand: 3, free: 1, jokers: 1 },
 };
 
+/** Total jokers in a deal when an accessibility aid is enabled. Harder levels
+ * get more help because their smaller hand and free-cell counts are the real
+ * source of the solitaire pressure. */
+export const JOKER_AID_COUNTS: Record<'assist' | 'generous', Record<Level, number>> = {
+  assist: { 1: 2, 2: 3, 3: 3, 4: 3, 5: 3, 6: 3 },
+  generous: { 1: 3, 2: 4, 3: 4, 4: 4, 5: 4, 6: 4 },
+};
+
 /** Classic sudoku has no cages; rows, columns and boxes carry everything. */
 export const CLASSIC_CONS: Constraints = {
   cages: [],
@@ -234,6 +242,13 @@ export function buildDeck(
   for (const k of slots) deck[k] = { digit: 0, suit: JOKER_SUIT };
 
   return shuffle(deck, rnd);
+}
+
+/** Re-deal the card stack with a selected number of jokers. The grid and its
+ * givens stay identical; only the cards are changed. */
+export function deckWithJokers(puzzle: Puzzle, jokers: number): Card[] {
+  const seed = (puzzle.seed ^ Math.imul(jokers, 0x9e3779b1) ^ 0xa5a5a5a5) >>> 0;
+  return buildDeck(puzzle.solution, puzzle.givens, jokers, mulberry32(seed));
 }
 
 /** Deterministic seed for puzzle `number` of `level` — 3-10 is always 3-10. */

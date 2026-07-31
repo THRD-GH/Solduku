@@ -2,11 +2,13 @@ import './style.css';
 import type { Level, PuzzleId } from './core/types.ts';
 import { formatPuzzleId } from './core/types.ts';
 import { getPuzzle, prefetch } from './game/generate.ts';
+import { deckWithJokers, JOKER_AID_COUNTS, LEVEL_CONFIG } from './core/classic.ts';
 import { registerServiceWorker, setThemeColour } from './game/pwa.ts';
 import { keepScreenAwake } from './game/wakelock.ts';
 import { Game } from './game/state.ts';
 import {
   clearPuzzleLink,
+  jokerBank,
   latestSave,
   linkedPuzzle,
   loadHistory,
@@ -14,6 +16,8 @@ import {
   loadSettings,
   markStarted,
   saveHistory,
+  saveSettings,
+  spendJokers,
   unplayedNumbers,
 } from './game/storage.ts';
 import type { History, SavedGame, Settings, Theme } from './game/storage.ts';
@@ -177,7 +181,20 @@ class App implements AppContext {
         close();
         markStarted(this.history, id);
         saveHistory(this.history);
-        this.startGame(new Game(id, puzzle));
+        const aid = this.settings.jokerAid;
+        const spend = Math.min(this.settings.jokerSpend, jokerBank());
+        if (spend > 0) spendJokers(spend);
+        if (this.settings.jokerSpend !== 0) {
+          this.settings.jokerSpend = 0;
+          saveSettings(this.settings);
+        }
+        const aidJokers =
+          aid === 'off' ? 0 : JOKER_AID_COUNTS[aid][id.level] - LEVEL_CONFIG[id.level].jokers;
+        const adjusted =
+          aidJokers + spend === 0
+            ? puzzle
+            : { ...puzzle, deck: deckWithJokers(puzzle, LEVEL_CONFIG[id.level].jokers + aidJokers + spend) };
+        this.startGame(new Game(id, adjusted));
         const pool = unplayedNumbers(this.history, id.level).filter((n) => n !== id.number);
         if (pool.length > 0) prefetch({ level: id.level, number: pool[0] });
       })

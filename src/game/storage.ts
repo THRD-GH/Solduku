@@ -5,6 +5,7 @@ import type { Move } from './state.ts';
 const KEY = {
   settings: 'sd:v1:settings',
   history: 'sd:v1:history',
+  rewards: 'sd:v1:rewards',
   cache: 'sd:v1:cache',
 } as const;
 
@@ -13,6 +14,7 @@ const KEY = {
 export const POOL_SIZE = 500;
 
 export type Theme = 'night' | 'day' | 'contrast';
+export type JokerAid = 'off' | 'assist' | 'generous';
 
 export interface Settings {
   /** Which palette to draw. 'contrast' is the accessible high-contrast one. */
@@ -21,6 +23,10 @@ export interface Settings {
   highlightLegal: boolean;
   /** Mark legal moves that have no winning continuation. */
   showSafeMoves: boolean;
+  /** Extra wild cards for new deals; the amount scales with the level. */
+  jokerAid: JokerAid;
+  /** Banked jokers to add to the next newly dealt puzzle. */
+  jokerSpend: number;
   /** Hold a wake lock while a deal is open, so the screen stops dimming. */
   keepAwake: boolean;
   showTimer: boolean;
@@ -31,7 +37,9 @@ export interface Settings {
 export const DEFAULT_SETTINGS: Settings = {
   theme: 'night',
   highlightLegal: true,
-  showSafeMoves: true,
+  showSafeMoves: false,
+  jokerAid: 'off',
+  jokerSpend: 0,
   keepAwake: true,
   showTimer: true,
   warnDeadGrid: true,
@@ -89,6 +97,31 @@ function write(key: string, value: unknown): void {
 
 export const loadSettings = (): Settings => ({ ...DEFAULT_SETTINGS, ...read(KEY.settings, {}) });
 export const saveSettings = (s: Settings): void => write(KEY.settings, s);
+
+interface Rewards {
+  jokers: number;
+}
+
+const loadRewards = (): Rewards => ({ jokers: 0, ...read<Partial<Rewards>>(KEY.rewards, {}) });
+export const jokerBank = (): number => loadRewards().jokers;
+
+/** A first-time deal win earns one single-use joker. */
+export function earnJoker(): number {
+  const rewards = loadRewards();
+  rewards.jokers++;
+  write(KEY.rewards, rewards);
+  return rewards.jokers;
+}
+
+/** Spend banked jokers atomically when starting a new deal. */
+export function spendJokers(amount: number): boolean {
+  if (!Number.isInteger(amount) || amount < 0) return false;
+  const rewards = loadRewards();
+  if (amount > rewards.jokers) return false;
+  rewards.jokers -= amount;
+  write(KEY.rewards, rewards);
+  return true;
+}
 
 export const loadHistory = (): History => read<History>(KEY.history, {});
 export const saveHistory = (h: History): void => write(KEY.history, h);

@@ -1,5 +1,5 @@
-import { saveSettings } from '../game/storage.ts';
-import type { Theme } from '../game/storage.ts';
+import { jokerBank, saveSettings } from '../game/storage.ts';
+import type { JokerAid, Theme } from '../game/storage.ts';
 import { el } from './dom.ts';
 import { openOverlay } from './overlay.ts';
 import type { AppContext } from './app-context.ts';
@@ -8,6 +8,12 @@ const THEMES: { value: Theme; label: string }[] = [
   { value: 'night', label: 'Night' },
   { value: 'day', label: 'Day' },
   { value: 'contrast', label: 'Contrast' },
+];
+
+const JOKER_AID: { value: JokerAid; label: string }[] = [
+  { value: 'off', label: 'Off' },
+  { value: 'assist', label: 'Assist' },
+  { value: 'generous', label: 'Generous' },
 ];
 
 export function openSettings(ctx: AppContext): void {
@@ -40,6 +46,78 @@ export function openSettings(ctx: AppContext): void {
         { class: 'setting stacked' },
         el('span', { class: 'label' }, 'Theme'),
         tabs,
+      ),
+    );
+
+    const bank = jokerBank();
+    const spendTabs = el('div', { class: 'tabs' });
+    const spendLabel = el('small', {});
+    const drawSpendTabs = (): void => {
+      spendTabs.replaceChildren();
+      const spend = Math.min(ctx.settings.jokerSpend, bank);
+      if (spend !== ctx.settings.jokerSpend) {
+        ctx.settings.jokerSpend = spend;
+        saveSettings(ctx.settings);
+      }
+      const less = el('button', { class: 'btn', disabled: spend === 0, 'aria-label': 'Use one fewer joker' }, '−');
+      less.addEventListener('click', () => {
+        ctx.settings.jokerSpend--;
+        saveSettings(ctx.settings);
+        drawSpendTabs();
+      });
+      const count = el('span', { class: 'btn on', 'aria-live': 'polite' }, String(spend));
+      const more = el(
+        'button',
+        { class: 'btn', disabled: spend >= bank, 'aria-label': 'Use one more joker' },
+        '+',
+      );
+      more.addEventListener('click', () => {
+        ctx.settings.jokerSpend++;
+        saveSettings(ctx.settings);
+        drawSpendTabs();
+      });
+      spendLabel.textContent = `${bank} banked · ${spend} will be spent on the next new deal`;
+      spendTabs.append(less, count, more);
+    };
+    drawSpendTabs();
+    rows.push(
+      el(
+        'div',
+        { class: 'setting stacked' },
+        el('span', { class: 'label' }, 'Use banked jokers', spendLabel),
+        spendTabs,
+      ),
+    );
+
+    const jokerTabs = el('div', { class: 'tabs' });
+    const drawJokerTabs = (): void => {
+      jokerTabs.replaceChildren();
+      for (const option of JOKER_AID) {
+        const b = el(
+          'button',
+          { class: `btn ${ctx.settings.jokerAid === option.value ? 'on' : ''}`.trim() },
+          option.label,
+        );
+        b.addEventListener('click', () => {
+          ctx.settings.jokerAid = option.value;
+          saveSettings(ctx.settings);
+          drawJokerTabs();
+        });
+        jokerTabs.append(b);
+      }
+    };
+    drawJokerTabs();
+    rows.push(
+      el(
+        'div',
+        { class: 'setting stacked' },
+        el(
+          'span',
+          { class: 'label' },
+          'Joker aid',
+          el('small', {}, 'New deals only. Assist adds 0–2 jokers; Generous adds 1–3, depending on level.'),
+        ),
+        jokerTabs,
       ),
     );
 

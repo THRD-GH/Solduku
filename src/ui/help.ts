@@ -57,6 +57,16 @@ export function openHelp(): void {
         'Every deal is winnable: the deck holds exactly the digits the grid needs. What kills a deal is a legal placement that contradicts the one true solution. ',
         'By default the game flags that moment — the deal number turns red and a warning appears — so you can undo at once. Turn the warning off in Settings to play blind.',
       ),
+      el(
+        'p',
+        {},
+        'Settings also lets you turn on safe-move previews and add joker help to new deals. Joker help replaces ordinary cards, so every deal still has exactly one card per open cell.',
+      ),
+      el(
+        'p',
+        {},
+        'The first win of each deal also earns one single-use joker. Choose how many banked jokers to add before a new deal in Settings; they are spent when that deal is created.',
+      ),
       el('h3', {}, 'Levels'),
       el(
         'p',

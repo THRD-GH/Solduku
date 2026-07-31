@@ -5,6 +5,7 @@ import type { Card } from '../core/types.ts';
 import type { Game, PlaceResult, Zone } from '../game/state.ts';
 import {
   clearSaveFor,
+  earnJoker,
   markFinished,
   saveGame,
   saveHistory,
@@ -413,9 +414,11 @@ export class PlayScreen {
     const game = this.game;
     const key = formatPuzzleId(game.id);
     const previous = this.ctx.history[key]?.bestScore;
+    const firstCompletion = !this.ctx.history[key]?.finished;
     markFinished(this.ctx.history, game.id, game.score, Date.now());
     saveHistory(this.ctx.history);
     clearSaveFor(game.id);
+    const bank = firstCompletion ? earnJoker() : null;
 
     const isBest = previous === undefined || game.score > previous;
     openOverlay(
@@ -447,6 +450,9 @@ export class PlayScreen {
               ? 'No flushes this time.'
               : `${game.flushUnits.size} flush${game.flushUnits.size === 1 ? '' : 'es'} along the way.`,
           ),
+          bank === null
+            ? ''
+            : el('p', { class: 'summary' }, `You earned a joker · ${bank} now banked.`),
           el('div', { class: 'actions', style: 'grid-template-columns: 1fr 1fr; margin-top: 12px' }, next, menu),
         );
       },
