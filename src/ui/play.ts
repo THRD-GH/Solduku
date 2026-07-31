@@ -69,9 +69,13 @@ function cardFace(card: Card, role = 0): (HTMLElement | SVGSVGElement)[] {
   if (isJoker(card)) {
     return [jesterCap(), el('span', { class: 'st' }, role === 0 ? 'JOKER' : String(role))];
   }
+  const rank = String(card.digit);
+  const suit = SUIT_GLYPHS[card.suit];
   return [
-    el('span', { class: 'd' }, String(card.digit)),
-    el('span', { class: 'st' }, SUIT_GLYPHS[card.suit]),
+    el('span', { class: 'corner tl' }, rank, el('small', {}, suit)),
+    el('span', { class: 'card-rank' }, rank),
+    el('span', { class: 'card-suit' }, suit),
+    el('span', { class: 'corner br' }, rank, el('small', {}, suit)),
   ];
 }
 
@@ -93,6 +97,7 @@ export class PlayScreen {
   private doomBar!: HTMLElement;
   private handRow: HTMLElement;
   private freeRow: HTMLElement;
+  private deckPile: HTMLButtonElement;
   private deckCount: HTMLElement;
   private scoreBox: HTMLElement;
   private timerBox: HTMLElement;
@@ -157,6 +162,13 @@ export class PlayScreen {
     this.handRow = el('div', { class: 'cardrow hand' });
     this.deckCount = el('span', { class: 'count' }, String(game.deckLeft));
     this.freeRow = el('div', { class: 'cardrow free' });
+    this.deckPile = el(
+      'button',
+      { class: 'deckpile', title: 'Draw cards until the hand is full', 'aria-label': 'Draw cards' },
+      this.deckCount,
+      el('small', {}, 'draw'),
+    );
+    this.deckPile.addEventListener('click', () => this.drawCards());
 
     const tray = el(
       'div',
@@ -166,7 +178,7 @@ export class PlayScreen {
         { class: 'tray-row' },
         el('span', { class: 'tray-label' }, 'Hand'),
         this.handRow,
-        el('div', { class: 'deckpile', title: 'Cards left in the deck' }, this.deckCount, el('small', {}, 'deck')),
+        this.deckPile,
       ),
       el(
         'div',
@@ -304,6 +316,13 @@ export class PlayScreen {
     });
 
     this.deckCount.textContent = String(game.deckLeft);
+    this.deckPile.disabled = !game.canDraw();
+    const drawCount = Math.min(game.handSize - game.hand.length, game.deckLeft);
+    this.deckPile.title = game.canDraw()
+      ? `Draw ${drawCount} card${drawCount === 1 ? '' : 's'}`
+      : game.deckLeft === 0
+        ? 'Deck empty'
+        : 'Hand full';
     this.scoreBox.textContent = String(game.score);
     // The doomed marker follows the setting, so purists can play blind.
     const doomed = !game.completable && this.ctx.settings.warnDeadGrid;
@@ -373,6 +392,12 @@ export class PlayScreen {
 
   private doUndo(): void {
     if (!this.game.undo()) return;
+    this.render();
+    this.save();
+  }
+
+  private drawCards(): void {
+    if (this.game.draw() === 0) return;
     this.render();
     this.save();
   }

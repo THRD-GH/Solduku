@@ -16,7 +16,8 @@ and storage model.
   repeat in the row, column or box. You are not reconstructing the hidden
   solution, only staying legal; the tension is that legal-but-wrong placements
   can wedge the deal.
-- **Hand and free cells** — the hand refills from the deck as you play.
+- **Hand and free cells** — tap the draw pile to fill open hand slots; free
+  cells park awkward cards, FreeCell-style.
   Free cells park one card each, FreeCell-style.
 - **Joker** — fully wild: any empty cell, counts as whatever digit and suit
   the position needs. Its digit is missing from the deck, so it must be spent

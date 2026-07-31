@@ -28,6 +28,7 @@ export function openHelp(): void {
         {},
         'Free cells park one card each, like FreeCell. The joker — the jester card — is fully wild: it can be played onto any empty cell and counts as whatever digit and suit the cell needs.',
       ),
+      el('p', {}, 'Tap the draw pile beside your hand whenever you want to refill its open slots.'),
       el('h3', {}, 'Scoring'),
       el(
         'ul',

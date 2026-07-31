@@ -63,16 +63,16 @@ export interface FlushProspect {
   potential: number;
 }
 
-/** One user action, kept so undo can put everything back — including the
- *  cards drawn after the move and any scoring it triggered. Saved with the
- *  game, so putting a deal down does not cost the history. */
+/** One user action, kept so undo can put everything back — including scoring
+ *  it triggered. Saved with the game, so putting a deal down does not cost
+ *  the history. */
 export interface Move {
   from: Zone;
   card: Card;
   /** Cell played to, or null when the card went to a stash slot. */
   cell: number | null;
   freeIndex?: number;
-  /** Cards drawn into the hand after this move. */
+  /** Legacy saves may contain auto-drawn cards after a move. New moves leave this at zero. */
   drawn: number;
   scoreDelta: number;
   unitsScored: number[];
@@ -369,7 +369,13 @@ export class Game {
     for (const card of this.availableCards()) {
       for (let i = 0; i < CELLS; i++) if (this.legal(i, card)) return true;
     }
-    return this.hand.length > 0 && this.free.some((f) => f === null);
+    if (this.hand.length > 0 && this.free.some((f) => f === null)) return true;
+    return this.canDraw();
+  }
+
+  /** The deck can be tapped whenever it can fill at least one hand slot. */
+  canDraw(): boolean {
+    return !this.completed && !this.dead && this.hand.length < this.handSize && this.deckLeft > 0;
   }
 
   private refill(): number {
@@ -379,6 +385,12 @@ export class Game {
       drawn++;
     }
     return drawn;
+  }
+
+  /** Draw from the pile until the hand is full, or the deck is empty. */
+  draw(): number {
+    if (!this.canDraw()) return 0;
+    return this.refill();
   }
 
   private takeFrom(zone: Zone): Card | null {
@@ -450,12 +462,11 @@ export class Game {
     const gained = POINTS.place + units.reduce((t, u) => t + u.points, 0);
     this.score += gained;
 
-    const drawn = this.refill();
     this.history.push({
       from: zone,
       card,
       cell,
-      drawn,
+      drawn: 0,
       scoreDelta: gained,
       unitsScored: units.map((u) => u.unit),
       flushUnits: units.filter((u) => u.flush).map((u) => u.unit),
@@ -487,13 +498,12 @@ export class Game {
 
     this.hand.splice(handIndex, 1);
     this.free[freeIndex] = card;
-    const drawn = this.refill();
     this.history.push({
       from: { kind: 'hand', index: handIndex },
       card,
       cell: null,
       freeIndex,
-      drawn,
+      drawn: 0,
       scoreDelta: 0,
       unitsScored: [],
       flushUnits: [],

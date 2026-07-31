@@ -1837,26 +1837,57 @@ body {
   justify-content: center;
   line-height: 1;
   gap: 2%;
+  overflow: hidden;
+  position: relative;
 }
 
-.scard .d {
-  font-size: 0.5em;
-  font-weight: 700;
-}
-
-.scard .st {
-  font-size: 0.44em;
-  font-weight: 700;
-}
-
-.scard.red .d,
-.scard.red .st {
+.scard.red .corner,
+.scard.red .card-rank,
+.scard.red .card-suit {
   color: var(--suit-red);
 }
 
-.scard.black .d,
-.scard.black .st {
+.scard.black .corner,
+.scard.black .card-rank,
+.scard.black .card-suit {
   color: var(--text);
+}
+
+.corner {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 0.22em;
+  font-weight: 800;
+  line-height: 0.78;
+}
+
+.corner small {
+  font: inherit;
+  font-size: 0.85em;
+}
+
+.corner.tl {
+  top: 7%;
+  left: 7%;
+}
+
+.corner.br {
+  right: 7%;
+  bottom: 7%;
+  transform: rotate(180deg);
+}
+
+.card-rank {
+  font-size: 0.54em;
+  font-weight: 800;
+  line-height: 0.82;
+}
+
+.card-suit {
+  font-size: 0.3em;
+  font-weight: 700;
 }
 
 .scard.joker .d {
@@ -1945,26 +1976,32 @@ body {
   touch-action: manipulation;
   user-select: none;
   -webkit-user-select: none;
+  overflow: hidden;
+  position: relative;
 }
 
-.pcard .d {
-  font-size: 20px;
-  font-weight: 800;
-}
-
-.pcard .st {
-  font-size: 18px;
-  font-weight: 700;
-}
-
-.pcard.red .d,
-.pcard.red .st {
+.pcard.red .corner,
+.pcard.red .card-rank,
+.pcard.red .card-suit {
   color: var(--suit-red);
 }
 
-.pcard.black .d,
-.pcard.black .st {
+.pcard.black .corner,
+.pcard.black .card-rank,
+.pcard.black .card-suit {
   color: var(--text);
+}
+
+.pcard .corner {
+  font-size: 10px;
+}
+
+.pcard .card-rank {
+  font-size: 25px;
+}
+
+.pcard .card-suit {
+  font-size: 15px;
 }
 
 .pcard.joker .d {
@@ -2014,6 +2051,48 @@ body {
   align-items: center;
   justify-content: center;
   gap: 2px;
+  color: var(--text);
+  cursor: pointer;
+  font-family: inherit;
+  padding: 0;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 3px 3px 0 color-mix(in srgb, var(--line) 80%, transparent);
+}
+
+/* A face-down playing card: suit pattern and inner border make the draw pile
+   read as a deck at a glance, while the count remains legible in front. */
+.deckpile::before {
+  content: '♠';
+  position: absolute;
+  inset: 4px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  color: color-mix(in srgb, var(--accent) 68%, transparent);
+  font-size: 34px;
+  line-height: 1;
+  background:
+    radial-gradient(circle at 25% 25%, color-mix(in srgb, var(--accent) 26%, transparent) 0 1px, transparent 1.5px) 0 0 / 8px 8px,
+    var(--panel-2);
+}
+
+.deckpile .count,
+.deckpile small {
+  position: relative;
+  z-index: 1;
+  text-shadow: 0 1px 2px var(--shadow);
+}
+
+.deckpile:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.deckpile:not(:disabled):active {
+  background: var(--accent-dim);
+  border-color: var(--accent);
 }
 
 .deckpile .count {
