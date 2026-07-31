@@ -68,6 +68,7 @@ export function openScoring(game: Game | null): void {
 
     if (game !== null) {
       const prospects = game.flushProspects().slice(0, 6);
+      const completed = game.completedFlushes();
       parts.push(
         el(
           'p',
@@ -78,6 +79,24 @@ export function openScoring(game: Game | null): void {
         ),
       );
       parts.push(el('h3', {}, 'On this board'));
+      if (completed.length > 0) {
+        const ledger = el('div', { class: 'prospects' });
+        for (const flush of completed) {
+          ledger.append(
+            el(
+              'div',
+              { class: 'prospect alive' },
+              el('span', { class: 'p-unit' }, unitName(flush.unit)),
+              el(
+                'span',
+                { class: 'p-state' },
+                `${flush.played}-card flush ${SUIT_GLYPHS[flush.suit]} · +${flush.points}`,
+              ),
+            ),
+          );
+        }
+        parts.push(ledger);
+      }
       if (prospects.length === 0) {
         parts.push(el('p', { class: 'summary' }, 'No cards played into open units yet.'));
       } else {
@@ -100,15 +119,6 @@ export function openScoring(game: Game | null): void {
           );
         }
         parts.push(list);
-        if (game.flushUnits.size > 0) {
-          parts.push(
-            el(
-              'p',
-              { class: 'summary' },
-              `Banked so far: ${game.flushUnits.size} flush${game.flushUnits.size === 1 ? '' : 'es'}.`,
-            ),
-          );
-        }
       }
     }
 

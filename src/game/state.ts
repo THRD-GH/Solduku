@@ -32,6 +32,8 @@ export interface UnitScore {
   flush: boolean;
   /** Suit of the flush, when there is one. */
   suit: number;
+  /** Number of played cards counted for the flush payout. */
+  played: number;
   points: number;
 }
 
@@ -514,7 +516,7 @@ export class Game {
         points += POINTS.flushPerCard * played;
         this.flushUnits.add(u);
       }
-      out.push({ unit: u, flush, suit, points });
+      out.push({ unit: u, flush, suit, played, points });
     }
     return out;
   }
@@ -632,6 +634,29 @@ export class Game {
     return out.sort(
       (a, b) => Number(b.alive) - Number(a.alive) || b.played - a.played || a.open - b.open,
     );
+  }
+
+  /** Completed flushes, recalculated from the board for a transparent score ledger. */
+  completedFlushes(): UnitScore[] {
+    const out: UnitScore[] = [];
+    for (const unit of this.flushUnits) {
+      let played = 0;
+      let suit = -1;
+      for (const cell of UNITS[unit]) {
+        const card = this.placed[cell];
+        if (card === null) continue;
+        played++;
+        if (!isJoker(card) && suit === -1) suit = card.suit;
+      }
+      out.push({
+        unit,
+        flush: true,
+        suit,
+        played,
+        points: POINTS.unit + POINTS.flushPerCard * played,
+      });
+    }
+    return out.sort((a, b) => a.unit - b.unit);
   }
 
   /** Put the last move back: the card, the cards drawn after it, the score. */

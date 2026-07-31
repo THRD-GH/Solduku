@@ -533,15 +533,14 @@ export class PlayScreen {
       return;
     }
     if (result !== null && (result.units.length > 0 || result.riskBonus > 0 || result.questBonus > 0)) {
-      toast(
-        result.units
-          .map((u) =>
-            u.flush
-              ? `${unitName(u.unit)} flush ${SUIT_GLYPHS[u.suit]} +${u.points}`
-              : `${unitName(u.unit)} +${u.points}`,
-          )
-          .join(' · '),
+      const scoreEvents = result.units.map((u) =>
+        u.flush
+          ? `${unitName(u.unit)} ${u.played}-card flush ${SUIT_GLYPHS[u.suit]} +${u.points}`
+          : `${unitName(u.unit)} +${u.points}`,
       );
+      if (result.riskBonus > 0) scoreEvents.push(`FULL HAND BONUS +${result.riskBonus}`);
+      if (result.questBonus > 0) scoreEvents.push(`FLUSH QUEST +${result.questBonus}`);
+      toast(scoreEvents.join(' · '), result.units.some((u) => u.flush) || result.riskBonus > 0 || result.questBonus > 0);
     }
 
     if (this.game.completed) {

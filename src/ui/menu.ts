@@ -1,7 +1,7 @@
 import { LEVELS, LEVEL_LOGIC, LEVEL_NAMES } from '../core/classic.ts';
 import type { Level } from '../core/types.ts';
 import { formatPuzzleId } from '../core/types.ts';
-import { POOL_SIZE, levelStats, unplayedNumbers } from '../game/storage.ts';
+import { POOL_SIZE, freeSlotBank, jokerBank, levelStats, progression, unplayedNumbers } from '../game/storage.ts';
 import { buildStamp, el } from './dom.ts';
 import { clear } from './dom.ts';
 import { openOverlay, toast } from './overlay.ts';
@@ -32,6 +32,19 @@ export function buildMenu(
       { class: 'hero' },
       el('h1', {}, 'Choose ', el('span', {}, 'Level')),
       el('p', {}, 'Tap a level to deal · # to choose a deal number'),
+    ),
+  );
+
+  const progress = progression();
+  const totalScore = Object.values(ctx.history).reduce((total, record) => total + (record.bestScore ?? 0), 0);
+  screen.append(
+    el(
+      'div',
+      { class: 'home-tally' },
+      el('div', {}, el('b', {}, String(totalScore)), el('small', {}, 'total score')),
+      el('div', {}, el('b', {}, String(progress.successfulGames)), el('small', {}, 'first wins')),
+      el('div', {}, el('b', {}, `${jokerBank()} / ${progress.successfulGames}`), el('small', {}, 'jokers banked / earned')),
+      el('div', {}, el('b', {}, `${freeSlotBank()} / ${progress.earnedFreeSlots}`), el('small', {}, 'slots banked / earned')),
     ),
   );
 

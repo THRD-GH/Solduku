@@ -116,6 +116,7 @@ interface Rewards {
   jokers: number;
   successfulGames: number;
   freeSlots: number;
+  earnedFreeSlots: number;
   cleanStreak: number;
   bestCleanStreak: number;
   achievements: string[];
@@ -128,6 +129,7 @@ const loadRewards = (): Rewards => {
     jokers: saved.jokers ?? 0,
     successfulGames: saved.successfulGames ?? 0,
     freeSlots: saved.freeSlots ?? 0,
+    earnedFreeSlots: saved.earnedFreeSlots ?? 0,
     cleanStreak: saved.cleanStreak ?? 0,
     bestCleanStreak: saved.bestCleanStreak ?? 0,
     achievements: saved.achievements ?? [],
@@ -136,7 +138,7 @@ const loadRewards = (): Rewards => {
 };
 export const jokerBank = (): number => loadRewards().jokers;
 export const freeSlotBank = (): number => loadRewards().freeSlots;
-export const progression = (): Pick<Rewards, 'successfulGames' | 'cleanStreak' | 'bestCleanStreak' | 'achievements' | 'mastery'> => {
+export const progression = (): Pick<Rewards, 'successfulGames' | 'cleanStreak' | 'bestCleanStreak' | 'achievements' | 'mastery' | 'earnedFreeSlots'> => {
   const rewards = loadRewards();
   return rewards;
 };
@@ -176,6 +178,7 @@ export function earnWinReward(details?: {
   rewards.successfulGames++;
   const earnedFreeSlot = rewards.successfulGames % 10 === 0;
   if (earnedFreeSlot) rewards.freeSlots++;
+  if (earnedFreeSlot) rewards.earnedFreeSlots++;
   if (details) {
     rewards.cleanStreak = details.usedAid ? 0 : rewards.cleanStreak + 1;
     rewards.bestCleanStreak = Math.max(rewards.bestCleanStreak, rewards.cleanStreak);
