@@ -1,7 +1,7 @@
 import { LEVELS, LEVEL_LOGIC, LEVEL_NAMES } from '../core/classic.ts';
 import type { Level } from '../core/types.ts';
 import { formatPuzzleId } from '../core/types.ts';
-import { POOL_SIZE, freeSlotBank, jokerBank, levelStats, progression, unplayedNumbers } from '../game/storage.ts';
+import { POOL_SIZE, freeSlotBank, jokerBank, levelStats, progression, TROPHY_NAMES, unplayedNumbers } from '../game/storage.ts';
 import { buildStamp, el } from './dom.ts';
 import { clear } from './dom.ts';
 import { openOverlay, toast } from './overlay.ts';
@@ -55,7 +55,7 @@ export function buildMenu(
   }
 
   const list = el('div', { class: 'levels' });
-  for (const level of LEVELS) list.append(buildLevelRow(ctx, level));
+  for (const level of LEVELS) list.append(buildLevelRow(ctx, level, progress.mastery[level] ?? 0));
   screen.append(list);
 
   screen.append(
@@ -68,7 +68,7 @@ export function buildMenu(
   return screen;
 }
 
-function buildLevelRow(ctx: AppContext, level: Level): HTMLElement {
+function buildLevelRow(ctx: AppContext, level: Level, trophyTier: number): HTMLElement {
   const left = unplayedNumbers(ctx.history, level).length;
   const stat = levelStats(ctx.history, level);
 
@@ -98,6 +98,25 @@ function buildLevelRow(ctx: AppContext, level: Level): HTMLElement {
   pick.textContent = '#';
   pick.addEventListener('click', () => openPicker(ctx, level));
 
+  const trophies = el('div', {
+    class: 'trophy-strip',
+    role: 'img',
+    'aria-label': `${TROPHY_NAMES[trophyTier]} trophy progress: ${trophyTier} of 4 earned`,
+  });
+  for (let tier = 1; tier <= 4; tier++) {
+    trophies.append(
+      el(
+        'span',
+        {
+          class: `trophy ${tier <= trophyTier ? 'earned' : ''}`.trim(),
+          title: `${TROPHY_NAMES[tier]} trophy${tier <= trophyTier ? ' earned' : ' not yet earned'}`,
+          'aria-hidden': 'true',
+        },
+        '🏆',
+      ),
+    );
+  }
+
   return el(
     'div',
     { class: 'level sol' },
@@ -106,6 +125,7 @@ function buildLevelRow(ctx: AppContext, level: Level): HTMLElement {
       { class: 'level-head' },
       stars(level, 10),
       el('span', { class: 'name' }, LEVEL_NAMES[level]),
+      trophies,
     ),
     el('div', { class: 'source-row' }, button, pick),
   );
