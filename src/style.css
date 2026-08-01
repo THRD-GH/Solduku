@@ -1798,6 +1798,7 @@ body {
   --card-black: #1c2631;
   --card-red: #c83244;
   --joker: #b98bff;
+  --joker-tint: #8d5ed1;
   --card-bg: #f8fbff;
   --card-line: #b4c6d8;
 }
@@ -1810,6 +1811,7 @@ body {
   --card-black: #18212b;
   --card-red: #bd283a;
   --joker: #7b3fd4;
+  --joker-tint: #7b3fd4;
   --card-bg: #ffffff;
   --card-line: #9eb4cb;
 }
@@ -1822,6 +1824,7 @@ body {
   --card-black: #ffffff;
   --card-red: #e69f00;
   --joker: #cc79a7;
+  --joker-tint: #cc79a7;
   --card-bg: #000000;
   --card-line: #ffffff;
 }
@@ -1958,6 +1961,15 @@ body {
   color: var(--suit-ink);
 }
 
+/* Jokers are special cards, but still belong to the same clear card family:
+   a violet wash, matching edge, bold cap and label make them unmistakable. */
+.scard.joker,
+.pcard.joker {
+  background: linear-gradient(145deg, color-mix(in srgb, var(--joker-tint) 19%, var(--card-bg)), var(--card-bg) 66%);
+  border-color: color-mix(in srgb, var(--joker-tint) 65%, var(--card-line));
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--joker-tint) 12%, transparent);
+}
+
 .corner {
   position: absolute;
   display: flex;
@@ -2010,8 +2022,11 @@ body {
 .scard.joker .st {
   color: var(--joker);
   font-size: 0.22em;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: 0.5px;
+  padding: 0.08em 0.32em;
+  border-radius: 0.32em;
+  background: color-mix(in srgb, var(--joker-tint) 15%, transparent);
 }
 
 /* The jester cap, sized against its card: em on the board, px in the tray. */
@@ -2022,11 +2037,23 @@ body {
   display: block;
 }
 
+.scard.joker .jhat {
+  padding: 0.04em;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--joker-tint) 13%, transparent);
+}
+
 .pcard .jhat {
   width: 31px;
   height: 31px;
   color: var(--joker);
   display: block;
+}
+
+.pcard.joker .jhat {
+  padding: 2px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--joker-tint) 13%, transparent);
 }
 
 /* ---------- the tray: hand, free cells, deck ---------- */
@@ -2113,9 +2140,12 @@ body {
 
 .pcard.joker .st {
   color: var(--joker);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.65px;
+  padding: 2px 4px;
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--joker-tint) 15%, transparent);
 }
 
 .pcard.sel {
