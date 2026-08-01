@@ -1,6 +1,6 @@
 import { LEVELS, LEVEL_NAMES } from '../core/classic.ts';
 import type { Level, PuzzleId } from '../core/types.ts';
-import { freeSlotBank, progression, unlockedCardBacks } from '../game/storage.ts';
+import { freeSlotBank, levelStats, progression, SCORE_TROPHY_TARGETS, TROPHY_NAMES, unlockedCardBacks } from '../game/storage.ts';
 import type { History } from '../game/storage.ts';
 import { el } from './dom.ts';
 import { openOverlay } from './overlay.ts';
@@ -59,7 +59,18 @@ export function openProgress(ctx: AppContext): void {
     const mastery = el('div', { class: 'progress-list' });
     for (const level of LEVELS) {
       const tier = p.mastery[level] ?? 0;
-      mastery.append(el('div', { class: 'progress-row' }, el('b', {}, LEVEL_NAMES[level]), el('small', {}, `${['Unranked', 'Bronze', 'Silver', 'Gold'][tier]} · collection ${collection(ctx.history, level)}/10`)));
+      const best = levelStats(ctx.history, level).bestScore;
+      const target = SCORE_TROPHY_TARGETS[level];
+      const nextTier = (tier + 1) as 1 | 2 | 3 | 4;
+      const next = tier >= 4 ? 'Diamond complete' : `next ${TROPHY_NAMES[nextTier]} ${target[nextTier]}`;
+      mastery.append(
+        el(
+          'div',
+          { class: 'progress-row' },
+          el('b', {}, `${tier > 0 ? '🏆 ' : ''}${LEVEL_NAMES[level]}`),
+          el('small', {}, `${TROPHY_NAMES[tier]} trophy · best ${best ?? '—'} · ${next} · collection ${collection(ctx.history, level)}/10`),
+        ),
+      );
     }
     const closeButton = el('button', { class: 'btn wide' }, 'Close');
     closeButton.addEventListener('click', close);
@@ -72,7 +83,7 @@ export function openProgress(ctx: AppContext): void {
       el('p', { class: 'summary' }, records(ctx.history)),
       el('h3', {}, 'Challenges'),
       el('div', { class: 'actions' }, challenge('Daily', dailyDeal()), challenge('Weekly', weeklyDeal())),
-      el('h3', {}, 'Mastery & collections'), mastery,
+      el('h3', {}, 'Score trophies & collections'), mastery,
       el('h3', {}, 'Achievements'), badges,
       el('div', { class: 'panel-footer' }, closeButton),
     );

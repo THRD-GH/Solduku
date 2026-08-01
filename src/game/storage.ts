@@ -16,6 +16,28 @@ export const POOL_SIZE = 500;
 export type Theme = 'night' | 'day' | 'contrast';
 export type JokerAid = 'off' | 'assist' | 'generous';
 export type CardBack = 'classic' | 'royal' | 'aurora';
+export type TrophyTier = 1 | 2 | 3 | 4;
+
+/** Score bands are tuned to each level's dealt-card distribution. Bronze is
+ * awarded for every completed deal; the higher trophies reward flush play. */
+export const SCORE_TROPHY_TARGETS: Record<Level, Record<TrophyTier, number>> = {
+  1: { 1: 0, 2: 400, 3: 475, 4: 550 },
+  2: { 1: 0, 2: 415, 3: 500, 4: 600 },
+  3: { 1: 0, 2: 430, 3: 525, 4: 625 },
+  4: { 1: 0, 2: 440, 3: 525, 4: 610 },
+  5: { 1: 0, 2: 440, 3: 475, 4: 550 },
+  6: { 1: 0, 2: 440, 3: 460, 4: 525 },
+};
+
+export const TROPHY_NAMES = ['Unranked', 'Bronze', 'Silver', 'Gold', 'Diamond'] as const;
+
+export function trophyForScore(level: Level, score: number): TrophyTier {
+  const target = SCORE_TROPHY_TARGETS[level];
+  if (score >= target[4]) return 4;
+  if (score >= target[3]) return 3;
+  if (score >= target[2]) return 2;
+  return 1;
+}
 
 export interface Settings {
   /** Which palette to draw. 'contrast' is the accessible high-contrast one. */
@@ -163,6 +185,22 @@ export interface WinReward {
   cleanStreak: number;
 }
 
+export interface TrophyAward {
+  tier: TrophyTier;
+  newlyEarned: boolean;
+}
+
+/** Store the highest score trophy for a level. Replays can always improve it. */
+export function awardScoreTrophy(level: Level, score: number): TrophyAward {
+  const rewards = loadRewards();
+  const previous = rewards.mastery[level] ?? 0;
+  const earned = trophyForScore(level, score);
+  const tier = Math.max(previous, earned) as TrophyTier;
+  rewards.mastery[level] = tier;
+  write(KEY.rewards, rewards);
+  return { tier, newlyEarned: earned > previous };
+}
+
 /** A first-time deal win earns a joker; every tenth earns a bonus free slot. */
 export function earnWinReward(details?: {
   level: Level;
@@ -194,9 +232,6 @@ export function earnWinReward(details?: {
     unlock('clean-streak-3', rewards.bestCleanStreak >= 3);
     const newAchievements = [...earned].filter((id) => !rewards.achievements.includes(id));
     rewards.achievements = [...earned];
-    const target = 90 + details.level * 20;
-    const tier = details.questComplete && !details.usedAid ? 3 : details.score >= target ? 2 : 1;
-    rewards.mastery[details.level] = Math.max(rewards.mastery[details.level] ?? 0, tier);
     write(KEY.rewards, rewards);
     return {
       jokers: rewards.jokers,

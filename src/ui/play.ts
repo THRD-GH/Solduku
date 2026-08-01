@@ -5,6 +5,7 @@ import type { Card } from '../core/types.ts';
 import type { Game, PlaceResult, Zone } from '../game/state.ts';
 import {
   clearSaveFor,
+  awardScoreTrophy,
   earnWinReward,
   freeSlotBank,
   jokerBank,
@@ -13,6 +14,7 @@ import {
   saveHistory,
   spendFreeSlot,
   spendJokers,
+  TROPHY_NAMES,
   winsToNextFreeSlot,
 } from '../game/storage.ts';
 import { buildStamp, el, formatTime } from './dom.ts';
@@ -582,6 +584,7 @@ export class PlayScreen {
     });
     saveHistory(this.ctx.history);
     clearSaveFor(game.id);
+    const trophy = awardScoreTrophy(game.puzzle.difficulty, game.score);
     const reward =
       firstCompletion
         ? earnWinReward({
@@ -640,6 +643,9 @@ export class PlayScreen {
                 { class: 'summary' },
                 `Unlocked: ${reward.newAchievements.map((id) => ACHIEVEMENT_NAMES[id] ?? id).join(' · ')}`,
               )
+            : '',
+          trophy.newlyEarned
+            ? el('p', { class: 'summary' }, `🏆 New ${TROPHY_NAMES[trophy.tier]} Trophy for ${LEVEL_NAMES[game.puzzle.difficulty]}.`)
             : '',
           el('div', { class: 'actions', style: 'grid-template-columns: 1fr 1fr; margin-top: 12px' }, next, menu),
         );
