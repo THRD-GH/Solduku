@@ -1,20 +1,22 @@
 /* Night is the default, matching the reference app's dark scheme; the Theme
    setting swaps in the day or high-contrast palette. */
 :root {
-  --bg: #0a0d10;
-  --panel: #161c22;
-  --panel-2: #1e262e;
-  --line: #3a464f;
-  --line-strong: #7b8b98;
-  --cell: #12181d;
-  --text: #e6edf3;
-  --dim: #8fa3b3;
-  --accent: #56d1f5;
-  --accent-dim: #1f6b84;
-  --cage: #9aa8b5;
-  --sum: #f0c674;
+  --bg: #17243c;
+  --bg-glow-a: rgba(93, 177, 255, 0.22);
+  --bg-glow-b: rgba(169, 109, 239, 0.17);
+  --panel: #223651;
+  --panel-2: #2d4668;
+  --line: #587394;
+  --line-strong: #afc9e6;
+  --cell: #1c2d45;
+  --text: #f4f8ff;
+  --dim: #b8cae1;
+  --accent: #85d9ff;
+  --accent-dim: #356c99;
+  --cage: #c0d2e7;
+  --sum: #ffd27a;
   /* Distinctly blue: at grey it read as another grid line. */
-  --mark: #7cc7ee;
+  --mark: #9bdbff;
   /* A cell down to its last candidate. */
   --single: #7fe6a8;
   --single-bg: rgba(127, 230, 168, 0.14);
@@ -29,27 +31,27 @@
   --peer: rgba(255, 255, 255, 0.05);
   --cage-peer: rgba(240, 198, 116, 0.09);
   --same: rgba(86, 209, 245, 0.14);
-  --shadow: rgba(0, 0, 0, 0.5);
+  --shadow: rgba(5, 12, 29, 0.42);
   /* Components for overlays you need to see through, mixed at --glass. */
-  --panel-rgb: 22 28 34;
-  --panel-2-rgb: 30 38 46;
+  --panel-rgb: 34 54 81;
+  --panel-2-rgb: 45 70 104;
   /* Required / ruled-out keys, mixed at --glass like every other surface. */
   --inc-rgb: 18 131 63;
   --exc-rgb: 179 34 34;
 
   /* Control groups, so a key's job is readable from its colour. */
-  --k-digit: #1e4d35;
-  --k-digit-line: #4aa878;
-  --k-digit-text: #dff6e8;
-  --k-edit: #4a3a1c;
-  --k-edit-line: #c39c4c;
-  --k-edit-text: #f8eed6;
-  --k-aid: #1d3a54;
-  --k-aid-line: #4f92c4;
-  --k-aid-text: #dcefff;
-  --k-session: #46243a;
-  --k-session-line: #b0648f;
-  --k-session-text: #ffe2f0;
+  --k-digit: #285e53;
+  --k-digit-line: #63c7a7;
+  --k-digit-text: #e5fff6;
+  --k-edit: #624d26;
+  --k-edit-line: #e2ba62;
+  --k-edit-text: #fff4d9;
+  --k-aid: #2a5277;
+  --k-aid-line: #78c5ef;
+  --k-aid-text: #e4f5ff;
+  --k-session: #5c3459;
+  --k-session-line: #dc91c2;
+  --k-session-text: #ffebf7;
   /* Matches --tallied, the violet the counted cages are tinted with. */
   --k-tally: #3a2550;
   --k-tally-line: #b98bff;
@@ -57,18 +59,20 @@
 }
 
 :root[data-theme='day'] {
-  --bg: #dfe4e9;
-  --panel: #f7f9fb;
-  --panel-2: #e7ecf1;
-  --line: #9aa7b2;
-  --line-strong: #2f3a44;
-  --cell: #ffffff;
-  --text: #131a20;
-  --dim: #5b6b78;
-  --accent: #0a6f96;
-  --accent-dim: #9fd4e6;
-  --cage: #9ba7b3;
-  --sum: #8a5a00;
+  --bg: #e8f1fb;
+  --bg-glow-a: rgba(112, 190, 255, 0.25);
+  --bg-glow-b: rgba(246, 177, 215, 0.2);
+  --panel: #fffdf9;
+  --panel-2: #edf4fb;
+  --line: #c1d1e2;
+  --line-strong: #48627d;
+  --cell: #fbfdff;
+  --text: #1d3045;
+  --dim: #627992;
+  --accent: #3e7db6;
+  --accent-dim: #b9ddf4;
+  --cage: #8398ae;
+  --sum: #a86816;
   --mark: #1f6390;
   --single: #0d7a3d;
   --single-bg: rgba(13, 122, 61, 0.12);
@@ -80,9 +84,9 @@
   --peer: rgba(0, 0, 0, 0.05);
   --cage-peer: rgba(138, 90, 0, 0.08);
   --same: rgba(10, 111, 150, 0.13);
-  --shadow: rgba(0, 0, 0, 0.25);
-  --panel-rgb: 247 249 251;
-  --panel-2-rgb: 231 236 241;
+  --shadow: rgba(67, 94, 124, 0.2);
+  --panel-rgb: 255 253 249;
+  --panel-2-rgb: 237 244 251;
   --inc-rgb: 15 122 58;
   --exc-rgb: 176 32 32;
 
@@ -110,6 +114,8 @@
    wherever colour alone was doing the work. */
 :root[data-theme='contrast'] {
   --bg: #000000;
+  --bg-glow-a: transparent;
+  --bg-glow-b: transparent;
   --panel: #000000;
   --panel-2: #101014;
   --line: #8a8a8a;
@@ -198,7 +204,11 @@ body {
 }
 
 body {
-  background: var(--bg);
+  background:
+    radial-gradient(circle at 10% -8%, var(--bg-glow-a), transparent 32rem),
+    radial-gradient(circle at 96% 20%, var(--bg-glow-b), transparent 34rem),
+    var(--bg);
+  background-attachment: fixed;
   color: var(--text);
   font-family: 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
   -webkit-text-size-adjust: 100%;
@@ -2469,4 +2479,63 @@ body {
 
 .panel h2.bad {
   color: var(--error);
+}
+
+/* A little softness goes a long way on a game that asks players to stare at
+   small details. The board itself stays crisp; only the surrounding furniture
+   gets the friendly rounded, layered treatment. */
+.titlebar,
+.level,
+.home-tally > div,
+.tray,
+.panel {
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--shadow) 55%, transparent);
+}
+
+.titlebar {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--panel) 92%, white), var(--panel));
+  border-radius: 11px;
+}
+
+.iconbtn,
+.source,
+.pick,
+.key,
+.btn {
+  border-radius: 9px;
+  box-shadow: 0 2px 0 color-mix(in srgb, var(--line) 55%, transparent), 0 5px 10px color-mix(in srgb, var(--shadow) 34%, transparent);
+  transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
+}
+
+.key:active,
+.btn:active,
+.source:active,
+.pick:active,
+.iconbtn:active {
+  transform: translateY(2px);
+  box-shadow: 0 0 0 transparent;
+}
+
+.level {
+  border-radius: 12px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--panel) 94%, white), var(--panel));
+}
+
+.source {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--panel-2) 88%, white), var(--panel-2));
+}
+
+.home-tally > div {
+  border-radius: 10px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--panel) 93%, white), var(--panel));
+}
+
+.board {
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 13px 28px color-mix(in srgb, var(--shadow) 64%, transparent);
+}
+
+.panel {
+  border-radius: 14px;
 }

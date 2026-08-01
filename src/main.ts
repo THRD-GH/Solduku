@@ -33,8 +33,8 @@ import type { AppContext } from './ui/app-context.ts';
 
 /** The browser chrome colour that matches each board, for the PWA title bar. */
 const THEME_COLOUR: Record<Theme, string> = {
-  night: '#0a0d10',
-  day: '#dfe4e9',
+  night: '#17243c',
+  day: '#e8f1fb',
   contrast: '#000000',
 };
 
