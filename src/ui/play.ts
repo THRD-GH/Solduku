@@ -84,7 +84,7 @@ function cardFace(card: Card, role = 0): (HTMLElement | SVGSVGElement)[] {
 
 function suitClass(card: Card): string {
   if (isJoker(card)) return 'joker';
-  return isRedSuit(card.suit) ? 'red' : 'black';
+  return `suit-${card.suit} ${isRedSuit(card.suit) ? 'red' : 'black'}`;
 }
 
 const unitName = (unit: number): string => (unit < 9 ? 'Row' : unit < 18 ? 'Column' : 'Box');

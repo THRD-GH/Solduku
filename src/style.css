@@ -1788,24 +1788,36 @@ body {
 
 /* ================= Solduku: cards, tray, and board additions ================= */
 
-/* Suit colours per theme. Red suits get their own var so they never collide
-   with the error state; black suits ride the ordinary text colour. */
+/* Playing cards keep their own bright surface. Every suit has a different
+   colour, so a tiny club and spade never collapse into the same black mark. */
 :root {
-  --suit-red: #ff8a7a;
+  --suit-spade: #2c72ab;
+  --suit-heart: #d84e63;
+  --suit-diamond: #bd7a12;
+  --suit-club: #238775;
+  --suit-red: var(--suit-heart);
   --joker: #b98bff;
-  --card-bg: #1c242c;
-  --card-line: #55636e;
+  --card-bg: #f8fbff;
+  --card-line: #b4c6d8;
 }
 
 :root[data-theme='day'] {
-  --suit-red: #c62828;
+  --suit-spade: #205e96;
+  --suit-heart: #c73850;
+  --suit-diamond: #a9690c;
+  --suit-club: #197663;
+  --suit-red: var(--suit-heart);
   --joker: #7b3fd4;
   --card-bg: #ffffff;
-  --card-line: #6b7986;
+  --card-line: #9eb4cb;
 }
 
 :root[data-theme='contrast'] {
-  --suit-red: #e69f00;
+  --suit-spade: #56b4e9;
+  --suit-heart: #e69f00;
+  --suit-diamond: #cc79a7;
+  --suit-club: #009e73;
+  --suit-red: var(--suit-heart);
   --joker: #cc79a7;
   --card-bg: #000000;
   --card-line: #ffffff;
@@ -1932,6 +1944,28 @@ body {
   color: var(--text);
 }
 
+.suit-0 { --suit-ink: var(--suit-spade); }
+.suit-1 { --suit-ink: var(--suit-heart); }
+.suit-2 { --suit-ink: var(--suit-diamond); }
+.suit-3 { --suit-ink: var(--suit-club); }
+
+/* A coloured edge and whisper of tint let players sort suits before reading a
+   glyph. The large pip then confirms the suit at a glance. */
+.scard:not(.joker),
+.pcard:not(.joker) {
+  background: linear-gradient(145deg, color-mix(in srgb, var(--suit-ink) 14%, var(--card-bg)), var(--card-bg) 66%);
+  border-color: color-mix(in srgb, var(--suit-ink) 52%, var(--card-line));
+}
+
+.scard:not(.joker) .corner,
+.scard:not(.joker) .card-rank,
+.scard:not(.joker) .card-suit,
+.pcard:not(.joker) .corner,
+.pcard:not(.joker) .card-rank,
+.pcard:not(.joker) .card-suit {
+  color: var(--suit-ink);
+}
+
 .corner {
   position: absolute;
   display: flex;
@@ -1965,8 +1999,15 @@ body {
 }
 
 .card-suit {
-  font-size: 0.3em;
-  font-weight: 700;
+  font-size: 0.48em;
+  font-weight: 800;
+  line-height: 0.72;
+  min-width: 0.78em;
+  min-height: 0.68em;
+  display: grid;
+  place-items: center;
+  border-radius: 0.32em;
+  background: color-mix(in srgb, currentColor 14%, transparent);
 }
 
 .scard.joker .d {
@@ -2059,20 +2100,8 @@ body {
   position: relative;
 }
 
-.pcard.red .corner,
-.pcard.red .card-rank,
-.pcard.red .card-suit {
-  color: var(--suit-red);
-}
-
-.pcard.black .corner,
-.pcard.black .card-rank,
-.pcard.black .card-suit {
-  color: var(--text);
-}
-
 .pcard .corner {
-  font-size: 10px;
+  font-size: 11px;
 }
 
 .pcard .card-rank {
@@ -2080,7 +2109,10 @@ body {
 }
 
 .pcard .card-suit {
-  font-size: 15px;
+  font-size: 21px;
+  min-width: 25px;
+  min-height: 20px;
+  border-radius: 7px;
 }
 
 .pcard.joker .d {
