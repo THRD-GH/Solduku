@@ -1795,7 +1795,8 @@ body {
   --suit-heart: #d84e63;
   --suit-diamond: #bd7a12;
   --suit-club: #238775;
-  --suit-red: var(--suit-heart);
+  --card-black: #1c2631;
+  --card-red: #c83244;
   --joker: #b98bff;
   --card-bg: #f8fbff;
   --card-line: #b4c6d8;
@@ -1806,7 +1807,8 @@ body {
   --suit-heart: #c73850;
   --suit-diamond: #a9690c;
   --suit-club: #197663;
-  --suit-red: var(--suit-heart);
+  --card-black: #18212b;
+  --card-red: #bd283a;
   --joker: #7b3fd4;
   --card-bg: #ffffff;
   --card-line: #9eb4cb;
@@ -1817,7 +1819,8 @@ body {
   --suit-heart: #e69f00;
   --suit-diamond: #cc79a7;
   --suit-club: #009e73;
-  --suit-red: var(--suit-heart);
+  --card-black: #ffffff;
+  --card-red: #e69f00;
   --joker: #cc79a7;
   --card-bg: #000000;
   --card-line: #ffffff;
@@ -1933,28 +1936,17 @@ body {
 }
 
 .scard.red .corner,
-.scard.red .card-rank,
-.scard.red .card-suit {
-  color: var(--suit-red);
-}
-
-.scard.black .corner,
-.scard.black .card-rank,
-.scard.black .card-suit {
-  color: var(--text);
-}
-
-.suit-0 { --suit-ink: var(--suit-spade); }
-.suit-1 { --suit-ink: var(--suit-heart); }
-.suit-2 { --suit-ink: var(--suit-diamond); }
-.suit-3 { --suit-ink: var(--suit-club); }
+.suit-0 { --suit-tint: var(--suit-spade); --suit-ink: var(--card-black); }
+.suit-1 { --suit-tint: var(--suit-heart); --suit-ink: var(--card-red); }
+.suit-2 { --suit-tint: var(--suit-diamond); --suit-ink: var(--card-red); }
+.suit-3 { --suit-tint: var(--suit-club); --suit-ink: var(--card-black); }
 
 /* A coloured edge and whisper of tint let players sort suits before reading a
    glyph. The large pip then confirms the suit at a glance. */
 .scard:not(.joker),
 .pcard:not(.joker) {
-  background: linear-gradient(145deg, color-mix(in srgb, var(--suit-ink) 14%, var(--card-bg)), var(--card-bg) 66%);
-  border-color: color-mix(in srgb, var(--suit-ink) 52%, var(--card-line));
+  background: linear-gradient(145deg, color-mix(in srgb, var(--suit-tint) 14%, var(--card-bg)), var(--card-bg) 66%);
+  border-color: color-mix(in srgb, var(--suit-tint) 52%, var(--card-line));
 }
 
 .scard:not(.joker) .corner,
