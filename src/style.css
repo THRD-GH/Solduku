@@ -1948,8 +1948,13 @@ body {
    glyph. The large pip then confirms the suit at a glance. */
 .scard:not(.joker),
 .pcard:not(.joker) {
-  background: linear-gradient(145deg, color-mix(in srgb, var(--suit-tint) 14%, var(--card-bg)), var(--card-bg) 66%);
-  border-color: color-mix(in srgb, var(--suit-tint) 52%, var(--card-line));
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--suit-tint) 23%, var(--card-bg)),
+    color-mix(in srgb, var(--suit-tint) 6%, var(--card-bg)) 72%
+  );
+  border-color: color-mix(in srgb, var(--suit-tint) 65%, var(--card-line));
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--suit-tint) 8%, transparent);
 }
 
 .scard:not(.joker) .corner,
