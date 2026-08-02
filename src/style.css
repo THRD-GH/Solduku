@@ -2493,6 +2493,65 @@ body {
   color: var(--single);
 }
 
+/* A small leaderboard per difficulty keeps scores comparable: Gentle never
+   competes directly with Brutal, and all six groups stay easy to scan. */
+.highscore-groups {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.highscore-group {
+  min-width: 0;
+  padding: 7px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--panel-2) 84%, var(--panel));
+}
+
+.highscore-group h4 {
+  margin: 0 0 4px;
+  color: var(--accent);
+  font-size: 12px;
+}
+
+.highscore-rows {
+  display: grid;
+  gap: 2px;
+}
+
+.highscore-row {
+  display: grid;
+  grid-template-columns: 20px 1fr auto;
+  align-items: baseline;
+  gap: 3px;
+  min-width: 0;
+  color: var(--dim);
+  font-size: 11px;
+}
+
+.highscore-row b {
+  color: var(--sum);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.highscore-rank {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.highscore-deal {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.highscore-empty {
+  color: var(--dim);
+  font-size: 10px;
+}
+
 /* The deal number turns hostile when the grid can no longer be completed. */
 .titlebar .id.doomed {
   color: var(--error);

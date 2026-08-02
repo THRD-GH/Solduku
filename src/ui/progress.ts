@@ -1,6 +1,7 @@
 import { LEVELS, LEVEL_NAMES } from '../core/classic.ts';
+import { formatPuzzleId } from '../core/types.ts';
 import type { Level, PuzzleId } from '../core/types.ts';
-import { freeSlotBank, levelStats, progression, SCORE_TROPHY_TARGETS, TROPHY_NAMES, unlockedCardBacks } from '../game/storage.ts';
+import { freeSlotBank, levelHighScores, levelStats, progression, SCORE_TROPHY_TARGETS, TROPHY_NAMES, unlockedCardBacks } from '../game/storage.ts';
 import type { History } from '../game/storage.ts';
 import { el } from './dom.ts';
 import { openOverlay } from './overlay.ts';
@@ -72,6 +73,34 @@ export function openProgress(ctx: AppContext): void {
         ),
       );
     }
+    const highScores = el('div', { class: 'highscore-groups' });
+    for (const level of LEVELS) {
+      const scores = levelHighScores(ctx.history, level);
+      const rows = el('div', { class: 'highscore-rows' });
+      if (scores.length === 0) {
+        rows.append(el('small', { class: 'highscore-empty' }, 'No completed deals yet'));
+      } else {
+        for (const [index, entry] of scores.entries()) {
+          rows.append(
+            el(
+              'div',
+              { class: 'highscore-row' },
+              el('span', { class: 'highscore-rank' }, `#${index + 1}`),
+              el('span', { class: 'highscore-deal' }, formatPuzzleId(entry.id)),
+              el('b', {}, String(entry.score)),
+            ),
+          );
+        }
+      }
+      highScores.append(
+        el(
+          'section',
+          { class: 'highscore-group' },
+          el('h4', {}, LEVEL_NAMES[level]),
+          rows,
+        ),
+      );
+    }
     const closeButton = el('button', { class: 'btn wide' }, 'Close');
     closeButton.addEventListener('click', close);
     return el(
@@ -83,6 +112,7 @@ export function openProgress(ctx: AppContext): void {
       el('p', { class: 'summary' }, records(ctx.history)),
       el('h3', {}, 'Challenges'),
       el('div', { class: 'actions' }, challenge('Daily', dailyDeal()), challenge('Weekly', weeklyDeal())),
+      el('h3', {}, 'High scores'), highScores,
       el('h3', {}, 'Score trophies & collections'), mastery,
       el('h3', {}, 'Achievements'), badges,
       el('div', { class: 'panel-footer' }, closeButton),

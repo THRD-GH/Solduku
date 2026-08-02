@@ -336,6 +336,27 @@ export interface LevelStats {
   bestScore: number | null;
 }
 
+export interface LevelHighScore {
+  id: PuzzleId;
+  score: number;
+}
+
+/** The best completed deals for one difficulty, ranked by score. */
+export function levelHighScores(
+  history: History,
+  level: Level,
+  limit = 3,
+  poolSize = POOL_SIZE,
+): LevelHighScore[] {
+  const scores: LevelHighScore[] = [];
+  for (let number = 1; number <= poolSize; number++) {
+    const id = { level, number };
+    const score = history[formatPuzzleId(id)]?.bestScore;
+    if (score !== undefined) scores.push({ id, score });
+  }
+  return scores.sort((a, b) => b.score - a.score || a.id.number - b.id.number).slice(0, limit);
+}
+
 export function levelStats(history: History, level: Level, poolSize = POOL_SIZE): LevelStats {
   let played = 0;
   let finished = 0;
