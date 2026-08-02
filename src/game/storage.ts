@@ -58,6 +58,8 @@ export interface Settings {
   showTimer: boolean;
   /** Flag the placement that makes completing the sudoku impossible. */
   warnDeadGrid: boolean;
+  /** Whether the first-time Quick Start has been shown. */
+  introSeen: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -70,6 +72,7 @@ export const DEFAULT_SETTINGS: Settings = {
   keepAwake: true,
   showTimer: true,
   warnDeadGrid: true,
+  introSeen: false,
 };
 
 export interface PuzzleRecord {

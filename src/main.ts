@@ -24,6 +24,7 @@ import type { History, SavedGame, Settings, Theme } from './game/storage.ts';
 import { clear, el } from './ui/dom.ts';
 import { buildMenu } from './ui/menu.ts';
 import { openHelp } from './ui/help.ts';
+import { openIntro } from './ui/intro.ts';
 import { openScoring } from './ui/scoring.ts';
 import { closeTopOverlay, onOverlayOpen, openOverlay, toast } from './ui/overlay.ts';
 import { PlayScreen } from './ui/play.ts';
@@ -62,6 +63,7 @@ class App implements AppContext {
 
     this.goMenu();
     if (linked !== null) this.playPuzzle(linked);
+    else if (!this.settings.introSeen) this.openIntro();
   }
 
   /**
@@ -137,6 +139,13 @@ class App implements AppContext {
 
   openHelp(): void {
     openHelp();
+  }
+
+  openIntro(): void {
+    openIntro(() => {
+      this.settings.introSeen = true;
+      saveSettings(this.settings);
+    });
   }
 
   openSettings(): void {

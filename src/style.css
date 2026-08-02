@@ -2552,6 +2552,74 @@ body {
   font-size: 10px;
 }
 
+/* First-time guide: visual enough to scan, but deliberately shorter than
+   Help so a new player reaches the first deal without a wall of rules. */
+.intro-panel {
+  max-width: 430px;
+}
+
+.intro-kicker {
+  margin: 0 0 4px;
+  color: var(--sum);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+.intro-panel h2 {
+  margin-bottom: 6px;
+}
+
+.intro-steps {
+  display: grid;
+  gap: 7px;
+  margin-top: 12px;
+}
+
+.intro-step {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--panel-2) 82%, var(--panel));
+}
+
+.intro-number {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--accent) 24%, var(--panel));
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.intro-step b,
+.intro-step small {
+  display: block;
+}
+
+.intro-step b {
+  color: var(--text);
+  font-size: 13px;
+}
+
+.intro-step small,
+.intro-note {
+  color: var(--dim);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.intro-note {
+  margin: 10px 0 0;
+}
+
 /* The deal number turns hostile when the grid can no longer be completed. */
 .titlebar .id.doomed {
   color: var(--error);

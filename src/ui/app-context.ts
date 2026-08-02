@@ -11,6 +11,8 @@ export interface AppContext {
   /** Repaint the board in place, e.g. after a highlighting setting changes. */
   refreshBoard(): void;
   goMenu(): void;
+  /** A compact first-time explanation, also available from the menu. */
+  openIntro(): void;
   openHelp(): void;
   openSettings(): void;
   openProgress(): void;
