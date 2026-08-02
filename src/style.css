@@ -817,6 +817,28 @@ body {
   min-width: 0;
 }
 
+.level-info {
+  appearance: none;
+  width: 100%;
+  padding: 2px 3px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+.level-info:active {
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+}
+
+.level-info:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 .level .stars {
   display: flex;
   gap: 1px;
@@ -2618,6 +2640,38 @@ body {
 
 .intro-note {
   margin: 10px 0 0;
+}
+
+/* The level title popup turns compact configuration numbers into a readable
+   preview of how the puzzle and card game tighten together. */
+.level-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.level-stat {
+  padding: 8px 4px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--panel-2) 82%, var(--panel));
+  text-align: center;
+}
+
+.level-stat b,
+.level-stat small {
+  display: block;
+}
+
+.level-stat b {
+  color: var(--sum);
+  font-size: 18px;
+}
+
+.level-stat small {
+  color: var(--dim);
+  font-size: 10px;
 }
 
 /* The deal number turns hostile when the grid can no longer be completed. */

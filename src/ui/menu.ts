@@ -1,4 +1,4 @@
-import { LEVELS, LEVEL_LOGIC, LEVEL_NAMES } from '../core/classic.ts';
+import { LEVEL_CONFIG, LEVELS, LEVEL_LOGIC, LEVEL_NAMES } from '../core/classic.ts';
 import type { Level } from '../core/types.ts';
 import { formatPuzzleId } from '../core/types.ts';
 import { POOL_SIZE, freeSlotBank, jokerBank, levelStats, progression, TROPHY_NAMES, unplayedNumbers } from '../game/storage.ts';
@@ -117,18 +117,60 @@ function buildLevelRow(ctx: AppContext, level: Level, trophyTier: number): HTMLE
     );
   }
 
+  const levelHead = el(
+    'button',
+    { class: 'level-head level-info', title: `About ${LEVEL_NAMES[level]} difficulty` },
+    stars(level, 10),
+    el('span', { class: 'name' }, LEVEL_NAMES[level]),
+    trophies,
+  );
+  levelHead.addEventListener('click', () => openLevelInfo(level));
+
   return el(
     'div',
     { class: 'level sol' },
-    el(
-      'div',
-      { class: 'level-head' },
-      stars(level, 10),
-      el('span', { class: 'name' }, LEVEL_NAMES[level]),
-      trophies,
-    ),
+    levelHead,
     el('div', { class: 'source-row' }, button, pick),
   );
+}
+
+const LEVEL_GUIDE: Record<Level, string> = {
+  1: 'Every next step can be found with basic singles: a number has one remaining legal home.',
+  2: 'Locked candidates appear: a number trapped in one box line can be ruled out from the rest of that row or column.',
+  3: 'Look for small candidate groups and occasional x-wings. The grid rewards a little more scanning before you commit.',
+  4: 'Logic gets you close, then one carefully checked branch may be needed to break the last uncertainty.',
+  5: 'Expect two layers of branching beyond standard logic. Card storage becomes as important as the sudoku deductions.',
+  6: 'The deepest puzzles need sustained trial and error. Keep options open, use your storage deliberately, and plan ahead.',
+};
+
+/** Tap a level title to understand both its sudoku and solitaire difficulty. */
+function openLevelInfo(level: Level): void {
+  const cfg = LEVEL_CONFIG[level];
+  openOverlay((close) => {
+    const done = el('button', { class: 'btn wide' }, 'Got it');
+    done.addEventListener('click', close);
+    const stat = (value: number, label: string): HTMLElement =>
+      el('div', { class: 'level-stat' }, el('b', {}, String(value)), el('small', {}, label));
+    return el(
+      'div',
+      { class: 'panel level-guide' },
+      el('p', { class: 'intro-kicker' }, `LEVEL ${level}`),
+      el('h2', {}, LEVEL_NAMES[level]),
+      el('p', { class: 'summary' }, `Sudoku focus: ${LEVEL_LOGIC[level]}.`),
+      el('h3', {}, 'What changes'),
+      el('p', {}, LEVEL_GUIDE[level]),
+      el('h3', {}, 'Card pressure'),
+      el('p', {}, 'Harder levels reveal fewer givens and give you less room to hold cards.'),
+      el(
+        'div',
+        { class: 'level-stats' },
+        stat(cfg.hand, 'hand cards'),
+        stat(cfg.free, 'free slots'),
+        stat(cfg.jokers, 'level jokers'),
+      ),
+      el('div', { class: 'panel-footer' }, done),
+    );
+  });
 }
 
 /** Deal numbers per range tab, so the list is not a wall of buttons. */
