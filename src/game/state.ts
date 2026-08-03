@@ -85,6 +85,8 @@ export interface Move {
   riskBonus?: number;
   /** Optional so moves saved before redo support remain playable. */
   questBonus?: number;
+  /** The card that filled the hand slot this move opened, if one was drawn. */
+  replacement?: { source: 'deck' | 'joker'; card: Card };
 }
 
 export class Game {
@@ -111,6 +113,8 @@ export class Game {
   selected: Zone | null = null;
   elapsedMs = 0;
   completed = false;
+  /** Lets the interface explain why an undo did not leave an extra card. */
+  lastUndoReturnedReplacement = false;
   /** No card can be played or stashed — the deal is lost as it stands. */
   dead = false;
   /**
@@ -150,6 +154,7 @@ export class Game {
         card: { ...m.card },
         unitsScored: [...m.unitsScored],
         flushUnits: [...m.flushUnits],
+        replacement: m.replacement ? { source: m.replacement.source, card: { ...m.replacement.card } } : undefined,
       }));
       this.completed = this.emptyCount === 0;
       this.dead = !this.completed && !this.anyMove();
@@ -424,8 +429,12 @@ export class Game {
   /** Draw from the pile until the hand is full, or the deck is empty. */
   draw(): number {
     if (!this.canDraw()) return 0;
+    const start = this.deckPos;
     const drawn = this.refill();
-    if (drawn > 0) this.redoStack = [];
+    if (drawn > 0) {
+      this.attachReplacements(this.puzzle.deck.slice(start, this.deckPos), 'deck');
+      this.redoStack = [];
+    }
     return drawn;
   }
 
@@ -459,7 +468,9 @@ export class Game {
   drawJoker(): boolean {
     if (!this.canDrawJoker()) return false;
     this.jokerPile--;
-    this.hand.push({ digit: 0, suit: JOKER_SUIT });
+    const joker = { digit: 0, suit: JOKER_SUIT };
+    this.hand.push(joker);
+    this.attachReplacements([joker], 'joker');
     this.selected = null;
     this.dead = !this.anyMove();
     this.redoStack = [];
@@ -486,6 +497,58 @@ export class Game {
     const card = this.free[zone.index];
     this.free[zone.index] = null;
     return card;
+  }
+
+  /**
+   * A draw fills the most recently opened hand slots. Remember which move
+   * each card replaced, so undo can return it to the right pile first.
+   */
+  private attachReplacements(cards: Card[], source: 'deck' | 'joker'): void {
+    for (let i = cards.length - 1; i >= 0; i--) {
+      const move = [...this.history].reverse().find((m) => m.from.kind === 'hand' && m.replacement === undefined);
+      if (!move) return;
+      move.replacement = { source, card: cards[i] };
+    }
+  }
+
+  private sameCard(a: Card, b: Card): boolean {
+    return a.digit === b.digit && a.suit === b.suit;
+  }
+
+  /** Return the last replacement card to the pile it came from. */
+  private returnReplacement(replacement: NonNullable<Move['replacement']>): boolean {
+    if (!this.canReturnReplacement(replacement)) return false;
+    this.hand.pop();
+    if (replacement.source === 'deck') this.deckPos--;
+    else this.jokerPile++;
+    return true;
+  }
+
+  private canReturnReplacement(replacement: NonNullable<Move['replacement']>): boolean {
+    const card = this.hand[this.hand.length - 1];
+    return card !== undefined && this.sameCard(card, replacement.card);
+  }
+
+  /** Compatibility for parked games saved before replacement draws were tracked. */
+  private makeHandRoom(): boolean {
+    const card = this.hand[this.hand.length - 1];
+    if (card === undefined) return false;
+    if (isJoker(card)) {
+      this.hand.pop();
+      this.jokerPile++;
+      return true;
+    }
+    const deckCard = this.puzzle.deck[this.deckPos - 1];
+    if (deckCard === undefined || !this.sameCard(card, deckCard)) return false;
+    this.hand.pop();
+    this.deckPos--;
+    return true;
+  }
+
+  private canMakeHandRoom(afterRemoving = 0): boolean {
+    const card = this.hand[this.hand.length - 1 - afterRemoving];
+    if (card === undefined) return false;
+    return isJoker(card) || this.sameCard(card, this.puzzle.deck[this.deckPos - 1 - afterRemoving] ?? { digit: -1, suit: -1 });
   }
 
   /**
@@ -680,13 +743,35 @@ export class Game {
 
   /** Put the last move back: the card, the cards drawn after it, the score. */
   undo(): boolean {
+    this.lastUndoReturnedReplacement = false;
     const move = this.history.pop();
     if (!move) return false;
 
-    this.redoStack.push(move);
-
+    const legacyNeedsRoom =
+      !move.replacement && move.from.kind === 'hand' && this.hand.length - move.drawn >= this.handSize;
+    if (
+      (move.replacement && !this.canReturnReplacement(move.replacement)) ||
+      (legacyNeedsRoom && !this.canMakeHandRoom(move.drawn))
+    ) {
+      this.history.push(move);
+      return false;
+    }
+    if (move.replacement) {
+      this.returnReplacement(move.replacement);
+      this.lastUndoReturnedReplacement = true;
+    }
     for (let k = 0; k < move.drawn; k++) this.hand.pop();
     this.deckPos -= move.drawn;
+
+    // Very old parked games did not record their replacement draw. When one
+    // is reopened, still keep the hand honest by returning its newest card.
+    if (legacyNeedsRoom) {
+      const replacement = this.hand[this.hand.length - 1]!;
+      move.replacement = { source: isJoker(replacement) ? 'joker' : 'deck', card: replacement };
+      this.makeHandRoom();
+      this.lastUndoReturnedReplacement = true;
+    }
+    this.redoStack.push(move);
 
     if (move.cell !== null) this.placed[move.cell] = null;
     else if (move.freeIndex !== undefined) this.free[move.freeIndex] = null;
@@ -712,6 +797,22 @@ export class Game {
     const move = this.redoStack.pop();
     if (!move) return false;
 
+    if (move.cell === null && move.freeIndex === undefined) {
+      this.redoStack.push(move);
+      return false;
+    }
+    if (move.replacement?.source === 'deck') {
+      const replacement = this.puzzle.deck[this.deckPos];
+      if (replacement === undefined || !this.sameCard(replacement, move.replacement.card)) {
+        this.redoStack.push(move);
+        return false;
+      }
+    }
+    if (move.replacement?.source === 'joker' && this.jokerPile === 0) {
+      this.redoStack.push(move);
+      return false;
+    }
+
     const card = this.takeFrom(move.from);
     if (card === null) {
       this.redoStack.push(move);
@@ -724,6 +825,16 @@ export class Game {
       return false;
     }
     for (let k = 0; k < move.drawn; k++) this.hand.push(this.puzzle.deck[this.deckPos++]);
+    if (move.replacement) {
+      if (move.replacement.source === 'deck') {
+        const replacement = this.puzzle.deck[this.deckPos]!;
+        this.hand.push(replacement);
+        this.deckPos++;
+      } else {
+        this.hand.push(move.replacement.card);
+        this.jokerPile--;
+      }
+    }
 
     this.score += move.scoreDelta;
     for (const u of move.unitsScored) this.scoredUnits.add(u);

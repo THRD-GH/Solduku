@@ -503,6 +503,7 @@ export class PlayScreen {
     if (!this.game.undo()) return;
     this.render();
     this.save();
+    if (this.game.lastUndoReturnedReplacement) toast('Undo: replacement card returned to its pile');
   }
 
   private doRedo(): void {
