@@ -120,6 +120,7 @@ export class PlayScreen {
   private scoreBox: HTMLElement;
   private timerBox: HTMLElement;
   private undoBtn: HTMLButtonElement;
+  private redoBtn: HTMLButtonElement;
   private tickId: number;
   private lastTick = performance.now();
   private finished = false;
@@ -238,6 +239,8 @@ export class PlayScreen {
 
     this.undoBtn = el('button', { class: 'btn' }, 'Undo');
     this.undoBtn.addEventListener('click', () => this.doUndo());
+    this.redoBtn = el('button', { class: 'btn' }, 'Redo');
+    this.redoBtn.addEventListener('click', () => this.doRedo());
     const restart = el('button', { class: 'btn' }, 'Restart');
     restart.addEventListener('click', () =>
       confirmDialog('Restart this deal from the top? Same givens, same deck order.', () => {
@@ -282,7 +285,7 @@ export class PlayScreen {
       this.doomBar,
       this.board,
       tray,
-      el('div', { class: 'actions game-actions' }, this.undoBtn, restart, help, home),
+      el('div', { class: 'actions game-actions' }, this.undoBtn, this.redoBtn, restart, help, home),
     );
 
     this.tickId = window.setInterval(() => this.tick(), 1000);
@@ -432,6 +435,7 @@ export class PlayScreen {
     this.doomBar.hidden = !doomed;
     this.timerBox.textContent = this.ctx.settings.showTimer ? formatTime(game.elapsedMs) : '';
     this.undoBtn.disabled = !game.canUndo();
+    this.redoBtn.disabled = !game.canRedo();
   }
 
   handleKey(e: KeyboardEvent): void {
@@ -442,6 +446,10 @@ export class PlayScreen {
     }
     if (e.key === 'z' || e.key === 'u') {
       this.doUndo();
+      return;
+    }
+    if (e.key === 'y') {
+      this.doRedo();
       return;
     }
     if (e.key >= '1' && e.key <= '9') {
@@ -495,6 +503,11 @@ export class PlayScreen {
     if (!this.game.undo()) return;
     this.render();
     this.save();
+  }
+
+  private doRedo(): void {
+    if (!this.game.redo()) return;
+    this.afterMove(null);
   }
 
   private drawCards(): void {
@@ -574,6 +587,8 @@ export class PlayScreen {
 
   private finish(): void {
     this.finished = true;
+    this.undoBtn.disabled = true;
+    this.redoBtn.disabled = true;
     const game = this.game;
     const key = formatPuzzleId(game.id);
     const previous = this.ctx.history[key]?.bestScore;

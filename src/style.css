@@ -741,7 +741,7 @@ body {
 
 /* The always-visible way out of a deal belongs alongside its core controls. */
 .game-actions {
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
 }
 
 .btn {

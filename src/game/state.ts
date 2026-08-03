@@ -81,6 +81,10 @@ export interface Move {
   scoreDelta: number;
   unitsScored: number[];
   flushUnits: number[];
+  /** Optional so moves saved before redo support remain playable. */
+  riskBonus?: number;
+  /** Optional so moves saved before redo support remain playable. */
+  questBonus?: number;
 }
 
 export class Game {
@@ -117,6 +121,8 @@ export class Game {
    */
   completable = true;
   private history: Move[] = [];
+  /** Moves that were undone and may be safely reapplied. */
+  private redoStack: Move[] = [];
 
   constructor(id: PuzzleId, puzzle: Puzzle, restore?: SavedGame) {
     this.id = id;
@@ -418,7 +424,9 @@ export class Game {
   /** Draw from the pile until the hand is full, or the deck is empty. */
   draw(): number {
     if (!this.canDraw()) return 0;
-    return this.refill();
+    const drawn = this.refill();
+    if (drawn > 0) this.redoStack = [];
+    return drawn;
   }
 
   /** Load one player-earned joker into the separate joker pile. */
@@ -430,6 +438,7 @@ export class Game {
     this.selected = null;
     this.dead = !this.anyMove();
     this.completable = this.checkCompletable();
+    this.redoStack = [];
     return true;
   }
 
@@ -453,6 +462,7 @@ export class Game {
     this.hand.push({ digit: 0, suit: JOKER_SUIT });
     this.selected = null;
     this.dead = !this.anyMove();
+    this.redoStack = [];
     return true;
   }
 
@@ -462,6 +472,7 @@ export class Game {
     this.free.push(null);
     this.usedBankedAid = true;
     this.dead = !this.anyMove();
+    this.redoStack = [];
     return true;
   }
 
@@ -548,7 +559,10 @@ export class Game {
       scoreDelta: gained,
       unitsScored: units.map((u) => u.unit),
       flushUnits: units.filter((u) => u.flush).map((u) => u.unit),
+      riskBonus,
+      questBonus,
     });
+    this.redoStack = [];
 
     this.selected = null;
     this.completed = this.emptyCount === 0;
@@ -586,6 +600,7 @@ export class Game {
       unitsScored: [],
       flushUnits: [],
     });
+    this.redoStack = [];
 
     this.selected = null;
     this.dead = !this.anyMove();
@@ -594,6 +609,10 @@ export class Game {
 
   canUndo(): boolean {
     return this.history.length > 0;
+  }
+
+  canRedo(): boolean {
+    return this.redoStack.length > 0;
   }
 
   /**
@@ -664,6 +683,8 @@ export class Game {
     const move = this.history.pop();
     if (!move) return false;
 
+    this.redoStack.push(move);
+
     for (let k = 0; k < move.drawn; k++) this.hand.pop();
     this.deckPos -= move.drawn;
 
@@ -674,6 +695,8 @@ export class Game {
     else this.free[move.from.index] = move.card;
 
     this.score -= move.scoreDelta;
+    this.riskBonuses -= move.riskBonus ?? 0;
+    if ((move.questBonus ?? 0) > 0) this.questComplete = false;
     for (const u of move.unitsScored) this.scoredUnits.delete(u);
     for (const u of move.flushUnits) this.flushUnits.delete(u);
 
@@ -681,6 +704,38 @@ export class Game {
     this.completed = false;
     this.dead = false;
     if (!this.completable) this.completable = this.checkCompletable();
+    return true;
+  }
+
+  /** Reapply the most recently undone placement or stash action. */
+  redo(): boolean {
+    const move = this.redoStack.pop();
+    if (!move) return false;
+
+    const card = this.takeFrom(move.from);
+    if (card === null) {
+      this.redoStack.push(move);
+      return false;
+    }
+    if (move.cell !== null) this.placed[move.cell] = card;
+    else if (move.freeIndex !== undefined) this.free[move.freeIndex] = card;
+    else {
+      this.redoStack.push(move);
+      return false;
+    }
+    for (let k = 0; k < move.drawn; k++) this.hand.push(this.puzzle.deck[this.deckPos++]);
+
+    this.score += move.scoreDelta;
+    for (const u of move.unitsScored) this.scoredUnits.add(u);
+    for (const u of move.flushUnits) this.flushUnits.add(u);
+    this.riskBonuses += move.riskBonus ?? 0;
+    if ((move.questBonus ?? 0) > 0) this.questComplete = true;
+    this.history.push(move);
+
+    this.selected = null;
+    this.completed = this.emptyCount === 0;
+    this.dead = !this.completed && !this.anyMove();
+    this.completable = this.checkCompletable();
     return true;
   }
 
@@ -704,6 +759,7 @@ export class Game {
     this.dead = false;
     this.completable = true;
     this.history = [];
+    this.redoStack = [];
     this.refill();
   }
 
