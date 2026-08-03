@@ -10,6 +10,8 @@ export interface AppContext {
   applyWakeLock(): void;
   /** Repaint the board in place, e.g. after a highlighting setting changes. */
   refreshBoard(): void;
+  /** Re-read locally stored data after restoring a backup. */
+  reload(): void;
   goMenu(): void;
   /** A compact first-time explanation, also available from the menu. */
   openIntro(): void;

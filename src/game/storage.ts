@@ -313,6 +313,92 @@ export function allSaves(): SavedGame[] {
     .sort((a, b) => (b.savedAt ?? 0) - (a.savedAt ?? 0));
 }
 
+export interface TotalStats {
+  played: number;
+  finished: number;
+  totalBestScore: number;
+  bestScore: number | null;
+  averageTimeMs: number | null;
+  mostFlushes: number | null;
+  fewestAids: number | null;
+}
+
+/** Lifetime records, calculated from the best result for each deal. */
+export function totalStats(history: History): TotalStats {
+  let played = 0;
+  let finished = 0;
+  let totalBestScore = 0;
+  let bestScore: number | null = null;
+  let totalTime = 0;
+  let timed = 0;
+  let mostFlushes: number | null = null;
+  let fewestAids: number | null = null;
+  for (const rec of Object.values(history)) {
+    played++;
+    if (rec.finished) finished++;
+    if (rec.bestScore !== undefined) {
+      totalBestScore += rec.bestScore;
+      bestScore = Math.max(bestScore ?? rec.bestScore, rec.bestScore);
+    }
+    if (rec.bestTimeMs !== undefined) {
+      totalTime += rec.bestTimeMs;
+      timed++;
+    }
+    if (rec.mostFlushes !== undefined) mostFlushes = Math.max(mostFlushes ?? rec.mostFlushes, rec.mostFlushes);
+    if (rec.fewestAids !== undefined) fewestAids = Math.min(fewestAids ?? rec.fewestAids, rec.fewestAids);
+  }
+  return {
+    played,
+    finished,
+    totalBestScore,
+    bestScore,
+    averageTimeMs: timed === 0 ? null : Math.round(totalTime / timed),
+    mostFlushes,
+    fewestAids,
+  };
+}
+
+export interface Backup {
+  app: 'solduku';
+  version: 1;
+  exportedAt: string;
+  settings: Settings;
+  history: History;
+  rewards: Rewards;
+  saves: SavedGame[];
+}
+
+/** A complete, portable copy of local progress and every parked deal. */
+export function exportBackup(): Backup {
+  return {
+    app: 'solduku',
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    settings: loadSettings(),
+    history: loadHistory(),
+    rewards: loadRewards(),
+    saves: allSaves(),
+  };
+}
+
+/** Replace local progress with a validated backup. */
+export function importBackup(raw: unknown): { history: number; saves: number } {
+  if (typeof raw !== 'object' || raw === null) throw new Error('That is not a Solduku backup');
+  const backup = raw as Partial<Backup>;
+  if (backup.app !== 'solduku' || backup.version !== 1 || typeof backup.history !== 'object' || backup.history === null || !Array.isArray(backup.saves)) {
+    throw new Error('That is not a Solduku backup');
+  }
+  if (!backup.saves.every((save) => save && typeof save === 'object' && 'id' in save && 'puzzle' in save)) {
+    throw new Error('That backup contains a damaged saved deal');
+  }
+  for (const key of saveKeys()) localStorage.removeItem(key);
+  write(KEY.settings, { ...DEFAULT_SETTINGS, ...(backup.settings ?? {}) });
+  write(KEY.history, backup.history);
+  write(KEY.rewards, { ...loadRewards(), ...(backup.rewards ?? {}) });
+  for (const save of backup.saves.slice(0, MAX_SAVES)) write(saveKeyFor(save.id), save);
+  return { history: Object.keys(backup.history).length, saves: Math.min(backup.saves.length, MAX_SAVES) };
+}
+
 export function saveGame(game: SavedGame): void {
   write(saveKeyFor(game.id), { ...game, savedAt: Date.now() });
 

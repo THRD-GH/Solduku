@@ -38,7 +38,7 @@ const TAP_GUARD_MS = 400;
 
 export function openOverlay(
   build: (close: () => void) => HTMLElement,
-  opts: { dismissable?: boolean; overlayClass?: string; anchor?: Element } = {},
+  opts: { dismissable?: boolean; overlayClass?: string; anchor?: Element; onClose?: () => void } = {},
 ): () => void {
   const dismissable = opts.dismissable ?? true;
   const backdrop = el('div', {
@@ -66,6 +66,7 @@ export function openOverlay(
     backdrop.remove();
     document.removeEventListener('keydown', onKey, true);
     window.removeEventListener('resize', positionAtAnchor);
+    opts.onClose?.();
     const at = stack.indexOf(entry);
     if (at >= 0) stack.splice(at, 1);
   };

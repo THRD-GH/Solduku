@@ -22,6 +22,7 @@ import { confirmDialog, openOverlay, toast } from './overlay.ts';
 import { bindTap } from './pointer.ts';
 import { openMainMenu } from './menu.ts';
 import type { AppContext } from './app-context.ts';
+import type { Step } from '../core/techniques.ts';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -96,6 +97,24 @@ const ACHIEVEMENT_NAMES: Record<string, string> = {
   'last-laugh': 'Last Laugh',
   'clean-streak-3': 'Clean Streak',
 };
+
+const HINT_NAMES: Record<string, string> = {
+  'hidden single': 'Hidden single',
+  'locked candidates': 'Locked candidates',
+  'naked subset': 'Naked pair or triple',
+  'hidden subset': 'Hidden pair or triple',
+  'x-wing': 'X-wing',
+};
+
+const HINT_REASONS: Record<string, string> = {
+  'hidden single': 'Only one cell in its row, column or box can take that number.',
+  'locked candidates': 'A candidate is confined to one box-line intersection, so it can be removed from the rest of that line.',
+  'naked subset': 'A small group of cells has claimed the same small set of candidates, ruling them out elsewhere in the unit.',
+  'hidden subset': 'A small group of digits can only occupy the same small group of cells.',
+  'x-wing': 'A digit is restricted to matching two-row and two-column positions, ruling it out from the other cells in those columns.',
+};
+
+const cellName = (cell: number): string => `R${Math.floor(cell / 9) + 1}C${(cell % 9) + 1}`;
 
 export class PlayScreen {
   readonly root: HTMLElement;
@@ -241,6 +260,10 @@ export class PlayScreen {
     this.undoBtn.addEventListener('click', () => this.doUndo());
     this.redoBtn = el('button', { class: 'btn' }, 'Redo');
     this.redoBtn.addEventListener('click', () => this.doRedo());
+    const hint = el('button', { class: 'btn aid' }, 'Hint');
+    hint.addEventListener('click', () => this.showHint());
+    const pause = el('button', { class: 'btn' }, 'Pause');
+    pause.addEventListener('click', () => this.pause());
     const restart = el('button', { class: 'btn' }, 'Restart');
     restart.addEventListener('click', () =>
       confirmDialog('Restart this deal from the top? Same givens, same deck order.', () => {
@@ -285,7 +308,7 @@ export class PlayScreen {
       this.doomBar,
       this.board,
       tray,
-      el('div', { class: 'actions game-actions' }, this.undoBtn, this.redoBtn, restart, help, home),
+      el('div', { class: 'actions game-actions' }, this.undoBtn, this.redoBtn, hint, pause, restart, help, home),
     );
 
     this.tickId = window.setInterval(() => this.tick(), 1000);
@@ -299,9 +322,40 @@ export class PlayScreen {
     if (!this.finished) this.save();
   }
 
-  pause(): void {
+  private saveWhenHidden(): void {
     // Nothing modal to show — just make sure the position is on disk.
     this.save();
+  }
+
+  pause(): void {
+    if (this.isPaused || this.game.completed) {
+      this.saveWhenHidden();
+      return;
+    }
+    this.isPaused = true;
+    this.saveWhenHidden();
+    this.ctx.applyWakeLock();
+    openOverlay(
+      (close) => {
+        const resume = el('button', { class: 'btn primary wide' }, 'Continue');
+        resume.addEventListener('click', close);
+        return el(
+          'div',
+          { class: 'panel won' },
+          el('h2', {}, 'Game paused'),
+          el('p', { class: 'summary' }, 'Your deal is safely saved. Take your time - the clock is stopped.'),
+          resume,
+        );
+      },
+      {
+        dismissable: false,
+        onClose: () => {
+          this.isPaused = false;
+          this.lastTick = performance.now();
+          this.ctx.applyWakeLock();
+        },
+      },
+    );
   }
 
   render(): void {
@@ -509,6 +563,45 @@ export class PlayScreen {
   private doRedo(): void {
     if (!this.game.redo()) return;
     this.afterMove(null);
+  }
+
+  private showHint(): void {
+    const step = this.game.hintStep();
+    if (step === null) {
+      toast('No named technique is available here - use card positions and safe-move preview to explore.');
+      return;
+    }
+    this.markHint(step);
+    openOverlay(
+      (close) => {
+        const done = el('button', { class: 'btn primary wide' }, 'Got it');
+        done.addEventListener('click', close);
+        const focus = step.solved
+          ? `${cellName(step.solved.cell)} must be ${step.solved.digit}.`
+          : `Focus on ${step.cells.slice(0, 4).map(cellName).join(', ')}${step.cells.length > 4 ? '...' : ''}.`;
+        return el(
+          'div',
+          { class: 'panel hint-panel' },
+          el('p', { class: 'intro-kicker' }, 'SUDOKU HINT'),
+          el('h2', {}, HINT_NAMES[step.technique] ?? step.technique),
+          el('p', { class: 'summary' }, focus),
+          el('p', {}, HINT_REASONS[step.technique] ?? 'This step narrows the cells that can take the next number.'),
+          el('p', { class: 'intro-note' }, 'The highlighted cells show the pattern. This hint does not play a card for you.'),
+          done,
+        );
+      },
+      { onClose: () => this.clearHint() },
+    );
+  }
+
+  private markHint(step: Step): void {
+    this.clearHint();
+    for (const cell of step.cells) this.cells[cell]?.classList.add('hinted');
+    if (step.solved) this.cells[step.solved.cell]?.classList.add('hinted');
+  }
+
+  private clearHint(): void {
+    for (const cell of this.cells) cell.classList.remove('hinted');
   }
 
   private drawCards(): void {
@@ -785,7 +878,7 @@ export class PlayScreen {
 
   private tick(): void {
     const now = performance.now();
-    if (!document.hidden && !this.game.completed && !this.game.dead) {
+    if (!document.hidden && !this.isPaused && !this.game.completed && !this.game.dead) {
       this.game.elapsedMs += now - this.lastTick;
       if (this.ctx.settings.showTimer) this.timerBox.textContent = formatTime(this.game.elapsedMs);
     }

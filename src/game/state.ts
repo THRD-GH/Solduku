@@ -12,6 +12,8 @@ import {
 } from '../core/grid.ts';
 import { CLASSIC_CONS, LEVEL_CONFIG } from '../core/classic.ts';
 import { propagatedCandidates } from '../core/solver.ts';
+import { nextStep } from '../core/techniques.ts';
+import type { Step } from '../core/techniques.ts';
 import { isJoker, JOKER_SUIT } from '../core/types.ts';
 import type { Card, Puzzle, PuzzleId } from '../core/types.ts';
 import type { SavedGame } from './storage.ts';
@@ -395,6 +397,17 @@ export class Game {
       roles.set(j, cand !== null && popcount(cand[j]) === 1 ? maskToDigit(cand[j]) : 0);
     }
     return roles;
+  }
+
+  /** The next named sudoku technique available on the current board. */
+  hintStep(): Step | null {
+    if (this.completed) return null;
+    const start = new Uint16Array(CELLS).fill(ALL_DIGITS);
+    for (let i = 0; i < CELLS; i++) {
+      const digit = this.digitAt(i);
+      if (digit !== 0) start[i] = bit(digit);
+    }
+    return nextStep(start, CLASSIC_CONS);
   }
 
   /** Whether anything at all can still be done from this position. */

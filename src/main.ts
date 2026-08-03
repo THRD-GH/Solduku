@@ -103,11 +103,18 @@ class App implements AppContext {
 
   /** Only worth holding while a deal is open. */
   applyWakeLock(): void {
-    keepScreenAwake(this.settings.keepAwake && this.play !== null && !document.hidden);
+    keepScreenAwake(this.settings.keepAwake && this.play !== null && !this.play.isPaused && !document.hidden);
   }
 
   refreshBoard(): void {
     this.play?.render();
+  }
+
+  reload(): void {
+    this.settings = loadSettings();
+    this.history = loadHistory();
+    this.applyTheme();
+    this.goMenu();
   }
 
   private mount(node: HTMLElement): void {

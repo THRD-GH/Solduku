@@ -1,9 +1,9 @@
 import { LEVELS, LEVEL_NAMES } from '../core/classic.ts';
 import { formatPuzzleId } from '../core/types.ts';
 import type { Level, PuzzleId } from '../core/types.ts';
-import { freeSlotBank, levelHighScores, levelStats, progression, SCORE_TROPHY_TARGETS, TROPHY_NAMES, unlockedCardBacks } from '../game/storage.ts';
+import { freeSlotBank, levelHighScores, levelStats, progression, SCORE_TROPHY_TARGETS, totalStats, TROPHY_NAMES, unlockedCardBacks } from '../game/storage.ts';
 import type { History } from '../game/storage.ts';
-import { el } from './dom.ts';
+import { el, formatTime } from './dom.ts';
 import { openOverlay } from './overlay.ts';
 import type { AppContext } from './app-context.ts';
 
@@ -44,6 +44,7 @@ function records(history: History): string {
 export function openProgress(ctx: AppContext): void {
   openOverlay((close) => {
     const p = progression();
+    const totals = totalStats(ctx.history);
     const challenge = (label: string, id: PuzzleId): HTMLButtonElement => {
       const target = 120 + id.level * 20;
       const b = el('button', { class: 'btn' }, `${label}: ${LEVEL_NAMES[id.level]} ${id.number} · ${target}+`);
@@ -81,15 +82,18 @@ export function openProgress(ctx: AppContext): void {
         rows.append(el('small', { class: 'highscore-empty' }, 'No completed deals yet'));
       } else {
         for (const [index, entry] of scores.entries()) {
-          rows.append(
-            el(
-              'div',
-              { class: 'highscore-row' },
-              el('span', { class: 'highscore-rank' }, `#${index + 1}`),
-              el('span', { class: 'highscore-deal' }, formatPuzzleId(entry.id)),
-              el('b', {}, String(entry.score)),
-            ),
+          const replay = el(
+            'button',
+            { class: 'highscore-row', 'aria-label': `Replay ${formatPuzzleId(entry.id)}` },
+            el('span', { class: 'highscore-rank' }, `#${index + 1}`),
+            el('span', { class: 'highscore-deal' }, formatPuzzleId(entry.id)),
+            el('b', {}, String(entry.score)),
           );
+          replay.addEventListener('click', () => {
+            close();
+            ctx.playPuzzle(entry.id);
+          });
+          rows.append(replay);
         }
       }
       highScores.append(
@@ -107,12 +111,20 @@ export function openProgress(ctx: AppContext): void {
       'div',
       { class: 'panel' },
       el('h2', {}, 'Progress'),
+      el(
+        'div',
+        { class: 'home-tally progress-tally' },
+        el('div', {}, el('b', {}, `${totals.finished}/${totals.played}`), el('small', {}, 'deals won')),
+        el('div', {}, el('b', {}, totals.averageTimeMs === null ? '—' : formatTime(totals.averageTimeMs)), el('small', {}, 'average time')),
+        el('div', {}, el('b', {}, String(totals.bestScore ?? '—')), el('small', {}, 'best score')),
+        el('div', {}, el('b', {}, String(totals.mostFlushes ?? '—')), el('small', {}, 'most flushes')),
+      ),
       el('p', { class: 'summary' }, `${p.successfulGames} first-time wins · clean streak ${p.cleanStreak} · best ${p.bestCleanStreak}`),
       el('p', { class: 'summary' }, `${freeSlotBank()} bonus free slots banked · card backs: ${unlockedCardBacks().join(', ')}`),
       el('p', { class: 'summary' }, records(ctx.history)),
       el('h3', {}, 'Challenges'),
       el('div', { class: 'actions' }, challenge('Daily', dailyDeal()), challenge('Weekly', weeklyDeal())),
-      el('h3', {}, 'High scores'), highScores,
+      el('h3', {}, 'High scores'), el('p', { class: 'summary' }, 'Tap a high-score deal to replay it.'), highScores,
       el('h3', {}, 'Score trophies & collections'), mastery,
       el('h3', {}, 'Achievements'), badges,
       el('div', { class: 'panel-footer' }, closeButton),

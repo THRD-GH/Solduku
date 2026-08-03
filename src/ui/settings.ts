@@ -1,7 +1,7 @@
-import { jokerBank, saveSettings, unlockedCardBacks } from '../game/storage.ts';
+import { exportBackup, importBackup, jokerBank, saveSettings, unlockedCardBacks } from '../game/storage.ts';
 import type { CardBack, JokerAid, Theme } from '../game/storage.ts';
 import { el } from './dom.ts';
-import { openOverlay } from './overlay.ts';
+import { confirmDialog, openOverlay, toast } from './overlay.ts';
 import type { AppContext } from './app-context.ts';
 
 const THEMES: { value: Theme; label: string }[] = [
@@ -231,6 +231,45 @@ export function openSettings(ctx: AppContext): void {
           ctx.settings.showTimer = v;
           ctx.refreshBoard();
         },
+      ),
+    );
+
+    const exportData = el('button', { class: 'btn' }, 'Export data');
+    exportData.addEventListener('click', () => {
+      const blob = new Blob([JSON.stringify(exportBackup(), null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = el('a', { href: url, download: 'solduku-backup.json' });
+      link.click();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+      toast('Backup downloaded');
+    });
+
+    const file = el('input', { type: 'file', accept: 'application/json,.json' });
+    file.hidden = true;
+    file.addEventListener('change', () => {
+      const chosen = file.files?.[0];
+      file.value = '';
+      if (!chosen) return;
+      void chosen
+        .text()
+        .then((text) => {
+          const restored = importBackup(JSON.parse(text) as unknown);
+          close();
+          ctx.reload();
+          toast(`Restored ${restored.history} deals and ${restored.saves} saved games`);
+        })
+        .catch((err: unknown) => toast(err instanceof Error ? err.message : 'Could not read that backup'));
+    });
+    const importData = el('button', { class: 'btn' }, 'Import data');
+    importData.addEventListener('click', () =>
+      confirmDialog('Replace your local progress and saved games with a backup file?', () => file.click(), 'Choose file'),
+    );
+    rows.push(
+      el(
+        'div',
+        { class: 'setting stacked' },
+        el('span', { class: 'label' }, 'Your data', el('small', {}, 'Keep a copy of your scores, rewards, settings and parked games.')),
+        el('div', { class: 'tabs' }, exportData, importData, file),
       ),
     );
 

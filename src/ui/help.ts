@@ -29,6 +29,7 @@ export function openHelp(): void {
         'Free cells park one card each, like FreeCell. The joker — the jester card — is fully wild: it can be played onto any empty cell and counts as whatever digit and suit the cell needs. Draw level jokers from their own pile beside the number deck.',
       ),
       el('p', {}, 'Tap the draw pile beside your hand whenever you want to refill its open slots.'),
+      el('p', {}, 'Hint names the next sudoku technique and highlights its focus without playing a card. Pause stops the clock and keeps the current deal ready until you continue.'),
       el('h3', {}, 'Scoring'),
       el(
         'ul',
@@ -69,6 +70,7 @@ export function openHelp(): void {
         'The first win of each deal earns one single-use joker. Every tenth first win also earns a bonus free slot. Choose banked jokers for a new deal in Settings, or load them directly into the joker pile during play.',
       ),
       el('p', {}, 'During a deal, the Joker Bank and Bonus Slot piles show your balances. Tap the Joker Bank to load one into the Joker Pile, or tap the Bonus Slot pile to add an empty free cell.'),
+      el('p', {}, 'In Settings, export a backup before moving devices or import one to restore your local progress, rewards, settings and parked games.'),
       el('p', {}, 'The home screen keeps every unfinished deal. When more than one is waiting, tap “unfinished games” to choose exactly which one to resume.'),
       el('h3', {}, 'Levels'),
       el(

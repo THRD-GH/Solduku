@@ -741,7 +741,16 @@ body {
 
 /* The always-visible way out of a deal belongs alongside its core controls. */
 .game-actions {
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.cell.hinted {
+  background: color-mix(in srgb, var(--accent) 34%, var(--panel));
+  box-shadow: inset 0 0 0 2px var(--accent), 0 0 12px color-mix(in srgb, var(--accent) 48%, transparent);
+}
+
+.hint-panel {
+  text-align: center;
 }
 
 .btn {
@@ -2668,6 +2677,53 @@ body {
   font-size: 11px;
   line-height: 1.35;
 }
+
+.intro-demo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 38px;
+  margin-top: 7px;
+  color: var(--accent);
+}
+
+.intro-deck-card,
+.intro-mini-card,
+.intro-grid-cell,
+.intro-flush-card,
+.intro-joker,
+.intro-slot {
+  display: grid;
+  place-items: center;
+  min-width: 30px;
+  min-height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel-2);
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.intro-deck-card {
+  color: var(--text);
+  font-size: 8px;
+  letter-spacing: 0.6px;
+  background: repeating-linear-gradient(45deg, var(--accent-dim), var(--accent-dim) 3px, var(--panel-2) 3px, var(--panel-2) 6px);
+}
+
+.intro-mini-card {
+  position: relative;
+  color: var(--card-black);
+  background: var(--card-bg);
+}
+
+.intro-mini-card.heart { color: var(--card-red); }
+.intro-mini-card small { position: absolute; right: 3px; bottom: 1px; font-size: 8px; }
+.intro-arrow { font-weight: 800; }
+.intro-grid-cell { background: color-mix(in srgb, var(--accent) 18%, var(--panel)); }
+.intro-flush-card { min-width: 62px; color: var(--card-red); font-size: 12px; letter-spacing: 2px; }
+.intro-joker { color: #7b4de1; font-size: 21px; }
+.intro-slot { color: var(--success); border-style: dashed; }
 
 .intro-note {
   margin: 10px 0 0;
