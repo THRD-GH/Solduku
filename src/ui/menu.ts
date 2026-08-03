@@ -16,7 +16,7 @@ import { openUnfinishedPicker } from './unfinished-picker.ts';
  * same deal — givens and deck order — on every device.
  */
 export function buildMenu(ctx: AppContext): HTMLElement {
-  const screen = el('div', { class: 'screen' });
+  const screen = el('div', { class: 'screen menu-screen' });
 
   const menuBtn = el('button', { class: 'iconbtn', 'aria-label': 'Menu' });
   menuBtn.append(el('i'), el('i'), el('i'));

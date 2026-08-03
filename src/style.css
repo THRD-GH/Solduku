@@ -2067,6 +2067,61 @@ body {
   margin: 3px 0 1px;
 }
 
+/* Keep the level picker at the centre of the home screen. The dashboard is
+   still available, but its compact tally comes first and the fuller score
+   detail follows the deals instead of pushing them down the page. */
+.menu-screen {
+  gap: 6px;
+}
+
+.menu-screen > .build-stamp { order: 0; }
+.menu-screen > .titlebar { order: 1; }
+.menu-screen > .home-tally { order: 2; }
+.menu-screen > .actions { order: 3; }
+.menu-screen > .hero { order: 4; }
+.menu-screen > .levels { order: 5; }
+.menu-screen > .home-highscores { order: 6; }
+.menu-screen > .hint-line { order: 7; }
+
+.menu-screen .home-tally {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
+  margin: 0;
+}
+
+.menu-screen .home-tally > div {
+  padding: 4px 5px;
+}
+
+.menu-screen .home-tally b {
+  font-size: 14px;
+}
+
+.menu-screen .home-tally small {
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+.menu-screen .hero {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 3px 2px 0;
+  text-align: left;
+}
+
+.menu-screen .hero h1 {
+  font-size: 19px;
+  letter-spacing: 0.4px;
+}
+
+.menu-screen .hero p {
+  margin: 0;
+  font-size: 10px;
+  text-align: right;
+}
+
 /* Red is a warning, not a block: deliberate risk and blind play remain possible. */
 .cell.legal.danger {
   background: color-mix(in srgb, var(--error) 16%, var(--cell));
