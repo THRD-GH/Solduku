@@ -986,6 +986,21 @@ body {
   pointer-events: none;
 }
 
+/* A finished grid is worth studying. Keep the result just below it instead
+   of covering it, and let a tap anywhere outside the panel return to the
+   completed board. */
+.overlay.board-adjacent {
+  display: block;
+  padding: 0 16px 16px;
+  overflow-y: auto;
+  background: rgb(0 0 0 / 0.12);
+}
+
+.overlay.board-adjacent .panel {
+  margin: calc(var(--overlay-anchor-bottom) + 10px) auto 16px;
+  max-height: var(--overlay-anchor-space);
+}
+
 /* The sum calculator is read against the board, so the board can be made
    visible through it. --glass is driven by the slider in its footer, and
    starts solid every time the panel is opened. */

@@ -104,6 +104,7 @@ export class PlayScreen {
   private readonly ctx: AppContext;
   readonly game: Game;
   private cells: HTMLElement[] = [];
+  private board: HTMLElement;
   private idBox!: HTMLElement;
   private doomBar!: HTMLElement;
   private handRow: HTMLElement;
@@ -150,7 +151,7 @@ export class PlayScreen {
       this.timerBox,
     );
 
-    const board = el('div', { class: 'board sol', role: 'grid', 'aria-label': 'Solduku board' });
+    this.board = el('div', { class: 'board sol', role: 'grid', 'aria-label': 'Solduku board' });
     for (let r = 0; r < 9; r++) {
       const row = el('div', { class: 'row', role: 'row' });
       for (let c = 0; c < 9; c++) {
@@ -165,10 +166,10 @@ export class PlayScreen {
         this.cells.push(cell);
         row.append(cell);
       }
-      board.append(row);
+      this.board.append(row);
     }
     bindTap(
-      board,
+      this.board,
       { onTap: (i) => this.onCellTap(i), forgiveDrift: true },
       (e) => {
         const cell = (e.target as HTMLElement).closest<HTMLElement>('.cell');
@@ -279,7 +280,7 @@ export class PlayScreen {
       el('p', { class: 'build-stamp top' }, buildStamp()),
       titlebar,
       this.doomBar,
-      board,
+      this.board,
       tray,
       el('div', { class: 'actions game-actions' }, this.undoBtn, restart, help, home),
     );
@@ -650,7 +651,7 @@ export class PlayScreen {
           el('div', { class: 'actions', style: 'grid-template-columns: 1fr 1fr; margin-top: 12px' }, next, menu),
         );
       },
-      { dismissable: false },
+      { dismissable: true, overlayClass: 'board-adjacent', anchor: this.board },
     );
   }
 

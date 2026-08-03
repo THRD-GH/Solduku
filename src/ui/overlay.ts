@@ -38,7 +38,7 @@ const TAP_GUARD_MS = 400;
 
 export function openOverlay(
   build: (close: () => void) => HTMLElement,
-  opts: { dismissable?: boolean; overlayClass?: string } = {},
+  opts: { dismissable?: boolean; overlayClass?: string; anchor?: Element } = {},
 ): () => void {
   const dismissable = opts.dismissable ?? true;
   const backdrop = el('div', {
@@ -54,9 +54,18 @@ export function openOverlay(
   }, TAP_GUARD_MS);
 
   const entry = { close: (): void => undefined };
+  const positionAtAnchor = (): void => {
+    if (!opts.anchor) return;
+    const { bottom } = opts.anchor.getBoundingClientRect();
+    backdrop.style.setProperty('--overlay-anchor-bottom', `${Math.max(0, Math.round(bottom))}px`);
+    backdrop.style.setProperty('--overlay-anchor-space', `${Math.max(220, Math.round(window.innerHeight - bottom - 18))}px`);
+  };
+  positionAtAnchor();
+  if (opts.anchor) window.addEventListener('resize', positionAtAnchor);
   const close = (): void => {
     backdrop.remove();
     document.removeEventListener('keydown', onKey, true);
+    window.removeEventListener('resize', positionAtAnchor);
     const at = stack.indexOf(entry);
     if (at >= 0) stack.splice(at, 1);
   };
