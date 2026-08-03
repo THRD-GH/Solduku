@@ -305,6 +305,14 @@ export function latestSave(): SavedGame | null {
   return best;
 }
 
+/** Every parked deal, newest first, for the resume picker on the home screen. */
+export function allSaves(): SavedGame[] {
+  return saveKeys()
+    .map((key) => read<SavedGame | null>(key, null))
+    .filter((saved): saved is SavedGame => saved !== null)
+    .sort((a, b) => (b.savedAt ?? 0) - (a.savedAt ?? 0));
+}
+
 export function saveGame(game: SavedGame): void {
   write(saveKeyFor(game.id), { ...game, savedAt: Date.now() });
 

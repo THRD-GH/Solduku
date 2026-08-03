@@ -1,23 +1,21 @@
 import { LEVEL_CONFIG, LEVELS, LEVEL_LOGIC, LEVEL_NAMES } from '../core/classic.ts';
 import type { Level } from '../core/types.ts';
 import { formatPuzzleId } from '../core/types.ts';
-import { POOL_SIZE, freeSlotBank, jokerBank, levelStats, progression, TROPHY_NAMES, unplayedNumbers } from '../game/storage.ts';
+import { POOL_SIZE, allSaves, freeSlotBank, jokerBank, levelStats, progression, TROPHY_NAMES, unplayedNumbers } from '../game/storage.ts';
 import { buildStamp, el } from './dom.ts';
 import { clear } from './dom.ts';
 import { openOverlay, toast } from './overlay.ts';
 import { bindTap } from './pointer.ts';
 import { stars } from './stars.ts';
 import type { AppContext } from './app-context.ts';
+import { openUnfinishedPicker } from './unfinished-picker.ts';
 
 /**
  * Choose Level. A tap deals a random unplayed number from that level; the #
  * button picks a number outright. Numbers are deterministic, so 3-10 is the
  * same deal — givens and deck order — on every device.
  */
-export function buildMenu(
-  ctx: AppContext,
-  resume?: { label: string; run: () => void },
-): HTMLElement {
+export function buildMenu(ctx: AppContext): HTMLElement {
   const screen = el('div', { class: 'screen' });
 
   const menuBtn = el('button', { class: 'iconbtn', 'aria-label': 'Menu' });
@@ -48,11 +46,21 @@ export function buildMenu(
     ),
   );
 
-  if (resume) {
-    const btn = el('button', { class: 'btn primary wide' }, resume.label);
-    btn.addEventListener('click', resume.run);
-    screen.append(el('div', { class: 'actions' }, btn));
-  }
+  const resumeBtn = el('button', { class: 'btn primary wide' });
+  const resumeActions = el('div', { class: 'actions' }, resumeBtn);
+  const refreshResume = (): void => {
+    const saves = allSaves();
+    resumeActions.hidden = saves.length === 0;
+    resumeBtn.textContent =
+      saves.length === 1 ? `Resume ${formatPuzzleId(saves[0].id)}` : `${saves.length} unfinished games`;
+  };
+  resumeBtn.addEventListener('click', () => {
+    const saves = allSaves();
+    if (saves.length === 1) ctx.playPuzzle(saves[0].id);
+    else if (saves.length > 1) openUnfinishedPicker(ctx);
+  });
+  refreshResume();
+  screen.append(resumeActions);
 
   const list = el('div', { class: 'levels' });
   for (const level of LEVELS) list.append(buildLevelRow(ctx, level, progress.mastery[level] ?? 0));

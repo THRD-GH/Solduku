@@ -69,6 +69,7 @@ export function openHelp(): void {
         'The first win of each deal earns one single-use joker. Every tenth first win also earns a bonus free slot. Choose banked jokers for a new deal in Settings, or load them directly into the joker pile during play.',
       ),
       el('p', {}, 'During a deal, the Joker Bank and Bonus Slot piles show your balances. Tap the Joker Bank to load one into the Joker Pile, or tap the Bonus Slot pile to add an empty free cell.'),
+      el('p', {}, 'The home screen keeps every unfinished deal. When more than one is waiting, tap “unfinished games” to choose exactly which one to resume.'),
       el('h3', {}, 'Levels'),
       el(
         'p',
