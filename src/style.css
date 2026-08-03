@@ -1977,6 +1977,96 @@ body {
   line-height: 1.25;
 }
 
+/* The home screen keeps a small, meaningful slice of the leaderboard in view:
+   one personal best per level, without turning level choice into a long table. */
+.home-highscores {
+  margin: 7px 0 10px;
+  padding: 9px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--panel) 93%, white), var(--panel));
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--shadow) 55%, transparent);
+}
+
+.home-section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.home-section-head h2 {
+  margin: 0;
+  font-size: 14px;
+}
+
+.text-btn {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.home-score-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.home-score {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1px 6px;
+  min-width: 0;
+  padding: 6px 7px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel-2);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.home-score-level {
+  overflow: hidden;
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.home-score b {
+  grid-row: span 2;
+  align-self: center;
+  color: var(--sum);
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+}
+
+.home-score small,
+.home-score-note,
+.home-score-empty {
+  color: var(--dim);
+  font-size: 10px;
+}
+
+.home-score-note {
+  display: block;
+  margin-top: 6px;
+}
+
+.home-score-empty {
+  display: block;
+  margin: 3px 0 1px;
+}
+
 /* Red is a warning, not a block: deliberate risk and blind play remain possible. */
 .cell.legal.danger {
   background: color-mix(in srgb, var(--error) 16%, var(--cell));

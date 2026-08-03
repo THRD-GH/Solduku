@@ -1,7 +1,7 @@
 import { LEVEL_CONFIG, LEVELS, LEVEL_LOGIC, LEVEL_NAMES } from '../core/classic.ts';
 import type { Level } from '../core/types.ts';
 import { formatPuzzleId } from '../core/types.ts';
-import { POOL_SIZE, allSaves, freeSlotBank, jokerBank, levelStats, progression, TROPHY_NAMES, unplayedNumbers } from '../game/storage.ts';
+import { POOL_SIZE, allSaves, freeSlotBank, jokerBank, levelHighScores, levelStats, progression, trophyForScore, TROPHY_NAMES, unplayedNumbers } from '../game/storage.ts';
 import { buildStamp, el } from './dom.ts';
 import { clear } from './dom.ts';
 import { openOverlay, toast } from './overlay.ts';
@@ -46,6 +46,8 @@ export function buildMenu(ctx: AppContext): HTMLElement {
     ),
   );
 
+  screen.append(buildHomeHighScores(ctx));
+
   const resumeBtn = el('button', { class: 'btn primary wide' });
   const resumeActions = el('div', { class: 'actions' }, resumeBtn);
   const refreshResume = (): void => {
@@ -74,6 +76,37 @@ export function buildMenu(ctx: AppContext): HTMLElement {
     ),
   );
   return screen;
+}
+
+/** A concise personal-best board keeps high scores visible before a new deal. */
+function buildHomeHighScores(ctx: AppContext): HTMLElement {
+  const grid = el('div', { class: 'home-score-grid' });
+  let hasScore = false;
+  for (const level of LEVELS) {
+    const entry = levelHighScores(ctx.history, level, 1)[0];
+    if (!entry) continue;
+    hasScore = true;
+    const trophy = trophyForScore(level, entry.score);
+    const replay = el(
+      'button',
+      { class: 'home-score', 'aria-label': `Replay your best ${LEVEL_NAMES[level]} deal, ${formatPuzzleId(entry.id)}, score ${entry.score}` },
+      el('span', { class: 'home-score-level' }, LEVEL_NAMES[level]),
+      el('b', {}, String(entry.score)),
+      el('small', {}, `${formatPuzzleId(entry.id)} - ${TROPHY_NAMES[trophy]}`),
+    );
+    replay.addEventListener('click', () => ctx.playPuzzle(entry.id));
+    grid.append(replay);
+  }
+
+  const allScores = el('button', { class: 'text-btn' }, 'All scores');
+  allScores.addEventListener('click', () => ctx.openProgress());
+  return el(
+    'section',
+    { class: 'home-highscores' },
+    el('div', { class: 'home-section-head' }, el('h2', {}, 'Your best deals'), allScores),
+    hasScore ? grid : el('p', { class: 'home-score-empty' }, 'Win a deal to put your first high score here.'),
+    hasScore ? el('small', { class: 'home-score-note' }, 'Tap a score to replay that deal.') : null,
+  );
 }
 
 function buildLevelRow(ctx: AppContext, level: Level, trophyTier: number): HTMLElement {
