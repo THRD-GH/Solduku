@@ -120,10 +120,14 @@ export class Game {
   /** No card can be played or stashed — the deal is lost as it stands. */
   dead = false;
   /**
-   * Whether the partial grid still has any sudoku completion. The deck always
-   * holds exactly the digits the open cells need, so the deal is winnable
-   * precisely as long as this stays true — when it flips, some legal-but-wrong
-   * placement has doomed the endgame, however far away that endgame is.
+   * Whether the board can still be filled with the cards that remain.
+   *
+   * The number deck holds one card per open cell and the jokers sit on top of
+   * it, so a deal carries as much slack as it has jokers: play one and a
+   * number card is left over for good. Winnable therefore means a completion
+   * exists that the remaining cards can spell out — not that every card finds
+   * a home. When this flips, some legal-but-wrong placement has doomed the
+   * endgame, however far away that endgame is.
    */
   completable = true;
   private history: Move[] = [];
@@ -310,14 +314,33 @@ export class Game {
       }
       if (cells.length === 0) return true;
 
-      // A digit card with nowhere left to go is dead weight, and every card
-      // must be played — so that position is already lost, however far off.
+      /*
+       * Not every card has to be played. Jokers arrive on top of a deck that
+       * already holds exactly one card per open cell, so each joker put on the
+       * board leaves one number card with nowhere to go and no need to go
+       * anywhere. That slack has to be counted before a stranded card is read
+       * as a lost position — otherwise the first joker of every deal looks
+       * like the move that killed it.
+       */
+      let needed = 0;
+      for (const c of cells) if (needsCard[c]) needed++;
+      let supply = wild;
+      for (let d = 1; d <= 9; d++) supply += have[d];
+      const spare = supply - needed;
+      // Fewer cards than cells to fill: nothing can finish this board.
+      if (spare < 0) return false;
+
+      // A digit card with nowhere left to go is dead weight. More dead weight
+      // than the deal has slack for means the position is already lost,
+      // however far off the end is.
+      let stranded = 0;
       for (let d = 1; d <= 9; d++) {
         if (have[d] === 0) continue;
         let room = 0;
         for (const c of cells) if (needsCard[c] && cand[c] & bit(d)) room++;
-        if (room < have[d]) return false;
+        if (room < have[d]) stranded += have[d] - room;
       }
+      if (stranded > spare) return false;
 
       // Most-constrained cell first, as everywhere else in the solver.
       let best = -1;
