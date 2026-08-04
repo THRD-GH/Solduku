@@ -1,5 +1,6 @@
 import type { Card, Level, Puzzle, PuzzleId } from '../core/types.ts';
 import { formatPuzzleId } from '../core/types.ts';
+import type { TrophyTier } from '../core/scoring.ts';
 import type { Move } from './state.ts';
 
 const KEY = {
@@ -16,12 +17,15 @@ export const POOL_SIZE = 500;
 export type Theme = 'night' | 'day' | 'contrast';
 export type JokerAid = 'off' | 'assist' | 'generous';
 export type CardBack = 'classic' | 'royal' | 'aurora';
-export type TrophyTier = 0 | 1 | 2 | 3 | 4;
-type EarnedTrophyTier = Exclude<TrophyTier, 0>;
+export type { TrophyTier };
+/** The legacy table only ever graded four tiers. */
+type LegacyTier = 1 | 2 | 3 | 4;
 
-/** Score bands are tuned to each level's dealt-card distribution. Bronze
- * sits just above a plain completion, so it rewards a little bonus play. */
-export const SCORE_TROPHY_TARGETS: Record<Level, Record<EarnedTrophyTier, number>> = {
+/**
+ * The old fixed bands, kept only to grade deals finished before trophies were
+ * measured against the deal itself. Nothing new is scored against them.
+ */
+const LEGACY_TROPHY_TARGETS: Record<Level, Record<LegacyTier, number>> = {
   1: { 1: 320, 2: 400, 3: 475, 4: 550 },
   2: { 1: 335, 2: 415, 3: 500, 4: 600 },
   3: { 1: 340, 2: 430, 3: 525, 4: 625 },
@@ -30,10 +34,11 @@ export const SCORE_TROPHY_TARGETS: Record<Level, Record<EarnedTrophyTier, number
   6: { 1: 340, 2: 440, 3: 460, 4: 525 },
 };
 
-export const TROPHY_NAMES = ['Unranked', 'Bronze', 'Silver', 'Gold', 'Diamond'] as const;
+export const TROPHY_NAMES = ['Unranked', 'Bronze', 'Silver', 'Gold', 'Diamond', 'Superstar'] as const;
 
-export function trophyForScore(level: Level, score: number): TrophyTier {
-  const target = SCORE_TROPHY_TARGETS[level];
+/** Grades a score from before per-deal bands existed. */
+export function legacyTrophyForScore(level: Level, score: number): TrophyTier {
+  const target = LEGACY_TROPHY_TARGETS[level];
   if (score >= target[4]) return 4;
   if (score >= target[3]) return 3;
   if (score >= target[2]) return 2;
@@ -87,6 +92,9 @@ export interface PuzzleRecord {
   bestTimeMs?: number;
   mostFlushes?: number;
   fewestAids?: number;
+  /** Trophy earned on this deal, graded against the deal's own bands. Absent
+   *  on records written before trophies were measured that way. */
+  bestTrophy?: TrophyTier;
 }
 
 export type History = Record<string, PuzzleRecord>;
@@ -199,10 +207,9 @@ export interface TrophyAward {
 }
 
 /** Store the highest score trophy for a level. Replays can always improve it. */
-export function awardScoreTrophy(level: Level, score: number): TrophyAward {
+export function awardScoreTrophy(level: Level, earned: TrophyTier): TrophyAward {
   const rewards = loadRewards();
   const previous = rewards.mastery[level] ?? 0;
-  const earned = trophyForScore(level, score);
   const tier = Math.max(previous, earned) as TrophyTier;
   rewards.mastery[level] = tier;
   write(KEY.rewards, rewards);
@@ -486,6 +493,29 @@ export interface ResultDetails {
   elapsedMs: number;
   flushes: number;
   aids: number;
+  /** Graded against this deal's own bands at the moment it was won. */
+  trophy: TrophyTier;
+}
+
+/**
+ * The trophy shown for a completed deal. Records written before trophies were
+ * graded per deal have none stored, so those fall back to the fixed bands
+ * they were actually earned under.
+ */
+export function trophyForRecord(level: Level, record: PuzzleRecord | undefined): TrophyTier {
+  if (record === undefined) return 0;
+  if (record.bestTrophy !== undefined) return record.bestTrophy;
+  return record.bestScore === undefined ? 0 : legacyTrophyForScore(level, record.bestScore);
+}
+
+/** The best trophy earned anywhere in a level, for the menu and progress. */
+export function levelTrophy(history: History, level: Level, poolSize = POOL_SIZE): TrophyTier {
+  let best: TrophyTier = 0;
+  for (let n = 1; n <= poolSize; n++) {
+    const tier = trophyForRecord(level, history[formatPuzzleId({ level, number: n })]);
+    if (tier > best) best = tier;
+  }
+  return best;
 }
 
 /** Record a win, keeping the best score and separate personal-best splits. */
@@ -512,6 +542,9 @@ export function markFinished(
       : {}),
     ...(details && (rec.fewestAids === undefined || details.aids < rec.fewestAids)
       ? { fewestAids: details.aids }
+      : {}),
+    ...(details && (rec.bestTrophy === undefined || details.trophy > rec.bestTrophy)
+      ? { bestTrophy: details.trophy }
       : {}),
   };
   return history;

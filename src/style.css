@@ -3170,3 +3170,85 @@ body {
   color: var(--dim);
   font-variant-numeric: tabular-nums;
 }
+
+/* Trophy markers ride the bar at the score each one costs. */
+.scorebar-mark .ticon {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 16px;
+  height: 16px;
+  transform: translate(-50%, -50%);
+  filter: grayscale(1);
+  opacity: 0.4;
+}
+
+.scorebar-mark.passed .ticon {
+  filter: none;
+  opacity: 1;
+  /* Earned trophies sit above the fill rather than in it. */
+  filter: drop-shadow(0 1px 1px var(--shadow));
+}
+
+.scorebar-mark.tier-1 .ticon { color: var(--tier-1); }
+.scorebar-mark.tier-2 .ticon { color: var(--tier-2); }
+.scorebar-mark.tier-3 .ticon { color: var(--tier-3); }
+.scorebar-mark.tier-4 .ticon { color: var(--tier-4); }
+
+/* The Superstar is only ever drawn once it has been earned. */
+.scorebar-mark.tier-5 {
+  background: none;
+  z-index: 2;
+}
+
+.scorebar-mark.tier-5 .ticon {
+  color: var(--tier-5);
+  width: 19px;
+  height: 19px;
+  filter: drop-shadow(0 0 4px var(--tier-5));
+  opacity: 1;
+}
+
+.scorebar-fill.tier-5 {
+  background: color-mix(in srgb, var(--tier-5) 55%, var(--panel-2));
+}
+
+/* Icon-only controls: undo, redo and pause. */
+.btn.icon .gicon {
+  width: 20px;
+  height: 20px;
+  display: block;
+  margin: 0 auto;
+  color: currentColor;
+}
+
+.game-actions .btn.icon {
+  padding: 8px 4px;
+}
+
+/* Superstar violet, distinct from all four graded tiers. */
+:root { --tier-5: #d08bff; }
+:root[data-theme='day'] { --tier-5: #7a2ecc; }
+:root[data-theme='contrast'] { --tier-5: #cc79a7; }
+
+/* The tick line behind a trophy would show through the cup, so mute it. */
+.scorebar-mark.tier-1,
+.scorebar-mark.tier-2,
+.scorebar-mark.tier-3,
+.scorebar-mark.tier-4 {
+  width: 1px;
+  opacity: 0.55;
+}
+
+.scorebar-mark.passed.tier-1,
+.scorebar-mark.passed.tier-2,
+.scorebar-mark.passed.tier-3,
+.scorebar-mark.passed.tier-4 {
+  width: 1px;
+  opacity: 0.8;
+}
+
+/* Room for the cups without crowding the score or the caption. */
+.scorebar {
+  height: 30px;
+}

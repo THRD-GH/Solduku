@@ -185,21 +185,24 @@ export class Game {
   }
 
   /**
-   * The best score this deal can be played to.
+   * What this grid is worth on a standard deal.
    *
-   * Counted against every joker the deal will ever hold rather than the pile
-   * as it stands, so the figure a player is aiming at does not shift under
-   * them each time one is drawn. Adding a banked joker does move it — that
-   * genuinely changes what the deal can reach.
+   * Deliberately counted against the level's own joker allowance rather than
+   * the pile actually in play. Aids and earned jokers would otherwise raise
+   * the bar in step with the help, so spending them bought nothing — and the
+   * score could never pass what the grid was calculated to be worth. Held to
+   * the standard deal, the extra jokers are what they should be: headroom,
+   * and the only ordinary route past 100%.
    */
-  private targetCache: { jokers: number; target: DealTarget } | null = null;
+  private targetCache: DealTarget | null = null;
 
   target(): DealTarget {
-    const jokers = this.initialJokers + this.bankedJokers;
-    if (this.targetCache === null || this.targetCache.jokers !== jokers) {
-      this.targetCache = { jokers, target: dealTarget(this.puzzle, jokers, this.questSuit) };
-    }
-    return this.targetCache.target;
+    this.targetCache ??= dealTarget(
+      this.puzzle,
+      LEVEL_CONFIG[this.puzzle.difficulty].jokers,
+      this.questSuit,
+    );
+    return this.targetCache;
   }
 
   get deckLeft(): number {

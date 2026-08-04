@@ -1,7 +1,8 @@
 import { LEVELS, LEVEL_NAMES } from '../core/classic.ts';
 import { formatPuzzleId } from '../core/types.ts';
 import type { Level, PuzzleId } from '../core/types.ts';
-import { freeSlotBank, levelHighScores, levelStats, progression, SCORE_TROPHY_TARGETS, totalStats, TROPHY_NAMES, unlockedCardBacks } from '../game/storage.ts';
+import { freeSlotBank, levelHighScores, levelStats, levelTrophy, progression, totalStats, TROPHY_NAMES, unlockedCardBacks } from '../game/storage.ts';
+import { SUPERSTAR_TIER } from '../core/scoring.ts';
 import type { History } from '../game/storage.ts';
 import { el, formatTime } from './dom.ts';
 import { openOverlay } from './overlay.ts';
@@ -60,11 +61,16 @@ export function openProgress(ctx: AppContext): void {
     }
     const mastery = el('div', { class: 'progress-list' });
     for (const level of LEVELS) {
-      const tier = p.mastery[level] ?? 0;
+      // Trophies are graded against each deal, so there is no fixed next score
+      // to quote here — only which tier the level has reached so far.
+      const tier = Math.max(p.mastery[level] ?? 0, levelTrophy(ctx.history, level));
       const best = levelStats(ctx.history, level).bestScore;
-      const target = SCORE_TROPHY_TARGETS[level];
-      const nextTier = (tier + 1) as 1 | 2 | 3 | 4;
-      const next = tier >= 4 ? 'Diamond complete' : `next ${TROPHY_NAMES[nextTier]} ${target[nextTier]}`;
+      const next =
+        tier >= SUPERSTAR_TIER
+          ? 'Superstar earned'
+          : tier >= 4
+            ? 'Diamond complete'
+            : `next ${TROPHY_NAMES[tier + 1]}`;
       mastery.append(
         el(
           'div',

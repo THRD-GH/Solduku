@@ -14,11 +14,10 @@ import {
   saveHistory,
   spendFreeSlot,
   spendJokers,
-  SCORE_TROPHY_TARGETS,
-  trophyForScore,
   TROPHY_NAMES,
   winsToNextFreeSlot,
 } from '../game/storage.ts';
+import { SUPERSTAR_TIER, trophyBands, trophyForTarget } from '../core/scoring.ts';
 import { buildStamp, el, formatTime } from './dom.ts';
 import { confirmDialog, openOverlay, toast } from './overlay.ts';
 import { bindTap } from './pointer.ts';
@@ -61,6 +60,76 @@ function jesterCap(): SVGSVGElement {
     add('circle', { cx: String(cx), cy: String(cy), r: '1.55', fill: 'currentColor' });
     add('circle', { cx: String(cx), cy: String(cy), r: '0.42', fill: 'var(--card-bg)' });
   }
+  return svg;
+}
+
+/**
+ * The undo arrow: a hooked arc pointing back on itself. `mirrored` flips it
+ * for redo, so the pair reads as the same gesture in opposite directions.
+ */
+function undoArrow(mirrored = false): SVGSVGElement {
+  const svg = document.createElementNS(SVG_NS, 'svg');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('class', 'gicon');
+  svg.setAttribute('aria-hidden', 'true');
+
+  const group = document.createElementNS(SVG_NS, 'g');
+  if (mirrored) group.setAttribute('transform', 'translate(24,0) scale(-1,1)');
+  group.setAttribute('fill', 'none');
+  group.setAttribute('stroke', 'currentColor');
+  group.setAttribute('stroke-width', '2.3');
+  group.setAttribute('stroke-linecap', 'round');
+  group.setAttribute('stroke-linejoin', 'round');
+
+  const arc = document.createElementNS(SVG_NS, 'path');
+  arc.setAttribute('d', 'M7 9h8a5 5 0 0 1 0 10h-5');
+  const head = document.createElementNS(SVG_NS, 'polyline');
+  head.setAttribute('points', '11,5 7,9 11,13');
+  group.append(arc, head);
+  svg.append(group);
+  return svg;
+}
+
+/** Two upright bars — pause, in the shape every player already knows. */
+function pauseBars(): SVGSVGElement {
+  const svg = document.createElementNS(SVG_NS, 'svg');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('class', 'gicon');
+  svg.setAttribute('aria-hidden', 'true');
+  for (const x of ['7', '13.6']) {
+    const bar = document.createElementNS(SVG_NS, 'rect');
+    bar.setAttribute('x', x);
+    bar.setAttribute('y', '4.5');
+    bar.setAttribute('width', '3.4');
+    bar.setAttribute('height', '15');
+    bar.setAttribute('rx', '1.2');
+    bar.setAttribute('fill', 'currentColor');
+    svg.append(bar);
+  }
+  return svg;
+}
+
+/** A trophy cup, drawn so it can take the colour of the tier it stands for. */
+function trophyIcon(): SVGSVGElement {
+  const svg = document.createElementNS(SVG_NS, 'svg');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('class', 'ticon');
+  svg.setAttribute('aria-hidden', 'true');
+  const add = (tag: string, attrs: Record<string, string>): void => {
+    const part = document.createElementNS(SVG_NS, tag);
+    for (const [key, value] of Object.entries(attrs)) part.setAttribute(key, value);
+    svg.append(part);
+  };
+  // Bowl, handles, stem and base — a cup at a glance even at 15px.
+  add('path', { d: 'M7 3h10v6a5 5 0 0 1-10 0Z', fill: 'currentColor' });
+  add('path', {
+    d: 'M7 4.5H4.6v2A3.4 3.4 0 0 0 7.6 10M17 4.5h2.4v2A3.4 3.4 0 0 1 16.4 10',
+    fill: 'none',
+    stroke: 'currentColor',
+    'stroke-width': '1.5',
+  });
+  add('rect', { x: '10.9', y: '13.4', width: '2.2', height: '4', fill: 'currentColor' });
+  add('rect', { x: '7.6', y: '17.4', width: '8.8', height: '2.4', rx: '0.8', fill: 'currentColor' });
   return svg;
 }
 
@@ -143,7 +212,6 @@ export class PlayScreen {
   private scoreFill: HTMLElement;
   private scoreMarks: HTMLElement;
   private scoreCaption: HTMLElement;
-  private scoreTargetLabel: HTMLElement;
   private timerBox: HTMLElement;
   private undoBtn: HTMLButtonElement;
   private redoBtn: HTMLButtonElement;
@@ -181,7 +249,6 @@ export class PlayScreen {
     this.scoreFill = el('span', { class: 'scorebar-fill' });
     this.scoreMarks = el('span', { class: 'scorebar-marks' });
     this.scoreCaption = el('span', { class: 'scorebar-caption' });
-    this.scoreTargetLabel = el('span', { class: 'scorebar-target' });
     this.scoreTrack = el(
       'button',
       {
@@ -195,7 +262,6 @@ export class PlayScreen {
         this.scoreFill,
         this.scoreMarks,
         this.scoreBox,
-        this.scoreTargetLabel,
       ),
       this.scoreCaption,
     );
@@ -286,13 +352,15 @@ export class PlayScreen {
       ),
     );
 
-    this.undoBtn = el('button', { class: 'btn' }, 'Undo');
+    // Undo, redo and pause are the controls reached for mid-thought, so they
+    // read as shapes rather than words and keep their width off the row.
+    this.undoBtn = el('button', { class: 'btn icon', title: 'Undo', 'aria-label': 'Undo' }, undoArrow());
     this.undoBtn.addEventListener('click', () => this.doUndo());
-    this.redoBtn = el('button', { class: 'btn' }, 'Redo');
+    this.redoBtn = el('button', { class: 'btn icon', title: 'Redo', 'aria-label': 'Redo' }, undoArrow(true));
     this.redoBtn.addEventListener('click', () => this.doRedo());
     const hint = el('button', { class: 'btn aid' }, 'Hint');
     hint.addEventListener('click', () => this.showHint());
-    const pause = el('button', { class: 'btn' }, 'Pause');
+    const pause = el('button', { class: 'btn icon', title: 'Pause', 'aria-label': 'Pause' }, pauseBars());
     pause.addEventListener('click', () => this.pause());
     const restart = el('button', { class: 'btn' }, 'Restart');
     restart.addEventListener('click', () => confirmDialog(this.restartPrompt(), () => this.doRestart()));
@@ -533,9 +601,8 @@ export class PlayScreen {
    */
   private renderScoreBar(): void {
     const game = this.game;
-    const level = game.puzzle.difficulty;
     const target = game.target().total;
-    const tiers = SCORE_TROPHY_TARGETS[level];
+    const tiers = trophyBands(game.target());
     const score = game.score;
     /*
      * The bar runs a fifth past the furthest mark on it. Full-hand bonuses are
@@ -544,13 +611,13 @@ export class PlayScreen {
      * the overshoot it is. The headroom leaves somewhere for it to go.
      */
     const HEADROOM = 1.2;
-    const max = Math.max(Math.round(Math.max(target, tiers[4]) * HEADROOM), score, 1);
+    const max = Math.max(Math.round(target * HEADROOM), score, 1);
     const width = (value: number): number => Math.min(100, (value / max) * 100);
     // Marks are drawn on the bar, so one sitting exactly at the far end would
     // be half outside it and clipped away. Hold them just inside.
     const place = (value: number): number => Math.min(99.4, width(value));
 
-    const tier = trophyForScore(level, score);
+    const tier = trophyForTarget(game.target(), score);
     this.scoreBox.textContent = String(score);
     this.scoreFill.className = `scorebar-fill tier-${tier}`;
     this.scoreFill.style.width = `${width(score).toFixed(2)}%`;
@@ -558,26 +625,40 @@ export class PlayScreen {
     this.scoreMarks.replaceChildren();
     for (let t = 1; t <= 4; t++) {
       const value = tiers[t as 1 | 2 | 3 | 4];
-      this.scoreMarks.append(
-        el('span', {
-          class: `scorebar-mark tier-${t}${score >= value ? ' passed' : ''}${value > target ? ' beyond' : ''}`,
+      const won = score >= value;
+      const mark = el(
+        'span',
+        {
+          class: `scorebar-mark tier-${t}${won ? ' passed' : ''}`,
           style: `left:${place(value).toFixed(2)}%`,
-          title:
-            `${TROPHY_NAMES[t]} at ${value}` +
-            (value > target ? ' — beyond what this deal pays in flushes' : ''),
-        }),
+          title: `${TROPHY_NAMES[t]} at ${value}${won ? ' — earned' : ''}`,
+        },
+        trophyIcon(),
       );
+      this.scoreMarks.append(mark);
     }
     this.scoreMarks.append(
       el('span', {
         class: `scorebar-mark deal-target${score >= target ? ' passed' : ''}`,
         style: `left:${place(target).toFixed(2)}%`,
-        title: `This deal is worth ${target} played perfectly`,
+        title: `A standard deal of this grid is worth ${target}`,
       }),
     );
-
-    this.scoreTargetLabel.textContent = String(target);
-    this.scoreTargetLabel.style.left = `${place(target).toFixed(2)}%`;
+    // The Superstar is never posted in advance — it only appears once the
+    // score has gone past what the grid was calculated to be worth.
+    if (tier === SUPERSTAR_TIER) {
+      this.scoreMarks.append(
+        el(
+          'span',
+          {
+            class: 'scorebar-mark tier-5 passed superstar',
+            style: `left:${place(target).toFixed(2)}%`,
+            title: `Superstar — past the ${target} this grid was worth`,
+          },
+          trophyIcon(),
+        ),
+      );
+    }
 
     // What to aim at next: the closest trophy still ahead, else the target.
     const ahead: { name: string; value: number }[] = [];
@@ -585,13 +666,16 @@ export class PlayScreen {
       const value = tiers[t as 1 | 2 | 3 | 4];
       if (score < value) ahead.push({ name: TROPHY_NAMES[t], value });
     }
-    if (score < target) ahead.push({ name: 'deal target', value: target });
+    if (score < target) ahead.push({ name: 'the deal target', value: target });
     ahead.sort((a, b) => a.value - b.value);
     const next = ahead[0];
     this.scoreCaption.textContent =
-      next === undefined
-        ? `${TROPHY_NAMES[tier]} · every mark on this deal passed`
-        : `${tier === 0 ? 'Unranked' : TROPHY_NAMES[tier]} · ${next.value - score} to ${next.name}`;
+      tier === SUPERSTAR_TIER
+        ? `Superstar · ${score - target} past what this grid was worth`
+        : (next === undefined
+            ? `${TROPHY_NAMES[tier]} · every mark on this deal passed`
+            : `${tier === 0 ? 'Unranked' : TROPHY_NAMES[tier]} · ${next.value - score} to ${next.name}`) +
+          ` · deal worth ${target}`;
 
     const bar = this.scoreTrack.firstElementChild;
     bar?.setAttribute('aria-valuemax', String(max));
@@ -820,14 +904,16 @@ export class PlayScreen {
     const key = formatPuzzleId(game.id);
     const previous = this.ctx.history[key]?.bestScore;
     const firstCompletion = !this.ctx.history[key]?.finished;
+    const earned = trophyForTarget(game.target(), game.score);
     markFinished(this.ctx.history, game.id, game.score, Date.now(), {
       elapsedMs: game.elapsedMs,
       flushes: game.flushUnits.size,
-      aids: game.usedBankedAid ? 1 : 0,
+      aids: game.bankedJokers + game.bonusSlots,
+      trophy: earned,
     });
     saveHistory(this.ctx.history);
     clearSaveFor(game.id);
-    const trophy = awardScoreTrophy(game.puzzle.difficulty, game.score);
+    const trophy = awardScoreTrophy(game.puzzle.difficulty, earned);
     const reward =
       firstCompletion
         ? earnWinReward({

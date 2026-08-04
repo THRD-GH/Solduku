@@ -1,7 +1,7 @@
 import { LEVEL_CONFIG, LEVELS, LEVEL_LOGIC, LEVEL_NAMES } from '../core/classic.ts';
 import type { Level } from '../core/types.ts';
 import { formatPuzzleId } from '../core/types.ts';
-import { POOL_SIZE, allSaves, freeSlotBank, jokerBank, levelHighScores, levelStats, progression, trophyForScore, TROPHY_NAMES, unplayedNumbers } from '../game/storage.ts';
+import { POOL_SIZE, allSaves, freeSlotBank, jokerBank, levelHighScores, levelStats, levelTrophy, progression, trophyForRecord, TROPHY_NAMES, unplayedNumbers } from '../game/storage.ts';
 import { buildStamp, el } from './dom.ts';
 import { clear } from './dom.ts';
 import { openOverlay, toast } from './overlay.ts';
@@ -65,7 +65,11 @@ export function buildMenu(ctx: AppContext): HTMLElement {
   screen.append(resumeActions);
 
   const list = el('div', { class: 'levels' });
-  for (const level of LEVELS) list.append(buildLevelRow(ctx, level, progress.mastery[level] ?? 0));
+  for (const level of LEVELS) {
+    // The stored mastery only rises, but a fresh device with imported history
+    // has none — so take whichever of the two is better informed.
+    list.append(buildLevelRow(ctx, level, Math.max(progress.mastery[level] ?? 0, levelTrophy(ctx.history, level))));
+  }
   screen.append(list);
 
   screen.append(
@@ -86,7 +90,7 @@ function buildHomeHighScores(ctx: AppContext): HTMLElement {
     const entry = levelHighScores(ctx.history, level, 1)[0];
     if (!entry) continue;
     hasScore = true;
-    const trophy = trophyForScore(level, entry.score);
+    const trophy = trophyForRecord(level, ctx.history[formatPuzzleId(entry.id)]);
     const replay = el(
       'button',
       { class: 'home-score', 'aria-label': `Replay your best ${LEVEL_NAMES[level]} deal, ${formatPuzzleId(entry.id)}, score ${entry.score}` },
