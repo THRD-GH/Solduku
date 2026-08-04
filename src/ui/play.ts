@@ -1,6 +1,14 @@
 import { CELLS, colOf, rowOf } from '../core/grid.ts';
 import { LEVEL_NAMES } from '../core/classic.ts';
-import { SUIT_GLYPHS, formatPuzzleId, isJoker, isRedSuit } from '../core/types.ts';
+import {
+  JOKER_SUIT,
+  SUIT_GLYPHS,
+  formatPuzzleId,
+  isJoker,
+  isRedSuit,
+  jokerVariant,
+  rankLabel,
+} from '../core/types.ts';
 import type { Card } from '../core/types.ts';
 import type { Game, PlaceResult, Zone } from '../game/state.ts';
 import {
@@ -27,9 +35,15 @@ import type { Step } from '../core/techniques.ts';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
-/** A three-pronged jester cap with bells — the joker's face, drawn rather
- *  than shipped as an image so it recolours with the theme. */
-function jesterCap(): SVGSVGElement {
+/**
+ * The jesters. A deal's jokers are interchangeable in every rule the game
+ * has, so they are told apart by face and colour instead — four of them, so
+ * "the star one" is a thing a player can say about a card in their hand.
+ *
+ * Drawn rather than shipped as images, so each recolours with its variant and
+ * with the theme.
+ */
+function jesterCap(variant = 0): SVGSVGElement {
   const svg = document.createElementNS(SVG_NS, 'svg');
   svg.setAttribute('viewBox', '0 0 24 24');
   svg.setAttribute('class', 'jhat');
@@ -41,24 +55,68 @@ function jesterCap(): SVGSVGElement {
     svg.append(part);
     return part;
   };
+  const bell = (cx: number, cy: number, r = 1.55): void => {
+    add('circle', { cx: String(cx), cy: String(cy), r: String(r), fill: 'currentColor' });
+    add('circle', { cx: String(cx), cy: String(cy), r: String(r * 0.27), fill: 'var(--card-bg)' });
+  };
+  const eyes = (y: number): void => {
+    add('circle', { cx: '10.35', cy: String(y), r: '0.7', fill: 'currentColor' });
+    add('circle', { cx: '13.65', cy: String(y), r: '0.7', fill: 'currentColor' });
+  };
 
-  add('path', {
-    d: 'M4 13.7 C3.8 10.4 3.3 7.8 4.5 5.7 C6.4 7.7 8.2 9.2 9.8 10.5 C10.2 7.1 11.2 4.3 12 2.8 C12.8 4.3 13.8 7.1 14.2 10.5 C15.8 9.2 17.6 7.7 19.5 5.7 C20.7 7.8 20.2 10.4 20 13.7 Z',
-    fill: 'currentColor',
-  });
-  add('path', { d: 'M5.5 14.2 H18.5 L16.6 17.1 L14.6 15.8 L12 18.1 L9.4 15.8 L7.4 17.1 Z', fill: 'currentColor' });
-  add('ellipse', { cx: '12', cy: '15.2', rx: '4.5', ry: '5.1', fill: 'var(--card-bg)', stroke: 'currentColor', 'stroke-width': '1.25' });
-  add('circle', { cx: '10.35', cy: '14.5', r: '0.7', fill: 'currentColor' });
-  add('circle', { cx: '13.65', cy: '14.5', r: '0.7', fill: 'currentColor' });
-  add('path', { d: 'M10 17 C11.15 18 12.85 18 14 17', fill: 'none', stroke: 'currentColor', 'stroke-width': '1.05', 'stroke-linecap': 'round' });
-  add('path', { d: 'M10.5 20.2 L12 18.1 L13.5 20.2', fill: 'none', stroke: 'currentColor', 'stroke-width': '1.35', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' });
-  for (const [cx, cy] of [
-    [4.4, 5.6],
-    [12, 2.8],
-    [19.6, 5.6],
-  ] as const) {
-    add('circle', { cx: String(cx), cy: String(cy), r: '1.55', fill: 'currentColor' });
-    add('circle', { cx: String(cx), cy: String(cy), r: '0.42', fill: 'var(--card-bg)' });
+  switch (jokerVariant({ digit: 0, suit: JOKER_SUIT, variant })) {
+    case 1: {
+      // Two-horned cap, worn over a wide grin.
+      add('path', {
+        d: 'M4.2 12.6 C3.4 9 4.2 6 5.6 4 C7.8 6.4 9.8 8.4 12 9.6 C14.2 8.4 16.2 6.4 18.4 4 C19.8 6 20.6 9 19.8 12.6 Z',
+        fill: 'currentColor',
+      });
+      add('rect', { x: '4.4', y: '12.4', width: '15.2', height: '2.5', rx: '1.2', fill: 'currentColor' });
+      add('ellipse', { cx: '12', cy: '17.6', rx: '5', ry: '4.6', fill: 'var(--card-bg)', stroke: 'currentColor', 'stroke-width': '1.25' });
+      eyes(16.6);
+      add('path', { d: 'M8.9 18.6 C10.4 21 13.6 21 15.1 18.6 Z', fill: 'currentColor' });
+      bell(5.2, 3.6, 1.5);
+      bell(18.8, 3.6, 1.5);
+      break;
+    }
+    case 2: {
+      // Harlequin: a lozenge of diamonds behind a masked face.
+      add('path', { d: 'M12 1.6 20.4 12 12 22.4 3.6 12Z', fill: 'currentColor', opacity: '0.28' });
+      add('path', { d: 'M12 4.4 17.6 12 12 19.6 6.4 12Z', fill: 'none', stroke: 'currentColor', 'stroke-width': '1.1' });
+      add('circle', { cx: '12', cy: '12', r: '4.4', fill: 'var(--card-bg)', stroke: 'currentColor', 'stroke-width': '1.25' });
+      add('path', { d: 'M8.1 10.4 C9.6 9.2 14.4 9.2 15.9 10.4 L15.9 12 C14.4 13 9.6 13 8.1 12 Z', fill: 'currentColor' });
+      add('path', { d: 'M9.8 14.4 C10.9 15.4 13.1 15.4 14.2 14.4', fill: 'none', stroke: 'currentColor', 'stroke-width': '1.05', 'stroke-linecap': 'round' });
+      break;
+    }
+    case 3: {
+      // A star-faced joker: the wild card at its most literal.
+      const points: string[] = [];
+      for (let k = 0; k < 10; k++) {
+        const radius = k % 2 === 0 ? 10.2 : 4.3;
+        const angle = ((k * 36 - 90) * Math.PI) / 180;
+        points.push(`${(12 + radius * Math.cos(angle)).toFixed(2)},${(12 + radius * Math.sin(angle)).toFixed(2)}`);
+      }
+      add('polygon', { points: points.join(' '), fill: 'currentColor' });
+      add('circle', { cx: '12', cy: '12.2', r: '3.9', fill: 'var(--card-bg)' });
+      eyes(11.4);
+      add('path', { d: 'M9.9 13.4 C11 14.6 13 14.6 14.1 13.4', fill: 'none', stroke: 'currentColor', 'stroke-width': '1.05', 'stroke-linecap': 'round' });
+      break;
+    }
+    default: {
+      // The three-pronged cap, tongue out.
+      add('path', {
+        d: 'M4 13.7 C3.8 10.4 3.3 7.8 4.5 5.7 C6.4 7.7 8.2 9.2 9.8 10.5 C10.2 7.1 11.2 4.3 12 2.8 C12.8 4.3 13.8 7.1 14.2 10.5 C15.8 9.2 17.6 7.7 19.5 5.7 C20.7 7.8 20.2 10.4 20 13.7 Z',
+        fill: 'currentColor',
+      });
+      add('path', { d: 'M5.5 14.2 H18.5 L16.6 17.1 L14.6 15.8 L12 18.1 L9.4 15.8 L7.4 17.1 Z', fill: 'currentColor' });
+      add('ellipse', { cx: '12', cy: '15.2', rx: '4.5', ry: '5.1', fill: 'var(--card-bg)', stroke: 'currentColor', 'stroke-width': '1.25' });
+      eyes(14.5);
+      add('path', { d: 'M10 17 C11.15 18 12.85 18 14 17', fill: 'none', stroke: 'currentColor', 'stroke-width': '1.05', 'stroke-linecap': 'round' });
+      add('path', { d: 'M10.5 20.2 L12 18.1 L13.5 20.2', fill: 'none', stroke: 'currentColor', 'stroke-width': '1.35', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' });
+      bell(4.4, 5.6);
+      bell(12, 2.8);
+      bell(19.6, 5.6);
+    }
   }
   return svg;
 }
@@ -158,10 +216,16 @@ function trophyIcon(): SVGSVGElement {
  */
 function cardFace(card: Card, role = 0): (HTMLElement | SVGSVGElement)[] {
   if (isJoker(card)) {
-    return [jesterCap(), el('span', { class: 'st' }, role === 0 ? 'JOKER' : String(role))];
+    return [
+      jesterCap(jokerVariant(card)),
+      el('span', { class: 'st' }, role === 0 ? 'JOKER' : rankLabel(role)),
+    ];
   }
-  const rank = String(card.digit);
+  const rank = rankLabel(card.digit);
   const suit = SUIT_GLYPHS[card.suit];
+  // The ace drops its middle number for a single large pip, the way an ace is
+  // drawn in any deck. The corners still carry the rank, so it stays readable
+  // fanned out in the hand.
   return [
     el('span', { class: 'corner tl' }, rank, el('small', {}, suit)),
     el('span', { class: 'card-rank' }, rank),
@@ -171,8 +235,8 @@ function cardFace(card: Card, role = 0): (HTMLElement | SVGSVGElement)[] {
 }
 
 function suitClass(card: Card): string {
-  if (isJoker(card)) return 'joker';
-  return `suit-${card.suit} ${isRedSuit(card.suit) ? 'red' : 'black'}`;
+  if (isJoker(card)) return `joker jv-${jokerVariant(card)}`;
+  return `suit-${card.suit} ${isRedSuit(card.suit) ? 'red' : 'black'}${card.digit === 1 ? ' ace' : ''}`;
 }
 
 const unitName = (unit: number): string => (unit < 9 ? 'Row' : unit < 18 ? 'Column' : 'Box');
@@ -502,7 +566,8 @@ export class PlayScreen {
 
       cell.replaceChildren();
       if (game.isGiven(i)) {
-        cell.append(el('span', { class: 'big given' }, String(game.puzzle.givens[i])));
+        // Givens wear the ace too, so a 1 reads the same printed as dealt.
+        cell.append(el('span', { class: 'big given' }, rankLabel(game.puzzle.givens[i])));
       } else {
         const card = game.cardAt(i);
         if (card !== null) {
@@ -759,6 +824,11 @@ export class PlayScreen {
       this.selectDigit(Number(e.key));
       return;
     }
+    // The ace answers to its letter as well as to its digit.
+    if (e.key === 'a' || e.key === 'A') {
+      this.selectDigit(1);
+      return;
+    }
     if (e.key === 'j' || e.key === '0') {
       this.selectDigit(0);
       return;
@@ -849,7 +919,7 @@ export class PlayScreen {
         const done = el('button', { class: 'btn primary wide' }, 'Got it');
         done.addEventListener('click', close);
         const focus = step.solved
-          ? `${cellName(step.solved.cell)} must be ${step.solved.digit}.`
+          ? `${cellName(step.solved.cell)} must be ${rankLabel(step.solved.digit)}.`
           : `Focus on ${step.cells.slice(0, 4).map(cellName).join(', ')}${step.cells.length > 4 ? '...' : ''}.`;
         return el(
           'div',

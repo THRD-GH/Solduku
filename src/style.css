@@ -3324,3 +3324,59 @@ body {
 .axis-tick.passed {
   opacity: 0.55;
 }
+
+/* ---------- the ace, and the four jesters ---------- */
+
+/* An ace is a single large pip, as in any deck: the middle number goes and
+   the suit takes the space it leaves. The corners still carry the A. */
+.pcard.ace .card-rank,
+.scard.ace .card-rank {
+  display: none;
+}
+
+.pcard.ace .card-suit {
+  font-size: 30px;
+  line-height: 1;
+}
+
+.scard.ace .card-suit {
+  font-size: 0.72em;
+  line-height: 1;
+}
+
+/*
+ * Four jesters, four colours. A joker is interchangeable with every other
+ * joker by the rules, so colour and face are the only way a player can point
+ * at one and mean that one.
+ */
+:root {
+  --joker-0: #b98bff;
+  --joker-1: #43d9b0;
+  --joker-2: #ff7fbf;
+  --joker-3: #ffb638;
+}
+
+:root[data-theme='day'] {
+  --joker-0: #6b2fc9;
+  --joker-1: #0a7f66;
+  --joker-2: #bd2a72;
+  --joker-3: #a8600a;
+}
+
+:root[data-theme='contrast'] {
+  --joker-0: #cc79a7;
+  --joker-1: #009e73;
+  --joker-2: #ffffff;
+  --joker-3: #e69f00;
+}
+
+/*
+ * Setting both joker variables on the card itself lets every rule already
+ * written against them — the jester's colour, the card's wash, its border and
+ * its inner ring — retint per variant without being touched. Two jokers side
+ * by side in the hand are then told apart before either is read.
+ */
+.joker.jv-0 { --joker: var(--joker-0); --joker-tint: var(--joker-0); }
+.joker.jv-1 { --joker: var(--joker-1); --joker-tint: var(--joker-1); }
+.joker.jv-2 { --joker: var(--joker-2); --joker-tint: var(--joker-2); }
+.joker.jv-3 { --joker: var(--joker-3); --joker-tint: var(--joker-3); }

@@ -530,8 +530,16 @@ export class Game {
 
   drawJoker(): boolean {
     if (!this.canDrawJoker()) return false;
+    /*
+     * Each joker of a deal wears a different jester. The face is taken from
+     * the joker's place in the pile rather than from a counter, so undoing a
+     * draw and taking it again brings back the same one — and a joker banked
+     * mid-deal raises the pile and the total together, leaving the faces
+     * already dealt where they were.
+     */
+    const variant = this.initialJokers + this.bankedJokers - this.jokerPile;
     this.jokerPile--;
-    const joker = { digit: 0, suit: JOKER_SUIT };
+    const joker = { digit: 0, suit: JOKER_SUIT, variant };
     this.hand.push(joker);
     this.attachReplacements([joker], 'joker');
     this.selected = null;

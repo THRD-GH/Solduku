@@ -17,14 +17,28 @@ export interface Cage {
 export interface Card {
   digit: number;
   suit: number;
+  /** Which jester a joker wears. Absent on every numbered card. */
+  variant?: number;
 }
 
 export const JOKER_SUIT = -1;
 export const isJoker = (card: Card): boolean => card.digit === 0;
 
+/** How many different jesters a deal can deal out before repeating one. */
+export const JOKER_VARIANTS = 4;
+
+export const jokerVariant = (card: Card): number =>
+  ((card.variant ?? 0) % JOKER_VARIANTS + JOKER_VARIANTS) % JOKER_VARIANTS;
+
 export const SUIT_GLYPHS = ['♠', '♥', '♦', '♣'];
 /** Hearts and diamonds are the red suits, as on a real deck. */
 export const isRedSuit = (suit: number): boolean => suit === 1 || suit === 2;
+
+/**
+ * What a digit is called on a card. The 1 is the ace, as in any deck — it is
+ * still the digit 1 to every rule in the game, and only ever wears the letter.
+ */
+export const rankLabel = (digit: number): string => (digit === 1 ? 'A' : String(digit));
 
 export interface Puzzle {
   /** 81 digits, 0 where the deck has to fill the cell. */
