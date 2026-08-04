@@ -90,6 +90,22 @@ function undoArrow(mirrored = false): SVGSVGElement {
   return svg;
 }
 
+/** A house: the way back to the menu, in the shape everyone reads as home. */
+function homeIcon(): SVGSVGElement {
+  const svg = document.createElementNS(SVG_NS, 'svg');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('class', 'gicon');
+  svg.setAttribute('aria-hidden', 'true');
+  const roof = document.createElementNS(SVG_NS, 'path');
+  roof.setAttribute('d', 'M12 3 1.8 11.4l1.6 1.9L12 6l8.6 7.3 1.6-1.9Z');
+  roof.setAttribute('fill', 'currentColor');
+  const walls = document.createElementNS(SVG_NS, 'path');
+  walls.setAttribute('d', 'M5.2 12.6 12 7l6.8 5.6V21h-4.4v-5.4H9.6V21H5.2Z');
+  walls.setAttribute('fill', 'currentColor');
+  svg.append(roof, walls);
+  return svg;
+}
+
 /** Two upright bars — pause, in the shape every player already knows. */
 function pauseBars(): SVGSVGElement {
   const svg = document.createElementNS(SVG_NS, 'svg');
@@ -369,7 +385,11 @@ export class PlayScreen {
     restart.addEventListener('click', () => confirmDialog(this.restartPrompt(), () => this.doRestart()));
     const help = el('button', { class: 'btn' }, 'Help');
     help.addEventListener('click', () => ctx.openHelp());
-    const home = el('button', { class: 'btn' }, 'Home');
+    const home = el(
+      'button',
+      { class: 'homebtn', title: 'Home', 'aria-label': 'Home' },
+      homeIcon(),
+    );
     home.addEventListener('click', () =>
       confirmDialog(
         'Return to the home screen? This deal will be saved so you can resume it later.',
@@ -380,6 +400,8 @@ export class PlayScreen {
         'Go home',
       ),
     );
+    // Leaving belongs with the deal's identity, not among the play controls.
+    titlebar.append(home);
 
     /*
      * The grid dying is the one thing that ends a deal without ending the
@@ -404,7 +426,9 @@ export class PlayScreen {
       this.doomBar,
       this.board,
       tray,
-      el('div', { class: 'actions game-actions' }, this.undoBtn, this.redoBtn, hint, pause, restart, help, home),
+      // The three icon controls lead the row, so the hand always knows where
+      // to find them; the named buttons take the width that is left.
+      el('div', { class: 'actions game-actions' }, this.undoBtn, this.redoBtn, pause, hint, restart, help),
     );
 
     this.tickId = window.setInterval(() => this.tick(), 1000);

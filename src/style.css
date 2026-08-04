@@ -740,8 +740,32 @@ body {
 }
 
 /* The always-visible way out of a deal belongs alongside its core controls. */
+/*
+ * Undo, redo and pause are shapes, not words, so they need no more room than
+ * the shape itself. Laid out in a row rather than the shared grid: the three
+ * icons keep a fixed narrow width at the left, and the named buttons share
+ * out whatever is left and wrap when the screen is small.
+ */
 .game-actions {
-  grid-template-columns: repeat(4, 1fr);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.game-actions .btn.icon {
+  flex: 0 0 auto;
+  width: 38px;
+  padding: 6px 0;
+}
+
+.game-actions .btn:not(.icon) {
+  /* Narrow enough that the named buttons still share one row beside the
+     three icons on a phone, rather than dropping one onto a line of its own. */
+  flex: 1 1 62px;
+  min-width: 0;
+  font-size: 13.5px;
+  padding-left: 2px;
+  padding-right: 2px;
 }
 
 .cell.hinted {
@@ -1912,7 +1936,9 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+/* The clock and the way out share the right-hand end of the bar. */
 .titlebar .timerbox {
+  margin-left: auto;
   color: var(--dim);
   font-size: 13px;
   font-variant-numeric: tabular-nums;
@@ -3227,15 +3253,36 @@ body {
 
 /* Icon-only controls: undo, redo and pause. */
 .btn.icon .gicon {
-  width: 20px;
-  height: 20px;
+  width: 17px;
+  height: 17px;
   display: block;
   margin: 0 auto;
   color: currentColor;
 }
 
-.game-actions .btn.icon {
-  padding: 8px 4px;
+/* Home sits at the far end of the title bar, where leaving usually lives. */
+.titlebar .homebtn {
+  flex: 0 0 auto;
+  width: 30px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  color: var(--text);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.titlebar .homebtn:active {
+  background: var(--accent-dim);
+}
+
+.titlebar .homebtn .gicon {
+  width: 17px;
+  height: 17px;
 }
 
 /* Superstar violet, distinct from all four graded tiers. */
