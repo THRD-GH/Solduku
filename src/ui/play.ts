@@ -14,6 +14,8 @@ import {
   saveHistory,
   spendFreeSlot,
   spendJokers,
+  SCORE_TROPHY_TARGETS,
+  trophyForScore,
   TROPHY_NAMES,
   winsToNextFreeSlot,
 } from '../game/storage.ts';
@@ -137,6 +139,11 @@ export class PlayScreen {
   private deckPile: HTMLButtonElement;
   private deckCount: HTMLElement;
   private scoreBox: HTMLElement;
+  private scoreTrack: HTMLButtonElement;
+  private scoreFill: HTMLElement;
+  private scoreMarks: HTMLElement;
+  private scoreCaption: HTMLElement;
+  private scoreTargetLabel: HTMLElement;
   private timerBox: HTMLElement;
   private undoBtn: HTMLButtonElement;
   private redoBtn: HTMLButtonElement;
@@ -152,13 +159,6 @@ export class PlayScreen {
     menuBtn.append(el('i'), el('i'), el('i'));
     menuBtn.addEventListener('click', () => openMainMenu(ctx));
 
-    this.scoreBox = el('button', {
-      class: 'scorebox',
-      title: 'Scoring and flush prospects',
-      'aria-label': 'Scoring and flush prospects',
-    });
-    this.scoreBox.textContent = '0';
-    this.scoreBox.addEventListener('click', () => ctx.openScoring());
     this.timerBox = el('span', { class: 'timerbox' }, '00:00');
     this.idBox = el('span', { class: 'id' }, formatPuzzleId(game.id));
     const titlebar = el(
@@ -167,9 +167,39 @@ export class PlayScreen {
       menuBtn,
       this.idBox,
       el('span', { class: 'lvl' }, LEVEL_NAMES[game.puzzle.difficulty]),
-      this.scoreBox,
       this.timerBox,
     );
+
+    /*
+     * The score reads as a journey rather than a number: how far along this
+     * particular deal you are, where the four trophies sit, and where the deal
+     * runs out of points altogether. All of that is known before a card is
+     * played, because the givens have one solution — so the only thing left to
+     * find out is how much of it you collect.
+     */
+    this.scoreBox = el('span', { class: 'scorebar-value' }, '0');
+    this.scoreFill = el('span', { class: 'scorebar-fill' });
+    this.scoreMarks = el('span', { class: 'scorebar-marks' });
+    this.scoreCaption = el('span', { class: 'scorebar-caption' });
+    this.scoreTargetLabel = el('span', { class: 'scorebar-target' });
+    this.scoreTrack = el(
+      'button',
+      {
+        class: 'scoretrack',
+        title: 'Scoring and flush prospects',
+        'aria-label': 'Score progress. Opens scoring and flush prospects.',
+      },
+      el(
+        'span',
+        { class: 'scorebar', role: 'progressbar', 'aria-valuemin': 0 },
+        this.scoreFill,
+        this.scoreMarks,
+        this.scoreBox,
+        this.scoreTargetLabel,
+      ),
+      this.scoreCaption,
+    );
+    this.scoreTrack.addEventListener('click', () => ctx.openScoring());
 
     this.board = el('div', { class: 'board sol', role: 'grid', 'aria-label': 'Solduku board' });
     for (let r = 0; r < 9; r++) {
@@ -299,6 +329,7 @@ export class PlayScreen {
       { class: 'screen play' },
       el('p', { class: 'build-stamp top' }, buildStamp()),
       titlebar,
+      this.scoreTrack,
       this.doomBar,
       this.board,
       tray,
@@ -480,7 +511,7 @@ export class PlayScreen {
       freeSlots === 0
         ? `No bonus free slots · ${winsToNextFreeSlot()} wins to the next`
         : `Add one bonus free slot · ${freeSlots} available`;
-    this.scoreBox.textContent = String(game.score);
+    this.renderScoreBar();
     // The doomed marker follows the setting, so purists can play blind.
     const doomed = !game.completable && this.ctx.settings.warnDeadGrid;
     this.idBox.classList.toggle('doomed', doomed);
@@ -489,6 +520,86 @@ export class PlayScreen {
     this.timerBox.textContent = this.ctx.settings.showTimer ? formatTime(game.elapsedMs) : '';
     this.undoBtn.disabled = !game.canUndo();
     this.redoBtn.disabled = !game.canRedo();
+  }
+
+  /**
+   * The score bar: how far this deal has been taken, with the four trophies
+   * and the deal's own ceiling marked along the way.
+   *
+   * The bar is scaled to whichever is furthest out — the deal's target or the
+   * Diamond trophy — so every marker it draws is actually on it. A trophy
+   * sitting beyond the target is worth seeing: it says this deal cannot pay
+   * for that trophy by flushes alone.
+   */
+  private renderScoreBar(): void {
+    const game = this.game;
+    const level = game.puzzle.difficulty;
+    const target = game.target().total;
+    const tiers = SCORE_TROPHY_TARGETS[level];
+    const score = game.score;
+    /*
+     * The bar runs a fifth past the furthest mark on it. Full-hand bonuses are
+     * not in the target, so a good run finishes above it — and a bar that
+     * stops dead at the target would show that as "finished" rather than as
+     * the overshoot it is. The headroom leaves somewhere for it to go.
+     */
+    const HEADROOM = 1.2;
+    const max = Math.max(Math.round(Math.max(target, tiers[4]) * HEADROOM), score, 1);
+    const width = (value: number): number => Math.min(100, (value / max) * 100);
+    // Marks are drawn on the bar, so one sitting exactly at the far end would
+    // be half outside it and clipped away. Hold them just inside.
+    const place = (value: number): number => Math.min(99.4, width(value));
+
+    const tier = trophyForScore(level, score);
+    this.scoreBox.textContent = String(score);
+    this.scoreFill.className = `scorebar-fill tier-${tier}`;
+    this.scoreFill.style.width = `${width(score).toFixed(2)}%`;
+
+    this.scoreMarks.replaceChildren();
+    for (let t = 1; t <= 4; t++) {
+      const value = tiers[t as 1 | 2 | 3 | 4];
+      this.scoreMarks.append(
+        el('span', {
+          class: `scorebar-mark tier-${t}${score >= value ? ' passed' : ''}${value > target ? ' beyond' : ''}`,
+          style: `left:${place(value).toFixed(2)}%`,
+          title:
+            `${TROPHY_NAMES[t]} at ${value}` +
+            (value > target ? ' — beyond what this deal pays in flushes' : ''),
+        }),
+      );
+    }
+    this.scoreMarks.append(
+      el('span', {
+        class: `scorebar-mark deal-target${score >= target ? ' passed' : ''}`,
+        style: `left:${place(target).toFixed(2)}%`,
+        title: `This deal is worth ${target} played perfectly`,
+      }),
+    );
+
+    this.scoreTargetLabel.textContent = String(target);
+    this.scoreTargetLabel.style.left = `${place(target).toFixed(2)}%`;
+
+    // What to aim at next: the closest trophy still ahead, else the target.
+    const ahead: { name: string; value: number }[] = [];
+    for (let t = 1; t <= 4; t++) {
+      const value = tiers[t as 1 | 2 | 3 | 4];
+      if (score < value) ahead.push({ name: TROPHY_NAMES[t], value });
+    }
+    if (score < target) ahead.push({ name: 'deal target', value: target });
+    ahead.sort((a, b) => a.value - b.value);
+    const next = ahead[0];
+    this.scoreCaption.textContent =
+      next === undefined
+        ? `${TROPHY_NAMES[tier]} · every mark on this deal passed`
+        : `${tier === 0 ? 'Unranked' : TROPHY_NAMES[tier]} · ${next.value - score} to ${next.name}`;
+
+    const bar = this.scoreTrack.firstElementChild;
+    bar?.setAttribute('aria-valuemax', String(max));
+    bar?.setAttribute('aria-valuenow', String(score));
+    bar?.setAttribute(
+      'aria-valuetext',
+      `${score} of a possible ${target}. ${next === undefined ? 'All marks passed.' : `${next.value - score} to ${next.name}.`}`,
+    );
   }
 
   handleKey(e: KeyboardEvent): void {

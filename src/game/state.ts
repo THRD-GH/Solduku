@@ -11,6 +11,8 @@ import {
   rowOf,
 } from '../core/grid.ts';
 import { CLASSIC_CONS, LEVEL_CONFIG } from '../core/classic.ts';
+import { FLUSH_MIN_CARDS, POINTS, QUEST_BONUS, RISK_BONUS, dealTarget } from '../core/scoring.ts';
+import type { DealTarget } from '../core/scoring.ts';
 import { propagatedCandidates } from '../core/solver.ts';
 import { nextStep } from '../core/techniques.ts';
 import type { Step } from '../core/techniques.ts';
@@ -21,11 +23,8 @@ import type { SavedGame } from './storage.ts';
 /** Where a card is sitting before it is played. */
 export type Zone = { kind: 'hand'; index: number } | { kind: 'free'; index: number };
 
-/** Points for playing a card, finishing a unit, and per card of a flush. */
-export const POINTS = { place: 1, unit: 10, flushPerCard: 12 } as const;
-
-/** The least played cards a completed unit needs before a flush counts. */
-const FLUSH_MIN_CARDS = 3;
+export { POINTS };
+export type { DealTarget };
 
 /** What one placement was worth, for the toast and the win screen. */
 export interface UnitScore {
@@ -183,6 +182,24 @@ export class Game {
 
   get handSize(): number {
     return LEVEL_CONFIG[this.puzzle.difficulty].hand;
+  }
+
+  /**
+   * The best score this deal can be played to.
+   *
+   * Counted against every joker the deal will ever hold rather than the pile
+   * as it stands, so the figure a player is aiming at does not shift under
+   * them each time one is drawn. Adding a banked joker does move it — that
+   * genuinely changes what the deal can reach.
+   */
+  private targetCache: { jokers: number; target: DealTarget } | null = null;
+
+  target(): DealTarget {
+    const jokers = this.initialJokers + this.bankedJokers;
+    if (this.targetCache === null || this.targetCache.jokers !== jokers) {
+      this.targetCache = { jokers, target: dealTarget(this.puzzle, jokers, this.questSuit) };
+    }
+    return this.targetCache.target;
   }
 
   get deckLeft(): number {
@@ -666,9 +683,11 @@ export class Game {
     this.placed[cell] = card;
 
     const units = this.settleUnits(cell);
-    const riskBonus = fullHandRisk && units.length > 0 ? 5 : 0;
+    const riskBonus = fullHandRisk && units.length > 0 ? RISK_BONUS : 0;
     const questBonus =
-      !this.questComplete && units.some((u) => u.flush && u.suit === this.questSuit) ? 25 : 0;
+      !this.questComplete && units.some((u) => u.flush && u.suit === this.questSuit)
+        ? QUEST_BONUS
+        : 0;
     if (questBonus > 0) this.questComplete = true;
     if (riskBonus > 0) this.riskBonuses++;
     const gained = POINTS.place + units.reduce((t, u) => t + u.points, 0) + riskBonus + questBonus;

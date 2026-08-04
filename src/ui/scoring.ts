@@ -16,8 +16,45 @@ export function openScoring(game: Game | null): void {
     const done = el('button', { class: 'btn wide' }, 'Close');
     done.addEventListener('click', close);
 
-    const parts: (HTMLElement | string)[] = [
-      el('h2', {}, 'Scoring'),
+    const parts: (HTMLElement | string)[] = [el('h2', {}, 'Scoring')];
+
+    /*
+     * What the bar at the top of the board is measuring against. The figure is
+     * not a guess: the givens have one solution, so every cell's digit is
+     * settled before a card is dealt and the only question is which flushes
+     * the suits allow.
+     */
+    if (game !== null) {
+      const target = game.target();
+      const flushes = target.flushed
+        .map((f) => `${unitName(f.unit)} in ${SUIT_GLYPHS[f.suit]}`)
+        .join(', ');
+      parts.push(
+        el('p', { class: 'summary' }, `This deal is worth ${target.total} played perfectly:`),
+        el(
+          'ul',
+          {},
+          el('li', {}, `${target.cards} for the cards — one point each, and every cell takes one.`),
+          el('li', {}, `${target.units} for the 27 rows, columns and boxes.`),
+          el(
+            'li',
+            {},
+            target.flush === 0
+              ? 'No flush is possible with the suits this deal holds.'
+              : `${target.flush} for the ${target.flushed.length} flush${target.flushed.length === 1 ? '' : 'es'} the suits allow: ${flushes}.`,
+          ),
+          target.quest === 0 ? '' : el('li', {}, `${target.quest} for the flush quest.`),
+        ),
+        el(
+          'p',
+          { class: 'intro-note' },
+          'Full-hand bonuses are not counted here — they depend on when you draw, so a very good run finishes a little above the target.',
+        ),
+        el('h3', {}, 'The rules'),
+      );
+    }
+
+    parts.push(
       el(
         'ul',
         {},
@@ -64,7 +101,7 @@ export function openScoring(game: Game | null): void {
           'The placement points take care of themselves; the game is won and lost on which units complete pure. Two live flushes beat five dead certainties.',
         ),
       ),
-    ];
+    );
 
     if (game !== null) {
       const prospects = game.flushProspects().slice(0, 6);
