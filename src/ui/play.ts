@@ -211,6 +211,7 @@ export class PlayScreen {
   private scoreTrack: HTMLButtonElement;
   private scoreFill: HTMLElement;
   private scoreMarks: HTMLElement;
+  private scoreAxis: HTMLElement;
   private scoreCaption: HTMLElement;
   private timerBox: HTMLElement;
   private undoBtn: HTMLButtonElement;
@@ -248,6 +249,7 @@ export class PlayScreen {
     this.scoreBox = el('span', { class: 'scorebar-value' }, '0');
     this.scoreFill = el('span', { class: 'scorebar-fill' });
     this.scoreMarks = el('span', { class: 'scorebar-marks' });
+    this.scoreAxis = el('span', { class: 'scorebar-axis' });
     this.scoreCaption = el('span', { class: 'scorebar-caption' });
     this.scoreTrack = el(
       'button',
@@ -263,6 +265,7 @@ export class PlayScreen {
         this.scoreMarks,
         this.scoreBox,
       ),
+      this.scoreAxis,
       this.scoreCaption,
     );
     this.scoreTrack.addEventListener('click', () => ctx.openScoring());
@@ -656,6 +659,34 @@ export class PlayScreen {
             title: `Superstar — past the ${target} this grid was worth`,
           },
           trophyIcon(),
+        ),
+      );
+    }
+
+    /*
+     * The score each line costs, written under it. Labels are dropped rather
+     * than allowed to collide: on a narrow screen two bands can land close
+     * enough that their numbers would overlap, and half a number is worse
+     * than none. The one dropped is always the later of the pair, so the
+     * cheapest tiers — the ones still being aimed at — keep their labels.
+     */
+    this.scoreAxis.replaceChildren();
+    const MIN_LABEL_GAP = 7;
+    let lastLabel = -Infinity;
+    for (let t = 1; t <= 4; t++) {
+      const value = tiers[t as 1 | 2 | 3 | 4];
+      const at = place(value);
+      if (at - lastLabel < MIN_LABEL_GAP) continue;
+      lastLabel = at;
+      this.scoreAxis.append(
+        el(
+          'span',
+          {
+            class: `axis-tick tier-${t}${score >= value ? ' passed' : ''}`,
+            // Kept off the ends so the first and last are not half cut off.
+            style: `left:${Math.min(96, Math.max(4, at)).toFixed(2)}%`,
+          },
+          String(value),
         ),
       );
     }

@@ -3038,18 +3038,20 @@ body {
 
 /* ---------- score track: progress, trophies, and the deal ceiling ---------- */
 
+/* Saturated on purpose: at 18px a cup is read by its colour before its
+   shape, so bronze, silver, gold and diamond have to be unmistakable. */
 :root {
-  --tier-1: #cf9350;
-  --tier-2: #c3ccd6;
-  --tier-3: #edc14b;
-  --tier-4: #74dbef;
+  --tier-1: #f2913c;
+  --tier-2: #e3ecf6;
+  --tier-3: #ffd21f;
+  --tier-4: #3fe0ff;
 }
 
 :root[data-theme='day'] {
-  --tier-1: #9c5f21;
-  --tier-2: #67727e;
-  --tier-3: #a87c10;
-  --tier-4: #12798f;
+  --tier-1: #c25708;
+  --tier-2: #46525f;
+  --tier-3: #d19400;
+  --tier-4: #0089ad;
 }
 
 :root[data-theme='contrast'] {
@@ -3110,22 +3112,31 @@ body {
   width: 2px;
   margin-left: -1px;
   background: var(--line-strong);
-  opacity: 0.85;
 }
 
-.scorebar-mark.tier-1 { background: var(--tier-1); }
-.scorebar-mark.tier-2 { background: var(--tier-2); }
-.scorebar-mark.tier-3 { background: var(--tier-3); }
-.scorebar-mark.tier-4 { background: var(--tier-4); }
+/*
+ * The tier colour is carried on the mark itself, so the line and the cup
+ * inside it are the same colour without repeating it. Opacity is deliberately
+ * never used here: it would cascade into the trophy and grey out the one
+ * thing that has to stay legible — the line is softened through its own
+ * alpha instead.
+ */
+.scorebar-mark.tier-1 { color: var(--tier-1); }
+.scorebar-mark.tier-2 { color: var(--tier-2); }
+.scorebar-mark.tier-3 { color: var(--tier-3); }
+.scorebar-mark.tier-4 { color: var(--tier-4); }
 
-/* A trophy this deal cannot reach on flushes alone is drawn as a ghost. */
-.scorebar-mark.beyond {
-  opacity: 0.35;
+.scorebar-mark.tier-1,
+.scorebar-mark.tier-2,
+.scorebar-mark.tier-3,
+.scorebar-mark.tier-4 {
+  width: 1px;
+  background: color-mix(in srgb, currentColor 50%, transparent);
 }
 
 .scorebar-mark.passed {
-  opacity: 1;
-  width: 3px;
+  width: 2px;
+  background: currentColor;
 }
 
 /* The deal ceiling is a different kind of mark, so it gets a different shape. */
@@ -3171,29 +3182,30 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* Trophy markers ride the bar at the score each one costs. */
+/*
+ * Trophy markers stand just left of the line they belong to, rather than
+ * astride it: a cup centred on its own threshold hides the very mark it is
+ * labelling, and the fill creeping up underneath swallowed it entirely.
+ */
 .scorebar-mark .ticon {
   position: absolute;
-  left: 50%;
+  right: 3px;
   top: 50%;
-  width: 16px;
-  height: 16px;
-  transform: translate(-50%, -50%);
-  filter: grayscale(1);
-  opacity: 0.4;
+  width: 18px;
+  height: 18px;
+  transform: translateY(-50%);
+  /* Never greyed out — an unearned trophy still has to say which one it is. */
+  opacity: 0.72;
+  filter: drop-shadow(0 0 1.5px var(--shadow));
 }
 
 .scorebar-mark.passed .ticon {
-  filter: none;
   opacity: 1;
-  /* Earned trophies sit above the fill rather than in it. */
-  filter: drop-shadow(0 1px 1px var(--shadow));
+  /* Earned cups lift off the fill with a halo in their own colour. */
+  filter: drop-shadow(0 0 3px currentColor) drop-shadow(0 1px 1px var(--shadow));
 }
 
-.scorebar-mark.tier-1 .ticon { color: var(--tier-1); }
-.scorebar-mark.tier-2 .ticon { color: var(--tier-2); }
-.scorebar-mark.tier-3 .ticon { color: var(--tier-3); }
-.scorebar-mark.tier-4 .ticon { color: var(--tier-4); }
+/* The cup inherits the tier colour set on the mark. */
 
 /* The Superstar is only ever drawn once it has been earned. */
 .scorebar-mark.tier-5 {
@@ -3231,24 +3243,37 @@ body {
 :root[data-theme='day'] { --tier-5: #7a2ecc; }
 :root[data-theme='contrast'] { --tier-5: #cc79a7; }
 
-/* The tick line behind a trophy would show through the cup, so mute it. */
-.scorebar-mark.tier-1,
-.scorebar-mark.tier-2,
-.scorebar-mark.tier-3,
-.scorebar-mark.tier-4 {
-  width: 1px;
-  opacity: 0.55;
-}
-
-.scorebar-mark.passed.tier-1,
-.scorebar-mark.passed.tier-2,
-.scorebar-mark.passed.tier-3,
-.scorebar-mark.passed.tier-4 {
-  width: 1px;
-  opacity: 0.8;
-}
-
 /* Room for the cups without crowding the score or the caption. */
 .scorebar {
   height: 30px;
+}
+
+/* The score each trophy costs, written under its line. */
+.scorebar-axis {
+  position: relative;
+  display: block;
+  height: 13px;
+  margin-top: 2px;
+}
+
+.axis-tick {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  font-size: 9.5px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  color: color-mix(in srgb, currentColor 75%, var(--dim));
+}
+
+.axis-tick.tier-1 { color: var(--tier-1); }
+.axis-tick.tier-2 { color: var(--tier-2); }
+.axis-tick.tier-3 { color: var(--tier-3); }
+.axis-tick.tier-4 { color: var(--tier-4); }
+
+/* A band already banked stops asking to be read. */
+.axis-tick.passed {
+  opacity: 0.55;
 }
