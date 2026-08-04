@@ -106,6 +106,9 @@ export interface SavedGame {
   riskBonuses?: number;
   usedBankedAid?: boolean;
   rescuedWithJoker?: boolean;
+  /** Bank tokens spent into this deal, so a restart can keep them. */
+  bankedJokers?: number;
+  bonusSlots?: number;
   /** Cards drawn so far — the deck itself lives in the puzzle. */
   deckPos: number;
   score: number;

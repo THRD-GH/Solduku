@@ -265,13 +265,7 @@ export class PlayScreen {
     const pause = el('button', { class: 'btn' }, 'Pause');
     pause.addEventListener('click', () => this.pause());
     const restart = el('button', { class: 'btn' }, 'Restart');
-    restart.addEventListener('click', () =>
-      confirmDialog('Restart this deal from the top? Same givens, same deck order.', () => {
-        this.game.restart();
-        this.render();
-        this.save();
-      }),
-    );
+    restart.addEventListener('click', () => confirmDialog(this.restartPrompt(), () => this.doRestart()));
     const help = el('button', { class: 'btn' }, 'Help');
     help.addEventListener('click', () => ctx.openHelp());
     const home = el('button', { class: 'btn' }, 'Home');
@@ -558,8 +552,31 @@ export class PlayScreen {
     this.afterMove(null);
   }
 
+  /** Restarting keeps any bank tokens spent here, so say so before it happens. */
+  private restartPrompt(): string {
+    const kept: string[] = [];
+    if (this.game.bankedJokers > 0) {
+      kept.push(`${this.game.bankedJokers} banked joker${this.game.bankedJokers === 1 ? '' : 's'}`);
+    }
+    if (this.game.bonusSlots > 0) {
+      kept.push(`${this.game.bonusSlots} bonus free slot${this.game.bonusSlots === 1 ? '' : 's'}`);
+    }
+    const base = 'Restart this deal from the top? Same givens, same deck order.';
+    return kept.length === 0 ? base : `${base} You keep the ${kept.join(' and ')} already spent here.`;
+  }
+
+  private doRestart(): void {
+    this.game.restart();
+    this.render();
+    this.save();
+  }
+
   private doUndo(): void {
-    if (!this.game.undo()) return;
+    if (!this.game.undo()) {
+      toast('That move cannot be taken back - the card drawn to replace it has been played');
+      this.render();
+      return;
+    }
     this.render();
     this.save();
     if (this.game.lastUndoReturnedReplacement) toast('Undo: replacement card returned to its pile');
@@ -788,9 +805,7 @@ export class PlayScreen {
       const restart = el('button', { class: 'btn' }, 'Restart');
       restart.addEventListener('click', () => {
         close();
-        this.game.restart();
-        this.render();
-        this.save();
+        this.doRestart();
       });
       return el(
         'div',
@@ -828,9 +843,7 @@ export class PlayScreen {
       const restart = el('button', { class: 'btn' }, 'Restart');
       restart.addEventListener('click', () => {
         close();
-        this.game.restart();
-        this.render();
-        this.save();
+        this.doRestart();
       });
       return el(
         'div',
@@ -856,9 +869,7 @@ export class PlayScreen {
       const restart = el('button', { class: 'btn' }, 'Restart');
       restart.addEventListener('click', () => {
         close();
-        this.game.restart();
-        this.render();
-        this.save();
+        this.doRestart();
       });
       const menu = el('button', { class: 'btn' }, 'Menu');
       menu.addEventListener('click', () => {

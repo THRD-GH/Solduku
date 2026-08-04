@@ -107,6 +107,10 @@ export class Game {
   riskBonuses = 0;
   usedBankedAid = false;
   rescuedWithJoker = false;
+  /** Bank tokens already spent into this deal. They are paid for, so a
+   *  restart keeps them rather than quietly pocketing them. */
+  bankedJokers = 0;
+  bonusSlots = 0;
   /** Cards drawn so far — deck[0..deckPos) are gone. */
   deckPos = 0;
   score = 0;
@@ -146,6 +150,8 @@ export class Game {
       this.riskBonuses = restore.riskBonuses ?? 0;
       this.usedBankedAid = restore.usedBankedAid ?? false;
       this.rescuedWithJoker = restore.rescuedWithJoker ?? false;
+      this.bankedJokers = restore.bankedJokers ?? 0;
+      this.bonusSlots = restore.bonusSlots ?? 0;
       this.placed = restore.placed.map((c) => (c ? { ...c } : null));
       this.hand = restore.hand.map((c) => ({ ...c }));
       this.free = restore.free.map((c) => (c ? { ...c } : null));
@@ -478,6 +484,7 @@ export class Game {
   addBankedJokerToPile(): boolean {
     if (!this.canDrawBankedJoker()) return false;
     this.jokerPile++;
+    this.bankedJokers++;
     this.usedBankedAid = true;
     if (!this.completable) this.rescuedWithJoker = true;
     this.selected = null;
@@ -517,6 +524,7 @@ export class Game {
   addBonusFreeSlot(): boolean {
     if (this.completed) return false;
     this.free.push(null);
+    this.bonusSlots++;
     this.usedBankedAid = true;
     this.dead = !this.anyMove();
     this.redoStack = [];
@@ -551,18 +559,34 @@ export class Game {
     return a.digit === b.digit && a.suit === b.suit;
   }
 
-  /** Return the last replacement card to the pile it came from. */
+  /**
+   * Where the replacement card is sitting now.
+   *
+   * Not necessarily the end of the hand: undoing a later move splices its
+   * card back in at the index it was played from, which can push the
+   * replacement out of the last slot. Any card of the same rank and suit will
+   * do — two cards with the same face are the same card for every purpose the
+   * game has — so the search takes the newest match.
+   */
+  private handIndexOfCard(wanted: Card): number {
+    for (let i = this.hand.length - 1; i >= 0; i--) {
+      if (this.sameCard(this.hand[i], wanted)) return i;
+    }
+    return -1;
+  }
+
+  /** Return the replacement card to the pile it came from. */
   private returnReplacement(replacement: NonNullable<Move['replacement']>): boolean {
-    if (!this.canReturnReplacement(replacement)) return false;
-    this.hand.pop();
+    const at = this.handIndexOfCard(replacement.card);
+    if (at < 0) return false;
+    this.hand.splice(at, 1);
     if (replacement.source === 'deck') this.deckPos--;
     else this.jokerPile++;
     return true;
   }
 
   private canReturnReplacement(replacement: NonNullable<Move['replacement']>): boolean {
-    const card = this.hand[this.hand.length - 1];
-    return card !== undefined && this.sameCard(card, replacement.card);
+    return this.handIndexOfCard(replacement.card) >= 0;
   }
 
   /** Compatibility for parked games saved before replacement draws were tracked. */
@@ -706,8 +730,27 @@ export class Game {
     return true;
   }
 
+  /**
+   * Whether this move can actually be taken back. A move that gave up a hand
+   * slot can only be undone while the card drawn into that slot is still in
+   * the hand to hand back — otherwise returning the played card would put the
+   * hand over its limit.
+   */
+  private canUndoMove(move: Move): boolean {
+    if (move.replacement) return this.canReturnReplacement(move.replacement);
+    const legacyNeedsRoom =
+      move.from.kind === 'hand' && this.hand.length - move.drawn >= this.handSize;
+    return !legacyNeedsRoom || this.canMakeHandRoom(move.drawn);
+  }
+
+  /**
+   * Undo is offered only when it will work. The button asking to be pressed
+   * and then doing nothing is worse than no button, and this is the control
+   * players reach for when a deal has gone wrong.
+   */
   canUndo(): boolean {
-    return this.history.length > 0;
+    const move = this.history[this.history.length - 1];
+    return move !== undefined && this.canUndoMove(move);
   }
 
   canRedo(): boolean {
@@ -783,15 +826,12 @@ export class Game {
     const move = this.history.pop();
     if (!move) return false;
 
-    const legacyNeedsRoom =
-      !move.replacement && move.from.kind === 'hand' && this.hand.length - move.drawn >= this.handSize;
-    if (
-      (move.replacement && !this.canReturnReplacement(move.replacement)) ||
-      (legacyNeedsRoom && !this.canMakeHandRoom(move.drawn))
-    ) {
+    if (!this.canUndoMove(move)) {
       this.history.push(move);
       return false;
     }
+    const legacyNeedsRoom =
+      !move.replacement && move.from.kind === 'hand' && this.hand.length - move.drawn >= this.handSize;
     if (move.replacement) {
       this.returnReplacement(move.replacement);
       this.lastUndoReturnedReplacement = true;
@@ -886,16 +926,22 @@ export class Game {
     return true;
   }
 
-  /** Back to the fresh deal: same givens, same deck order. */
+  /**
+   * Back to the fresh deal: same givens, same deck order.
+   *
+   * Bank tokens already spent into this deal survive it. They were paid for
+   * out of a bank that a restart does not refund, so resetting to the level
+   * default would charge the player for the restart.
+   */
   restart(): void {
     const cfg = LEVEL_CONFIG[this.puzzle.difficulty];
     this.placed = new Array<Card | null>(CELLS).fill(null);
     this.hand = [];
-    this.free = new Array<Card | null>(cfg.free).fill(null);
-    this.jokerPile = this.initialJokers;
+    this.free = new Array<Card | null>(cfg.free + this.bonusSlots).fill(null);
+    this.jokerPile = this.initialJokers + this.bankedJokers;
     this.questComplete = false;
     this.riskBonuses = 0;
-    this.usedBankedAid = false;
+    this.usedBankedAid = this.bankedJokers > 0 || this.bonusSlots > 0;
     this.rescuedWithJoker = false;
     this.deckPos = 0;
     this.score = 0;
@@ -923,6 +969,8 @@ export class Game {
       riskBonuses: this.riskBonuses,
       usedBankedAid: this.usedBankedAid,
       rescuedWithJoker: this.rescuedWithJoker,
+      bankedJokers: this.bankedJokers,
+      bonusSlots: this.bonusSlots,
       deckPos: this.deckPos,
       score: this.score,
       scoredUnits: [...this.scoredUnits],
