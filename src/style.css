@@ -2603,6 +2603,30 @@ body {
   border-color: var(--accent);
 }
 
+/* When the hand has run dry, make the next move unmistakable. The whole pile
+   glows rather than only the small card back, so it reads as a tappable action. */
+.deckpile.draw-needed {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 13%, var(--panel-2));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent), 0 0 16px color-mix(in srgb, var(--accent) 46%, transparent);
+  animation: draw-pile-pulse 1.15s ease-in-out infinite;
+}
+
+.deckpile.draw-needed .deck-back {
+  border-color: var(--accent);
+}
+
+@keyframes draw-pile-pulse {
+  50% {
+    transform: translateY(-2px) scale(1.04);
+    box-shadow: 0 0 0 5px color-mix(in srgb, var(--accent) 12%, transparent), 0 0 22px color-mix(in srgb, var(--accent) 65%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .deckpile.draw-needed { animation: none; }
+}
+
 /* Landscape: board beside the tray, as the killer layout does with controls. */
 @media (orientation: landscape) and (max-height: 560px) {
   .screen.play {

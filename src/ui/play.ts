@@ -445,8 +445,13 @@ export class PlayScreen {
     this.deckCount.textContent = String(game.deckLeft);
     this.deckPile.disabled = !game.canDraw();
     const drawCount = Math.min(game.handSize - game.hand.length, game.deckLeft);
+    const handNeedsCards = game.hand.length === 0 && game.canDraw();
+    this.deckPile.classList.toggle('draw-needed', handNeedsCards);
+    this.deckPile.setAttribute('aria-label', handNeedsCards ? 'Draw cards - hand empty' : 'Draw cards');
     this.deckPile.title = game.canDraw()
-      ? `Draw ${drawCount} card${drawCount === 1 ? '' : 's'}`
+      ? handNeedsCards
+        ? `Your hand is empty - draw ${drawCount} card${drawCount === 1 ? '' : 's'}`
+        : `Draw ${drawCount} card${drawCount === 1 ? '' : 's'}`
       : game.deckLeft === 0
         ? 'Deck empty'
         : 'Hand full';
