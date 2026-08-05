@@ -14,7 +14,26 @@ const KEY = {
  *  bounds the picker list so "unplayed deals" stays a meaningful set. */
 export const POOL_SIZE = 500;
 
+/** Time of day at the table, or the accessible set which overrides both. */
 export type Theme = 'night' | 'day' | 'contrast';
+
+/**
+ * Which table you are playing on. Kept separate from the time of day so each
+ * one keeps its own daylight and lamplight, rather than doubling the list.
+ */
+export type Palette = 'newsprint' | 'baize' | 'claret' | 'midnight';
+
+export const PALETTES: { value: Palette; label: string; note: string }[] = [
+  { value: 'newsprint', label: 'Newsprint', note: 'A printed puzzle page' },
+  { value: 'baize', label: 'Baize', note: 'Green cloth and brass' },
+  { value: 'claret', label: 'Claret', note: 'Burgundy and gold' },
+  { value: 'midnight', label: 'Midnight', note: 'Cool cloth, warm accent' },
+];
+
+/** The value the stylesheet keys off: one attribute, so no theme outranks
+ *  another and the accessible set can always have the last word. */
+export const themeAttribute = (theme: Theme, palette: Palette): string =>
+  theme === 'contrast' ? 'contrast' : `${palette}-${theme}`;
 export type JokerAid = 'off' | 'assist' | 'generous';
 export type CardBack = 'classic' | 'royal' | 'aurora';
 export type { TrophyTier };
@@ -47,8 +66,10 @@ export function legacyTrophyForScore(level: Level, score: number): TrophyTier {
 }
 
 export interface Settings {
-  /** Which palette to draw. 'contrast' is the accessible high-contrast one. */
+  /** Time of day. 'contrast' is the accessible high-contrast set. */
   theme: Theme;
+  /** Which table the game is played on. */
+  palette: Palette;
   /** Tint every cell the selected card could legally go — the training wheels. */
   highlightLegal: boolean;
   /** Mark legal moves that have no winning continuation. */
@@ -69,6 +90,7 @@ export interface Settings {
 
 export const DEFAULT_SETTINGS: Settings = {
   theme: 'night',
+  palette: 'newsprint',
   highlightLegal: true,
   showSafeMoves: false,
   jokerAid: 'off',

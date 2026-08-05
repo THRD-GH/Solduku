@@ -19,7 +19,8 @@ import {
   spendJokers,
   unplayedNumbers,
 } from './game/storage.ts';
-import type { History, SavedGame, Settings, Theme } from './game/storage.ts';
+import type { History, SavedGame, Settings } from './game/storage.ts';
+import { themeAttribute } from './game/storage.ts';
 import { clear, el } from './ui/dom.ts';
 import { buildMenu } from './ui/menu.ts';
 import { openHelp } from './ui/help.ts';
@@ -31,12 +32,15 @@ import { openSettings } from './ui/settings.ts';
 import { openProgress } from './ui/progress.ts';
 import type { AppContext } from './ui/app-context.ts';
 
-/** The browser chrome colour that matches each board, for the PWA title bar. */
-const THEME_COLOUR: Record<Theme, string> = {
-  night: '#17243c',
-  day: '#e8f1fb',
-  contrast: '#000000',
-};
+/**
+ * The browser chrome colour, for the PWA title bar. Read from the page once
+ * the theme is on the root element, so it can never drift from the stylesheet
+ * the way a hand-copied hex does.
+ */
+function chromeColour(): string {
+  const bg = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
+  return bg === '' ? '#14161a' : bg;
+}
 
 class App implements AppContext {
   settings: Settings = loadSettings();
@@ -96,9 +100,9 @@ class App implements AppContext {
   }
 
   applyTheme(): void {
-    document.documentElement.dataset.theme = this.settings.theme;
+    document.documentElement.dataset.theme = themeAttribute(this.settings.theme, this.settings.palette);
     document.documentElement.dataset.cardBack = this.settings.cardBack;
-    setThemeColour(THEME_COLOUR[this.settings.theme]);
+    setThemeColour(chromeColour());
   }
 
   /** Only worth holding while a deal is open. */

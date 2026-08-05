@@ -1,4 +1,4 @@
-import { exportBackup, importBackup, jokerBank, saveSettings, unlockedCardBacks } from '../game/storage.ts';
+import { exportBackup, importBackup, jokerBank, PALETTES, saveSettings, unlockedCardBacks } from '../game/storage.ts';
 import type { CardBack, JokerAid, Theme } from '../game/storage.ts';
 import { el } from './dom.ts';
 import { confirmDialog, openOverlay, toast } from './overlay.ts';
@@ -50,8 +50,44 @@ export function openSettings(ctx: AppContext): void {
       el(
         'div',
         { class: 'setting stacked' },
-        el('span', { class: 'label' }, 'Theme'),
+        el('span', { class: 'label' }, 'Light', el('small', {}, 'Every table has its own daylight and lamplight.')),
         tabs,
+      ),
+    );
+
+    // Which table to play on. Each keeps its own day and night, so this is a
+    // separate choice from the one above rather than eight themes in a list.
+    const tableTabs = el('div', { class: 'tabs tables' });
+    const drawTables = (): void => {
+      tableTabs.replaceChildren();
+      for (const palette of PALETTES) {
+        const chosen = ctx.settings.palette === palette.value;
+        const b = el(
+          'button',
+          {
+            class: `btn table-swatch ${chosen ? 'on' : ''}`.trim(),
+            title: palette.note,
+            'aria-pressed': chosen,
+          },
+          el('span', { class: `table-chip ${palette.value}` }),
+          palette.label,
+        );
+        b.addEventListener('click', () => {
+          ctx.settings.palette = palette.value;
+          saveSettings(ctx.settings);
+          ctx.applyTheme();
+          drawTables();
+        });
+        tableTabs.append(b);
+      }
+    };
+    drawTables();
+    rows.push(
+      el(
+        'div',
+        { class: 'setting stacked' },
+        el('span', { class: 'label' }, 'Table'),
+        tableTabs,
       ),
     );
 

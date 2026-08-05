@@ -1,11 +1,161 @@
-/* Night is the default, matching the reference app's dark scheme; the Theme
-   setting swaps in the day or high-contrast palette. */
+﻿/*
+ * Four tables, each with its own daylight and lamplight, plus the
+ * high-contrast set further down.
+ *
+ * Palette and time of day are one attribute rather than two, because a
+ * `[data-palette][data-theme]` pair outranks `[data-theme='contrast']` and the
+ * accessible set would quietly lose. One attribute keeps every theme at the
+ * same weight, so the last one written wins and contrast can simply come last.
+ *
+ * Only what actually distinguishes a table is set per theme. Everything that
+ * can be derived â€” the selection tints, the control surfaces, the lamp glow â€”
+ * is written once here in terms of those, so a new table is about twenty
+ * lines rather than fifty.
+ */
 :root {
-  /* A card table under a low lamp: baize, brass and warm paper, rather than
-     the blue-and-cyan every dashboard is built from. */
+  /* Newsprint after dark, and the fallback if no theme has been chosen. */
+  --bg: #14161a;
+  --panel: #1b1f24;
+  --panel-2: #252a31;
+  --line: #3a424b;
+  --line-strong: #7e8792;
+  --cell: #1c2026;
+  --text: #eceae4;
+  --dim: #a3aab3;
+  --accent: #d9a441;
+  --accent-dim: #6a5324;
+  --sum: #d9a441;
+  --felt-ink: #eceae4;
+  --legal: #d9a441;
+  --error: #c9564a;
+  --card-bg: #f7f5ef;
+  --card-line: #a9a396;
+  --shadow: rgba(0, 0, 0, 0.5);
+  --panel-rgb: 27 31 36;
+  --panel-2-rgb: 37 42 49;
+
+  /* ---- derived: these follow whichever table is in use ---- */
+
+  /* One pool of lamplight over the cloth, not a gradient mesh. */
+  --bg-glow-a: color-mix(in srgb, var(--accent) 9%, transparent);
+  --bg-glow-b: color-mix(in srgb, var(--cell) 55%, transparent);
+  /* Selection, matching digits and the hint spotlight are all the accent at
+     different strengths, so they can never fight the cloth they sit on. */
+  --sel: color-mix(in srgb, var(--accent) 26%, transparent);
+  --same: color-mix(in srgb, var(--accent) 15%, transparent);
+  --spotlit: color-mix(in srgb, var(--accent) 30%, transparent);
+  --single: var(--accent);
+  --single-bg: color-mix(in srgb, var(--accent) 14%, transparent);
+  --peer: color-mix(in srgb, var(--text) 6%, transparent);
+  --clash: var(--error);
+  --cage: var(--line-strong);
+  --mark: var(--accent);
+  --tallied: color-mix(in srgb, var(--accent) 26%, transparent);
+  --cage-peer: color-mix(in srgb, var(--sum) 9%, transparent);
+  --inc-rgb: 18 131 63;
+  --exc-rgb: 179 34 34;
+
+  /*
+   * Controls are one family, not five. Colour-coding every button by job gave
+   * the table a rainbow of chips that meant nothing to a player and read as
+   * decoration applied by rule. They share the panel's own surface, and the
+   * only thing that carries colour is the action being offered.
+   */
+  --k-digit: var(--panel-2);
+  --k-digit-line: var(--line);
+  --k-digit-text: var(--text);
+  --k-edit: var(--panel-2);
+  --k-edit-line: var(--line);
+  --k-edit-text: var(--text);
+  --k-aid: var(--panel-2);
+  --k-aid-line: var(--line);
+  --k-aid-text: var(--text);
+  --k-session: var(--panel-2);
+  --k-session-line: var(--line);
+  --k-session-text: var(--text);
+  --k-tally: var(--panel-2);
+  --k-tally-line: var(--line);
+  --k-tally-text: var(--text);
+}
+
+/* ---------- newsprint: a printed puzzle page ---------- */
+
+:root[data-theme='newsprint-day'] {
+  --bg: #f2efe6;
+  --panel: #fbf9f3;
+  --panel-2: #eeebe1;
+  --line: #cfcabb;
+  --line-strong: #22201c;
+  /* White, like the page it is printed on. The cards carry a defined edge so
+     they still separate from it without the board having to go dark. */
+  --cell: #ffffff;
+  --text: #16150f;
+  --dim: #6b6659;
+  --accent: #b03a2e;
+  --accent-dim: #f0d6d1;
+  --sum: #b0752a;
+  --felt-ink: #16150f;
+  --legal: #b0752a;
+  --error: #a3231a;
+  --card-bg: #fdfbf5;
+  /* On a white page a card cannot separate by brightness, so its edge does
+     the work: a darker rule than the other tables need, plus the shadow every
+     card casts on the cloth. */
+  --card-line: #7d7565;
+  --shadow: rgba(60, 55, 40, 0.28);
+  --panel-rgb: 251 249 243;
+  --panel-2-rgb: 238 235 225;
+}
+
+:root[data-theme='newsprint-night'] {
+  --bg: #14161a;
+  --panel: #1b1f24;
+  --panel-2: #252a31;
+  --line: #3a424b;
+  --line-strong: #7e8792;
+  --cell: #1c2026;
+  --text: #eceae4;
+  --dim: #a3aab3;
+  --accent: #d9a441;
+  --accent-dim: #6a5324;
+  --sum: #d9a441;
+  --felt-ink: #eceae4;
+  --legal: #d9a441;
+  --error: #c9564a;
+  --card-bg: #f7f5ef;
+  --card-line: #a9a396;
+  --shadow: rgba(0, 0, 0, 0.5);
+  --panel-rgb: 27 31 36;
+  --panel-2-rgb: 37 42 49;
+}
+
+/* ---------- baize: green cloth and brass ---------- */
+
+:root[data-theme='baize-day'] {
+  --bg: #ece5d5;
+  --panel: #faf7ee;
+  --panel-2: #e6dfcd;
+  --line: #c4baa4;
+  --line-strong: #56503f;
+  --cell: #7fa78d;
+  --text: #221f18;
+  --dim: #6a6353;
+  --accent: #1c6b46;
+  --accent-dim: #bcdcc7;
+  --sum: #8a5a0a;
+  /* Sage is light, so the printed clues are ink rather than chalk. */
+  --felt-ink: #16261d;
+  --legal: #c2912a;
+  --error: #a3231a;
+  --card-bg: #fffdf6;
+  --card-line: #8d7f66;
+  --shadow: rgba(60, 55, 40, 0.22);
+  --panel-rgb: 250 247 238;
+  --panel-2-rgb: 230 223 205;
+}
+
+:root[data-theme='baize-night'] {
   --bg: #11201a;
-  --bg-glow-a: rgba(214, 166, 82, 0.1);
-  --bg-glow-b: rgba(19, 74, 52, 0.35);
   --panel: #1a2b23;
   --panel-2: #24382e;
   --line: #3d5749;
@@ -15,116 +165,112 @@
   --dim: #a6bbad;
   --accent: #d9a441;
   --accent-dim: #6b5322;
-  --cage: #c0d2e7;
   --sum: #e8c46f;
-  /* Distinctly blue: at grey it read as another grid line. */
-  --mark: #9bdbff;
-  /* A cell down to its last candidate. */
-  --single: #7fe6a8;
-  --single-bg: rgba(127, 230, 168, 0.14);
-  /* Cages counted into the tally — violet, a hue nothing else on the board
-     uses, so it cannot be mistaken for a selection or a matching digit. */
-  --tallied: rgba(190, 130, 255, 0.26);
-  /* Cells a hint is pointing at. */
-  --spotlit: rgba(217, 164, 65, 0.3);
-  /* Printed on the cloth, and the brass that marks a playable square. */
   --felt-ink: #f4efe3;
   --legal: #e8b552;
   --error: #e0574c;
-  --clash: #a8443f;
-  --sel: rgba(217, 164, 65, 0.26);
-  --peer: rgba(255, 255, 255, 0.05);
-  --cage-peer: rgba(240, 198, 116, 0.09);
-  --same: rgba(217, 164, 65, 0.15);
+  --card-bg: #f7f2e4;
+  --card-line: #b6ac93;
   --shadow: rgba(0, 0, 0, 0.5);
-  /* Components for overlays you need to see through, mixed at --glass. */
   --panel-rgb: 26 43 35;
   --panel-2-rgb: 36 56 46;
-  /* Required / ruled-out keys, mixed at --glass like every other surface. */
-  --inc-rgb: 18 131 63;
-  --exc-rgb: 179 34 34;
-
-  /*
-   * Controls are one family, not five. Colour-coding every button by job gave
-   * the table a rainbow of chips that meant nothing to a player and read as
-   * decoration applied by rule. The controls now share the panel's own
-   * surface, and the only thing that carries colour is the one action being
-   * offered — see .btn.primary.
-   */
-  --k-digit: #24382e;
-  --k-digit-line: #3d5749;
-  --k-digit-text: #f3ede0;
-  --k-edit: #24382e;
-  --k-edit-line: #3d5749;
-  --k-edit-text: #f3ede0;
-  --k-aid: #24382e;
-  --k-aid-line: #3d5749;
-  --k-aid-text: #f3ede0;
-  --k-session: #24382e;
-  --k-session-line: #3d5749;
-  --k-session-text: #f3ede0;
-  --k-tally: #24382e;
-  --k-tally-line: #3d5749;
-  --k-tally-text: #f3ede0;
 }
 
-:root[data-theme='day'] {
-  /* The same table by daylight: parchment, ink and a paler baize. */
-  --bg: #ddd6c4;
-  --bg-glow-a: rgba(255, 252, 244, 0.55);
-  --bg-glow-b: rgba(126, 163, 134, 0.18);
-  --panel: #f8f4e9;
-  --panel-2: #ece5d5;
-  --line: #c4baa4;
-  --line-strong: #565040;
-  /* Baize stays well darker than paper in daylight too, or the cards vanish
-     into the table and the printed clues have nothing to sit against. */
-  --cell: #3f6b52;
-  --text: #221f18;
-  --dim: #6a6353;
-  --accent: #175A39;
-  --accent-dim: #bcdcc7;
-  --cage: #8398ae;
-  --sum: #8a5a0a;
-  --mark: #1f6390;
-  --single: #0d7a3d;
-  --single-bg: rgba(13, 122, 61, 0.12);
-  --tallied: rgba(140, 70, 210, 0.18);
-  --spotlit: rgba(28, 107, 70, 0.26);
-  --felt-ink: #f6f2e6;
-  --legal: #f2c14e;
-  --error: #b3261e;
-  --clash: #e59b98;
-  --sel: rgba(28, 107, 70, 0.2);
-  --peer: rgba(0, 0, 0, 0.05);
-  --cage-peer: rgba(138, 90, 0, 0.08);
-  --same: rgba(28, 107, 70, 0.13);
-  --shadow: rgba(60, 55, 40, 0.22);
-  --panel-rgb: 248 244 233;
-  --panel-2-rgb: 236 229 213;
-  --inc-rgb: 15 122 58;
-  --exc-rgb: 176 32 32;
+/* ---------- claret: burgundy cloth and gold ---------- */
 
-  --k-digit: #ece5d5;
-  --k-digit-line: #c4baa4;
-  --k-digit-text: #221f18;
-  --k-edit: #ece5d5;
-  --k-edit-line: #c4baa4;
-  --k-edit-text: #221f18;
-  --k-aid: #ece5d5;
-  --k-aid-line: #c4baa4;
-  --k-aid-text: #221f18;
-  --k-session: #ece5d5;
-  --k-session-line: #c4baa4;
-  --k-session-text: #221f18;
-  --k-tally: #ece5d5;
-  --k-tally-line: #c4baa4;
-  --k-tally-text: #221f18;
+:root[data-theme='claret-day'] {
+  --bg: #f0e7e1;
+  --panel: #fbf4ef;
+  --panel-2: #ebdfd8;
+  --line: #d8c3bb;
+  --line-strong: #5d3038;
+  --cell: #b0757e;
+  --text: #24161a;
+  --dim: #7a6259;
+  --accent: #7a2733;
+  --accent-dim: #e8ccc9;
+  --sum: #9a6a12;
+  --felt-ink: #2b1216;
+  --legal: #9a6a12;
+  --error: #a3231a;
+  --card-bg: #fffaf3;
+  --card-line: #97867c;
+  --shadow: rgba(70, 45, 45, 0.22);
+  --panel-rgb: 251 244 239;
+  --panel-2-rgb: 235 223 216;
+}
+
+:root[data-theme='claret-night'] {
+  --bg: #190f12;
+  --panel: #241419;
+  --panel-2: #331c23;
+  --line: #5a3038;
+  --line-strong: #a3717b;
+  --cell: #4a1f28;
+  --text: #f6e9e2;
+  --dim: #c0a0a6;
+  --accent: #d8b04a;
+  --accent-dim: #6d5423;
+  --sum: #d8b04a;
+  --felt-ink: #f6e9e2;
+  --legal: #d8b04a;
+  --error: #e2685c;
+  --card-bg: #f8f1e6;
+  --card-line: #b3a693;
+  --shadow: rgba(0, 0, 0, 0.55);
+  --panel-rgb: 36 20 25;
+  --panel-2-rgb: 51 28 35;
+}
+
+/* ---------- midnight and sand: cool cloth, warm accent ---------- */
+
+:root[data-theme='midnight-day'] {
+  --bg: #e9e6df;
+  --panel: #f7f5f0;
+  --panel-2: #e4e1d9;
+  --line: #c8c4ba;
+  --line-strong: #4a5560;
+  --cell: #93a1ad;
+  --text: #151b21;
+  --dim: #666e77;
+  --accent: #2f5d7c;
+  --accent-dim: #c3d8e6;
+  --sum: #99691f;
+  --felt-ink: #151b21;
+  --legal: #99691f;
+  --error: #a3231a;
+  --card-bg: #ffffff;
+  --card-line: #8b939c;
+  --shadow: rgba(45, 55, 65, 0.22);
+  --panel-rgb: 247 245 240;
+  --panel-2-rgb: 228 225 217;
+}
+
+:root[data-theme='midnight-night'] {
+  --bg: #12161b;
+  --panel: #1a2028;
+  --panel-2: #242c36;
+  --line: #3d4956;
+  --line-strong: #8b98a6;
+  --cell: #28323d;
+  --text: #eef1f4;
+  --dim: #a2aeba;
+  --accent: #e0a458;
+  --accent-dim: #6d5027;
+  --sum: #e0a458;
+  --felt-ink: #eef1f4;
+  --legal: #e0a458;
+  --error: #e2685c;
+  --card-bg: #f5f2ea;
+  --card-line: #a8a396;
+  --shadow: rgba(0, 0, 0, 0.5);
+  --panel-rgb: 26 32 40;
+  --panel-2-rgb: 36 44 54;
 }
 
 /* High contrast: pure black behind white text, and every hue drawn from the
    Okabe-Ito colour-blind-safe set. Red and green never carry meaning on their
-   own here — vermillion against blue-green is the pair that survives all three
+   own here â€” vermillion against blue-green is the pair that survives all three
    common kinds of colour blindness, and the rules further down add a shape cue
    wherever colour alone was doing the work. */
 :root[data-theme='contrast'] {
@@ -158,7 +304,7 @@
   --shadow: rgba(0, 0, 0, 0.9);
   --panel-rgb: 0 0 0;
   --panel-2-rgb: 16 16 20;
-  /* Blue for required, vermillion for ruled out — not green and red. */
+  /* Blue for required, vermillion for ruled out â€” not green and red. */
   --inc-rgb: 0 114 178;
   --exc-rgb: 213 94 0;
 
@@ -513,7 +659,7 @@ body {
 /*
  * Keypad on the right: the digits go under a right thumb and the action
  * buttons cross to the other side. Left is the default and the layout the
- * reference app uses. One flip covers both orientations — in landscape the
+ * reference app uses. One flip covers both orientations â€” in landscape the
  * controls sit beside the board, so reversing them lands the keypad out at
  * the edge on the same side.
  */
@@ -526,7 +672,7 @@ body {
  * out at the screen edge whichever side the controls are on, so their strips
  * reverse too. `direction` is what flips a grid's columns; each button is put
  * back to ltr so its own text is unaffected. The digits themselves never
- * mirror — 1-9 has one order.
+ * mirror â€” 1-9 has one order.
  */
 :root[data-keypad='right'] .controls .actions {
   direction: rtl;
@@ -1019,7 +1165,7 @@ body {
   text-align: center;
 }
 
-/* Which build is actually running — useful when a phone is holding a cached
+/* Which build is actually running â€” useful when a phone is holding a cached
    service worker. */
 .build-stamp {
   margin: 2px 0 0;
@@ -1042,7 +1188,7 @@ body {
   z-index: 50;
 }
 
-/* Just opened, and still ignoring the tail of the gesture that opened it — see
+/* Just opened, and still ignoring the tail of the gesture that opened it â€” see
    TAP_GUARD_MS. The backdrop keeps taking pointer events, so nothing falls
    through to the game underneath; only the panel's own controls are inert. */
 .overlay.guarded > * {
@@ -1371,7 +1517,7 @@ body {
   background: rgba(120, 210, 140, 0.16);
 }
 
-/* Unfinished games: the row picks the game up, the ✕ resets it. */
+/* Unfinished games: the row picks the game up, the âœ• resets it. */
 .unfinished-row {
   display: flex;
   gap: 5px;
@@ -1428,7 +1574,7 @@ body {
   font-size: 13px;
 }
 
-/* Says what the row wants, on the row itself — resuming is a long press, so
+/* Says what the row wants, on the row itself â€” resuming is a long press, so
    a stray tap while scrolling a long list cannot drop you into a puzzle. */
 .statrow .hold {
   color: var(--dim);
@@ -1508,7 +1654,7 @@ body {
 }
 
 /* Keypad beside the results. Both are fixed height so the panel never
-   changes size as combinations are filtered — otherwise the buttons
+   changes size as combinations are filtered â€” otherwise the buttons
    underneath move while you are aiming at them. */
 /* The keypad column and the combinations sit side by side, both bounded, so
    the panel is a fixed size whatever the list is doing. */
@@ -1519,7 +1665,7 @@ body {
   align-items: stretch;
 }
 
-/* The calculator's digits go on the same side as the ones you play with —
+/* The calculator's digits go on the same side as the ones you play with â€”
    placed explicitly rather than by direction, so the 3x3 pad inside is not
    itself mirrored. */
 :root[data-keypad='right'] .calc-body {
@@ -1615,7 +1761,7 @@ body {
 /*
  * Sat on the bottom edge rather than centred. Two reasons, both about the
  * footer: its buttons stay solid whatever the transparency slider says, so they
- * must not sit over the grid — down here they cover the keypad instead, which
+ * must not sit over the grid â€” down here they cover the keypad instead, which
  * is not in use while the calculator is open. And an anchored bottom keeps the
  * buttons still while the list of combinations above them changes, as well as
  * within reach of a thumb.
@@ -1680,7 +1826,7 @@ body {
 }
 
 /* Each digit is its own inline-block, and text-decoration does not reach into
-   those — so the strike is drawn as a rule across the whole row instead. */
+   those â€” so the strike is drawn as a rule across the whole row instead. */
 .calc .combo.struck {
   opacity: 0.5;
 }
@@ -1732,7 +1878,7 @@ body {
   color: var(--dim);
   font-size: 10.5px;
   margin-top: 2px;
-  /* A long label ("best · 3-N411") must not stretch its column. */
+  /* A long label ("best Â· 3-N411") must not stretch its column. */
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1807,7 +1953,7 @@ body {
 
 /*
  * Landscape on a phone: stacked, the controls end up a screen and a half below
- * the board and cannot be reached. Side by side instead — the board takes the
+ * the board and cannot be reached. Side by side instead â€” the board takes the
  * height it can get and the controls fill the width beside it. The board stays
  * square by being given the same value for width and height, worked out from
  * whichever of the two runs out first.
@@ -1837,7 +1983,7 @@ body {
   }
 
   /* Keypad on the left: the board moves across and the controls take its
-     place, so the keypad ends up at the left edge — the mirror image of the
+     place, so the keypad ends up at the left edge â€” the mirror image of the
      right-hand layout, where the controls reverse instead (.controls above). */
   :root[data-keypad='left'] .screen.play {
     grid-template-columns: minmax(0, 1fr) var(--board);
@@ -1907,8 +2053,8 @@ body {
 /*
  * Cards keep their own paper surface, warm rather than screen-white.
  *
- * The suits follow the four-colour deck a card player already knows — black
- * spade, red heart, blue diamond, green club — so a tiny club and spade never
+ * The suits follow the four-colour deck a card player already knows â€” black
+ * spade, red heart, blue diamond, green club â€” so a tiny club and spade never
  * collapse into the same mark, without inventing a palette nobody has seen on
  * a card before.
  */
@@ -1926,7 +2072,7 @@ body {
   --card-line: #b6ac93;
 }
 
-:root[data-theme='day'] {
+:root[data-theme$='-day'] {
   --suit-spade: #1d2823;
   --suit-heart: #a92a24;
   --suit-diamond: #1a5488;
@@ -2219,7 +2365,7 @@ body {
 /*
  * A four-colour deck: the pips are printed in the suit's own colour, not just
  * washed with it. Diamonds in blue and clubs in green is the convention every
- * card room uses to stop the two black suits collapsing into one another —
+ * card room uses to stop the two black suits collapsing into one another â€”
  * and it means the ink and the card edge finally agree.
  */
 .suit-0 { --suit-tint: var(--suit-spade); --suit-ink: var(--suit-spade); }
@@ -2231,7 +2377,7 @@ body {
  * The card edge carries the suit; the face stays paper.
  *
  * The wash used to be 23% of the suit colour, which on a heart left dark red
- * pips sitting on pink at 3.7:1 — below AA, and worse against dark baize than
+ * pips sitting on pink at 3.7:1 â€” below AA, and worse against dark baize than
  * it ever looked against the old blue. Sorting suits by tint was also doing a
  * job the four-colour pips now do outright, so the wash is only a whisper.
  */
@@ -2519,7 +2665,7 @@ body {
 }
 
 .deck-back::before {
-  content: '♠';
+  content: 'â™ ';
   position: absolute;
   inset: 4px;
   display: grid;
@@ -3120,7 +3266,7 @@ body {
 
 /* ---------- score track: progress, trophies, and the deal ceiling ---------- */
 
-/* Metals rather than highlighter — copper, pewter, gold leaf and a cut stone.
+/* Metals rather than highlighter â€” copper, pewter, gold leaf and a cut stone.
    Still saturated enough that at 18px a cup is read by its colour before its
    shape, but no longer the one neon note on a table of baize and brass. */
 :root {
@@ -3130,7 +3276,7 @@ body {
   --tier-4: #93dcea;
 }
 
-:root[data-theme='day'] {
+:root[data-theme$='-day'] {
   --tier-1: #c25708;
   --tier-2: #46525f;
   --tier-3: #d19400;
@@ -3201,7 +3347,7 @@ body {
  * The tier colour is carried on the mark itself, so the line and the cup
  * inside it are the same colour without repeating it. Opacity is deliberately
  * never used here: it would cascade into the trophy and grey out the one
- * thing that has to stay legible — the line is softened through its own
+ * thing that has to stay legible â€” the line is softened through its own
  * alpha instead.
  */
 .scorebar-mark.tier-1 { color: var(--tier-1); }
@@ -3277,7 +3423,7 @@ body {
   width: 18px;
   height: 18px;
   transform: translateY(-50%);
-  /* Never greyed out — an unearned trophy still has to say which one it is. */
+  /* Never greyed out â€” an unearned trophy still has to say which one it is. */
   opacity: 0.72;
   filter: drop-shadow(0 0 1.5px var(--shadow));
 }
@@ -3347,7 +3493,7 @@ body {
 
 /* Superstar violet, distinct from all four graded tiers. */
 :root { --tier-5: #d08bff; }
-:root[data-theme='day'] { --tier-5: #7a2ecc; }
+:root[data-theme$='-day'] { --tier-5: #7a2ecc; }
 :root[data-theme='contrast'] { --tier-5: #cc79a7; }
 
 /* Room for the cups without crowding the score or the caption. */
@@ -3416,7 +3562,7 @@ body {
   --joker-3: #ffb638;
 }
 
-:root[data-theme='day'] {
+:root[data-theme$='-day'] {
   --joker-0: #6b2fc9;
   --joker-1: #0a7f66;
   --joker-2: #bd2a72;
@@ -3432,8 +3578,8 @@ body {
 
 /*
  * Setting both joker variables on the card itself lets every rule already
- * written against them — the jester's colour, the card's wash, its border and
- * its inner ring — retint per variant without being touched. Two jokers side
+ * written against them â€” the jester's colour, the card's wash, its border and
+ * its inner ring â€” retint per variant without being touched. Two jokers side
  * by side in the hand are then told apart before either is read.
  */
 .joker.jv-0 { --joker: var(--joker-0); --joker-tint: var(--joker-0); }
@@ -3551,7 +3697,7 @@ body {
 
 /*
  * Printed clues are ink on the cloth, not on paper, so they take the felt's
- * own ink rather than the interface text colour — which in daylight is a
+ * own ink rather than the interface text colour â€” which in daylight is a
  * near-black that sat at 3.5:1 on green.
  */
 .cell .big.given {
@@ -3560,7 +3706,7 @@ body {
 }
 
 /* The clock closes the tray, sitting under the piles rather than in the
-   title bar — a thing to glance at between hands. */
+   title bar â€” a thing to glance at between hands. */
 .tray-clock {
   display: flex;
   justify-content: flex-end;
@@ -3576,4 +3722,57 @@ body {
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.5px;
   min-width: 0;
+}
+
+
+/* Each table announces itself with a chip of its own cloth. */
+.tabs.tables {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.btn.table-swatch {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  justify-content: flex-start;
+  font-size: 13px;
+  padding: 7px 9px;
+}
+
+.table-chip {
+  width: 22px;
+  height: 15px;
+  border-radius: 3px;
+  flex: 0 0 auto;
+  border: 1px solid rgba(0, 0, 0, 0.35);
+}
+
+/* The cloth, the paper and the accent of each table, in miniature. */
+.table-chip.newsprint {
+  background: linear-gradient(90deg, #ffffff 0 55%, #b03a2e 55% 100%);
+}
+
+.table-chip.baize {
+  background: linear-gradient(90deg, #1d3a2b 0 55%, #d9a441 55% 100%);
+}
+
+.table-chip.claret {
+  background: linear-gradient(90deg, #4a1f28 0 55%, #d8b04a 55% 100%);
+}
+
+.table-chip.midnight {
+  background: linear-gradient(90deg, #28323d 0 55%, #e0a458 55% 100%);
+}
+
+.btn.table-swatch.on {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* A card lies on the table, so it casts a little shadow there. On the pale
+   tables this is most of what separates it from the cloth. */
+.scard {
+  box-shadow: 0 1px 2px var(--shadow);
 }
