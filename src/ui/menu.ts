@@ -3,6 +3,7 @@ import type { Level } from '../core/types.ts';
 import { formatPuzzleId } from '../core/types.ts';
 import { POOL_SIZE, allSaves, freeSlotBank, jokerBank, levelHighScores, levelStats, levelTrophy, progression, trophyForRecord, TROPHY_NAMES, unplayedNumbers } from '../game/storage.ts';
 import { buildStamp, el } from './dom.ts';
+import { trophyIcon } from './glyphs.ts';
 import { clear } from './dom.ts';
 import { openOverlay, toast } from './overlay.ts';
 import { bindTap } from './pointer.ts';
@@ -153,11 +154,11 @@ function buildLevelRow(ctx: AppContext, level: Level, trophyTier: number): HTMLE
       el(
         'span',
         {
-          class: `trophy ${tier <= trophyTier ? 'earned' : ''}`.trim(),
+          class: `trophy tier-${tier} ${tier <= trophyTier ? 'earned' : ''}`.trim(),
           title: `${TROPHY_NAMES[tier]} trophy${tier <= trophyTier ? ' earned' : ' not yet earned'}`,
           'aria-hidden': 'true',
         },
-        '🏆',
+        trophyIcon(),
       ),
     );
   }

@@ -26,6 +26,7 @@ import {
   winsToNextFreeSlot,
 } from '../game/storage.ts';
 import { SUPERSTAR_TIER, trophyBands, trophyForTarget } from '../core/scoring.ts';
+import { trophyIcon } from './glyphs.ts';
 import { buildStamp, el, formatTime } from './dom.ts';
 import { confirmDialog, openOverlay, toast } from './overlay.ts';
 import { bindTap } from './pointer.ts';
@@ -180,30 +181,6 @@ function pauseBars(): SVGSVGElement {
     bar.setAttribute('fill', 'currentColor');
     svg.append(bar);
   }
-  return svg;
-}
-
-/** A trophy cup, drawn so it can take the colour of the tier it stands for. */
-function trophyIcon(): SVGSVGElement {
-  const svg = document.createElementNS(SVG_NS, 'svg');
-  svg.setAttribute('viewBox', '0 0 24 24');
-  svg.setAttribute('class', 'ticon');
-  svg.setAttribute('aria-hidden', 'true');
-  const add = (tag: string, attrs: Record<string, string>): void => {
-    const part = document.createElementNS(SVG_NS, tag);
-    for (const [key, value] of Object.entries(attrs)) part.setAttribute(key, value);
-    svg.append(part);
-  };
-  // Bowl, handles, stem and base — a cup at a glance even at 15px.
-  add('path', { d: 'M7 3h10v6a5 5 0 0 1-10 0Z', fill: 'currentColor' });
-  add('path', {
-    d: 'M7 4.5H4.6v2A3.4 3.4 0 0 0 7.6 10M17 4.5h2.4v2A3.4 3.4 0 0 1 16.4 10',
-    fill: 'none',
-    stroke: 'currentColor',
-    'stroke-width': '1.5',
-  });
-  add('rect', { x: '10.9', y: '13.4', width: '2.2', height: '4', fill: 'currentColor' });
-  add('rect', { x: '7.6', y: '17.4', width: '8.8', height: '2.4', rx: '0.8', fill: 'currentColor' });
   return svg;
 }
 
@@ -1099,7 +1076,12 @@ export class PlayScreen {
               )
             : '',
           trophy.newlyEarned
-            ? el('p', { class: 'summary' }, `🏆 New ${TROPHY_NAMES[trophy.tier]} Trophy for ${LEVEL_NAMES[game.puzzle.difficulty]}.`)
+            ? el(
+                'p',
+                { class: 'summary won-trophy' },
+                el('span', { class: `row-trophy tier-${trophy.tier}` }, trophyIcon()),
+                `New ${TROPHY_NAMES[trophy.tier]} trophy for ${LEVEL_NAMES[game.puzzle.difficulty]}.`,
+              )
             : '',
           el('div', { class: 'actions', style: 'grid-template-columns: 1fr 1fr; margin-top: 12px' }, next, menu),
         );

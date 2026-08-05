@@ -1,20 +1,22 @@
 /* Night is the default, matching the reference app's dark scheme; the Theme
    setting swaps in the day or high-contrast palette. */
 :root {
-  --bg: #17243c;
-  --bg-glow-a: rgba(93, 177, 255, 0.22);
-  --bg-glow-b: rgba(169, 109, 239, 0.17);
-  --panel: #223651;
-  --panel-2: #2d4668;
-  --line: #587394;
-  --line-strong: #afc9e6;
-  --cell: #1c2d45;
-  --text: #f4f8ff;
-  --dim: #b8cae1;
-  --accent: #85d9ff;
-  --accent-dim: #356c99;
+  /* A card table under a low lamp: baize, brass and warm paper, rather than
+     the blue-and-cyan every dashboard is built from. */
+  --bg: #11201a;
+  --bg-glow-a: rgba(214, 166, 82, 0.1);
+  --bg-glow-b: rgba(19, 74, 52, 0.35);
+  --panel: #1a2b23;
+  --panel-2: #24382e;
+  --line: #3d5749;
+  --line-strong: #93ac9c;
+  --cell: #1d3a2b;
+  --text: #f3ede0;
+  --dim: #a6bbad;
+  --accent: #d9a441;
+  --accent-dim: #6b5322;
   --cage: #c0d2e7;
-  --sum: #ffd27a;
+  --sum: #e8c46f;
   /* Distinctly blue: at grey it read as another grid line. */
   --mark: #9bdbff;
   /* A cell down to its last candidate. */
@@ -24,87 +26,93 @@
      uses, so it cannot be mistaken for a selection or a matching digit. */
   --tallied: rgba(190, 130, 255, 0.26);
   /* Cells a hint is pointing at. */
-  --spotlit: rgba(86, 209, 245, 0.3);
-  --error: #ff6b6b;
+  --spotlit: rgba(217, 164, 65, 0.3);
+  --error: #e0574c;
   --clash: #a8443f;
-  --sel: rgba(86, 209, 245, 0.26);
+  --sel: rgba(217, 164, 65, 0.26);
   --peer: rgba(255, 255, 255, 0.05);
   --cage-peer: rgba(240, 198, 116, 0.09);
-  --same: rgba(86, 209, 245, 0.14);
-  --shadow: rgba(5, 12, 29, 0.42);
+  --same: rgba(217, 164, 65, 0.15);
+  --shadow: rgba(0, 0, 0, 0.5);
   /* Components for overlays you need to see through, mixed at --glass. */
-  --panel-rgb: 34 54 81;
-  --panel-2-rgb: 45 70 104;
+  --panel-rgb: 26 43 35;
+  --panel-2-rgb: 36 56 46;
   /* Required / ruled-out keys, mixed at --glass like every other surface. */
   --inc-rgb: 18 131 63;
   --exc-rgb: 179 34 34;
 
-  /* Control groups, so a key's job is readable from its colour. */
-  --k-digit: #285e53;
-  --k-digit-line: #63c7a7;
-  --k-digit-text: #e5fff6;
-  --k-edit: #624d26;
-  --k-edit-line: #e2ba62;
-  --k-edit-text: #fff4d9;
-  --k-aid: #2a5277;
-  --k-aid-line: #78c5ef;
-  --k-aid-text: #e4f5ff;
-  --k-session: #5c3459;
-  --k-session-line: #dc91c2;
-  --k-session-text: #ffebf7;
-  /* Matches --tallied, the violet the counted cages are tinted with. */
-  --k-tally: #3a2550;
-  --k-tally-line: #b98bff;
-  --k-tally-text: #f1e4ff;
+  /*
+   * Controls are one family, not five. Colour-coding every button by job gave
+   * the table a rainbow of chips that meant nothing to a player and read as
+   * decoration applied by rule. The controls now share the panel's own
+   * surface, and the only thing that carries colour is the one action being
+   * offered — see .btn.primary.
+   */
+  --k-digit: #24382e;
+  --k-digit-line: #3d5749;
+  --k-digit-text: #f3ede0;
+  --k-edit: #24382e;
+  --k-edit-line: #3d5749;
+  --k-edit-text: #f3ede0;
+  --k-aid: #24382e;
+  --k-aid-line: #3d5749;
+  --k-aid-text: #f3ede0;
+  --k-session: #24382e;
+  --k-session-line: #3d5749;
+  --k-session-text: #f3ede0;
+  --k-tally: #24382e;
+  --k-tally-line: #3d5749;
+  --k-tally-text: #f3ede0;
 }
 
 :root[data-theme='day'] {
-  --bg: #e8f1fb;
-  --bg-glow-a: rgba(112, 190, 255, 0.25);
-  --bg-glow-b: rgba(246, 177, 215, 0.2);
-  --panel: #fffdf9;
-  --panel-2: #edf4fb;
-  --line: #c1d1e2;
-  --line-strong: #48627d;
-  --cell: #fbfdff;
-  --text: #1d3045;
-  --dim: #627992;
-  --accent: #3e7db6;
-  --accent-dim: #b9ddf4;
+  /* The same table by daylight: parchment, ink and a paler baize. */
+  --bg: #ddd6c4;
+  --bg-glow-a: rgba(255, 252, 244, 0.55);
+  --bg-glow-b: rgba(126, 163, 134, 0.18);
+  --panel: #f8f4e9;
+  --panel-2: #ece5d5;
+  --line: #c4baa4;
+  --line-strong: #565040;
+  --cell: #cfe0d2;
+  --text: #221f18;
+  --dim: #6a6353;
+  --accent: #175A39;
+  --accent-dim: #bcdcc7;
   --cage: #8398ae;
-  --sum: #a86816;
+  --sum: #8a5a0a;
   --mark: #1f6390;
   --single: #0d7a3d;
   --single-bg: rgba(13, 122, 61, 0.12);
   --tallied: rgba(140, 70, 210, 0.18);
-  --spotlit: rgba(10, 111, 150, 0.26);
-  --error: #c62828;
+  --spotlit: rgba(28, 107, 70, 0.26);
+  --error: #b3261e;
   --clash: #e59b98;
-  --sel: rgba(10, 111, 150, 0.22);
+  --sel: rgba(28, 107, 70, 0.2);
   --peer: rgba(0, 0, 0, 0.05);
   --cage-peer: rgba(138, 90, 0, 0.08);
-  --same: rgba(10, 111, 150, 0.13);
-  --shadow: rgba(67, 94, 124, 0.2);
-  --panel-rgb: 255 253 249;
-  --panel-2-rgb: 237 244 251;
+  --same: rgba(28, 107, 70, 0.13);
+  --shadow: rgba(60, 55, 40, 0.22);
+  --panel-rgb: 248 244 233;
+  --panel-2-rgb: 236 229 213;
   --inc-rgb: 15 122 58;
   --exc-rgb: 176 32 32;
 
-  --k-digit: #d6f2e1;
-  --k-digit-line: #6fbf95;
-  --k-digit-text: #123723;
-  --k-edit: #fbeccd;
-  --k-edit-line: #d2a75a;
-  --k-edit-text: #4a3305;
-  --k-aid: #d8eafa;
-  --k-aid-line: #6ba6d4;
-  --k-aid-text: #0f3350;
-  --k-session: #f7dcec;
-  --k-session-line: #cd8cb4;
-  --k-session-text: #47102f;
-  --k-tally: #ece0fa;
-  --k-tally-line: #a173d6;
-  --k-tally-text: #37105e;
+  --k-digit: #ece5d5;
+  --k-digit-line: #c4baa4;
+  --k-digit-text: #221f18;
+  --k-edit: #ece5d5;
+  --k-edit-line: #c4baa4;
+  --k-edit-text: #221f18;
+  --k-aid: #ece5d5;
+  --k-aid-line: #c4baa4;
+  --k-aid-text: #221f18;
+  --k-session: #ece5d5;
+  --k-session-line: #c4baa4;
+  --k-session-text: #221f18;
+  --k-tally: #ece5d5;
+  --k-tally-line: #c4baa4;
+  --k-tally-text: #221f18;
 }
 
 /* High contrast: pure black behind white text, and every hue drawn from the
@@ -203,14 +211,27 @@ body {
   height: 100%;
 }
 
+/*
+ * Two faces, doing different jobs. Card ranks and the game's own name are set
+ * in a serif, because that is what is printed on a playing card and it says
+ * what this is before a word is read; everything that is chrome stays in the
+ * interface sans.
+ */
+:root {
+  --font-ui: 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
+  --font-card: 'Hoefler Text', 'Iowan Old Style', Georgia, 'Palatino Linotype',
+    'Book Antiqua', 'Times New Roman', serif;
+}
+
 body {
+  /* One warm pool of lamplight and a wash of baize, not a gradient mesh. */
   background:
-    radial-gradient(circle at 10% -8%, var(--bg-glow-a), transparent 32rem),
-    radial-gradient(circle at 96% 20%, var(--bg-glow-b), transparent 34rem),
+    radial-gradient(ellipse at 50% -10%, var(--bg-glow-a), transparent 30rem),
+    radial-gradient(ellipse at 50% 55%, var(--bg-glow-b), transparent 46rem),
     var(--bg);
   background-attachment: fixed;
   color: var(--text);
-  font-family: 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
+  font-family: var(--font-ui);
   -webkit-text-size-adjust: 100%;
   overscroll-behavior: none;
 }
@@ -1874,32 +1895,38 @@ body {
 
 /* ================= Solduku: cards, tray, and board additions ================= */
 
-/* Playing cards keep their own bright surface. Every suit has a different
-   colour, so a tiny club and spade never collapse into the same black mark. */
+/*
+ * Cards keep their own paper surface, warm rather than screen-white.
+ *
+ * The suits follow the four-colour deck a card player already knows — black
+ * spade, red heart, blue diamond, green club — so a tiny club and spade never
+ * collapse into the same mark, without inventing a palette nobody has seen on
+ * a card before.
+ */
 :root {
-  --suit-spade: #2c72ab;
-  --suit-heart: #d84e63;
-  --suit-diamond: #bd7a12;
-  --suit-club: #238775;
-  --card-black: #1c2631;
-  --card-red: #c83244;
+  --suit-spade: #23302a;
+  --suit-heart: #b8332c;
+  --suit-diamond: #1f5f9e;
+  --suit-club: #1c7a4d;
+  --card-black: #222c26;
+  --card-red: #b8332c;
   --joker: #b98bff;
   --joker-tint: #8d5ed1;
-  --card-bg: #f8fbff;
-  --card-line: #b4c6d8;
+  --card-bg: #f7f2e4;
+  --card-line: #b6ac93;
 }
 
 :root[data-theme='day'] {
-  --suit-spade: #205e96;
-  --suit-heart: #c73850;
-  --suit-diamond: #a9690c;
-  --suit-club: #197663;
-  --card-black: #18212b;
-  --card-red: #bd283a;
+  --suit-spade: #1d2823;
+  --suit-heart: #a92a24;
+  --suit-diamond: #1a5488;
+  --suit-club: #176b43;
+  --card-black: #1d2823;
+  --card-red: #a92a24;
   --joker: #7b3fd4;
   --joker-tint: #7b3fd4;
-  --card-bg: #ffffff;
-  --card-line: #9eb4cb;
+  --card-bg: #fdfaf1;
+  --card-line: #a89e86;
 }
 
 :root[data-theme='contrast'] {
@@ -2171,11 +2198,16 @@ body {
   position: relative;
 }
 
-.scard.red .corner,
-.suit-0 { --suit-tint: var(--suit-spade); --suit-ink: var(--card-black); }
-.suit-1 { --suit-tint: var(--suit-heart); --suit-ink: var(--card-red); }
-.suit-2 { --suit-tint: var(--suit-diamond); --suit-ink: var(--card-red); }
-.suit-3 { --suit-tint: var(--suit-club); --suit-ink: var(--card-black); }
+/*
+ * A four-colour deck: the pips are printed in the suit's own colour, not just
+ * washed with it. Diamonds in blue and clubs in green is the convention every
+ * card room uses to stop the two black suits collapsing into one another —
+ * and it means the ink and the card edge finally agree.
+ */
+.suit-0 { --suit-tint: var(--suit-spade); --suit-ink: var(--suit-spade); }
+.suit-1 { --suit-tint: var(--suit-heart); --suit-ink: var(--suit-heart); }
+.suit-2 { --suit-tint: var(--suit-diamond); --suit-ink: var(--suit-diamond); }
+.suit-3 { --suit-tint: var(--suit-club); --suit-ink: var(--suit-club); }
 
 /* A coloured edge and whisper of tint let players sort suits before reading a
    glyph. The large pip then confirms the suit at a glance. */
@@ -3064,13 +3096,14 @@ body {
 
 /* ---------- score track: progress, trophies, and the deal ceiling ---------- */
 
-/* Saturated on purpose: at 18px a cup is read by its colour before its
-   shape, so bronze, silver, gold and diamond have to be unmistakable. */
+/* Metals rather than highlighter — copper, pewter, gold leaf and a cut stone.
+   Still saturated enough that at 18px a cup is read by its colour before its
+   shape, but no longer the one neon note on a table of baize and brass. */
 :root {
-  --tier-1: #f2913c;
-  --tier-2: #e3ecf6;
-  --tier-3: #ffd21f;
-  --tier-4: #3fe0ff;
+  --tier-1: #e08b45;
+  --tier-2: #ccd5dd;
+  --tier-3: #f0c34a;
+  --tier-4: #93dcea;
 }
 
 :root[data-theme='day'] {
@@ -3380,3 +3413,117 @@ body {
 .joker.jv-1 { --joker: var(--joker-1); --joker-tint: var(--joker-1); }
 .joker.jv-2 { --joker: var(--joker-2); --joker-tint: var(--joker-2); }
 .joker.jv-3 { --joker: var(--joker-3); --joker-tint: var(--joker-3); }
+
+/* ---------- card-room typography ---------- */
+
+/* Ranks and pips are printed matter, so they are set like printed matter. */
+.card-rank,
+.corner,
+.scard .d,
+.pcard .d {
+  font-family: var(--font-card);
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.card-suit,
+.corner small {
+  font-family: var(--font-card);
+}
+
+/* Printed givens are the puzzle underneath the game, so they read as ink on
+   the felt rather than as another card. */
+.cell .big.given {
+  font-family: var(--font-card);
+  font-weight: 600;
+}
+
+/* The game's name, and the deal it is dealing. */
+.hero h1,
+.titlebar .id {
+  font-family: var(--font-card);
+  letter-spacing: 0.5px;
+}
+
+.hero h1 {
+  font-weight: 600;
+}
+
+/* ---------- the table itself ---------- */
+
+/*
+ * The board is a felt surface with the grid printed on it, not a set of tiles.
+ * A soft inner shadow gives the cloth a little depth so cards sit on it rather
+ * than beside it.
+ */
+.board.sol {
+  box-shadow:
+    inset 0 0 30px rgba(0, 0, 0, 0.28),
+    0 2px 10px var(--shadow);
+  border-radius: 3px;
+}
+
+/* Cards are cut, not drawn: a card corner is tighter than a UI corner. */
+.pcard {
+  border-radius: 5px;
+  box-shadow: 0 1px 3px var(--shadow);
+}
+
+.scard {
+  border-radius: 7%;
+}
+
+/* Trophy strips and inline row trophies, now drawn rather than emoji. */
+.trophy {
+  filter: none;
+  opacity: 0.28;
+  display: inline-flex;
+  width: 14px;
+  height: 14px;
+}
+
+.trophy .ticon {
+  width: 100%;
+  height: 100%;
+}
+
+.trophy.earned {
+  opacity: 1;
+}
+
+.trophy.tier-1 { color: var(--tier-1); }
+.trophy.tier-2 { color: var(--tier-2); }
+.trophy.tier-3 { color: var(--tier-3); }
+.trophy.tier-4 { color: var(--tier-4); }
+
+.row-trophy {
+  display: inline-flex;
+  width: 14px;
+  height: 14px;
+  vertical-align: -2px;
+  margin-right: 5px;
+}
+
+.row-trophy .ticon {
+  width: 100%;
+  height: 100%;
+}
+
+.row-trophy.tier-1 { color: var(--tier-1); }
+.row-trophy.tier-2 { color: var(--tier-2); }
+.row-trophy.tier-3 { color: var(--tier-3); }
+.row-trophy.tier-4 { color: var(--tier-4); }
+.row-trophy.tier-5 { color: var(--tier-5); }
+
+.summary.won-trophy {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+/* Printed clues are ink on the cloth: they should read as clearly as a card,
+   without pretending to be one. */
+.cell .big.given {
+  color: color-mix(in srgb, var(--text) 84%, transparent);
+}

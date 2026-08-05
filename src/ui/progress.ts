@@ -3,6 +3,7 @@ import { formatPuzzleId } from '../core/types.ts';
 import type { Level, PuzzleId } from '../core/types.ts';
 import { freeSlotBank, levelHighScores, levelStats, levelTrophy, progression, totalStats, TROPHY_NAMES, unlockedCardBacks } from '../game/storage.ts';
 import { SUPERSTAR_TIER } from '../core/scoring.ts';
+import { trophyIcon } from './glyphs.ts';
 import type { History } from '../game/storage.ts';
 import { el, formatTime } from './dom.ts';
 import { openOverlay } from './overlay.ts';
@@ -75,7 +76,12 @@ export function openProgress(ctx: AppContext): void {
         el(
           'div',
           { class: 'progress-row' },
-          el('b', {}, `${tier > 0 ? '🏆 ' : ''}${LEVEL_NAMES[level]}`),
+          el(
+            'b',
+            {},
+            tier > 0 ? el('span', { class: `row-trophy tier-${tier}` }, trophyIcon()) : '',
+            LEVEL_NAMES[level],
+          ),
           el('small', {}, `${TROPHY_NAMES[tier]} trophy · best ${best ?? '—'} · ${next} · collection ${collection(ctx.history, level)}/10`),
         ),
       );
