@@ -338,6 +338,7 @@ export function openMainMenu(ctx: AppContext): void {
       el(
         'div',
         { class: 'menu-list' },
+        item('Theme', () => ctx.openTheme()),
         item('Settings', () => ctx.openSettings()),
         item('Quick start', () => ctx.openIntro()),
         item('Progress', () => ctx.openProgress()),

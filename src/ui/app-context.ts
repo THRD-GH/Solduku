@@ -17,6 +17,8 @@ export interface AppContext {
   openIntro(): void;
   openHelp(): void;
   openSettings(): void;
+  /** Which table the game is played on, and what light is on it. */
+  openTheme(): void;
   openProgress(): void;
   /** The scoring table and tips — with live flush prospects mid-deal. */
   openScoring(): void;

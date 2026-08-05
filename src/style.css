@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Four tables, each with its own daylight and lamplight, plus the
  * high-contrast set further down.
  *
@@ -8,7 +8,7 @@
  * same weight, so the last one written wins and contrast can simply come last.
  *
  * Only what actually distinguishes a table is set per theme. Everything that
- * can be derived â€” the selection tints, the control surfaces, the lamp glow â€”
+ * can be derived — the selection tints, the control surfaces, the lamp glow —
  * is written once here in terms of those, so a new table is about twenty
  * lines rather than fifty.
  */
@@ -270,7 +270,7 @@
 
 /* High contrast: pure black behind white text, and every hue drawn from the
    Okabe-Ito colour-blind-safe set. Red and green never carry meaning on their
-   own here â€” vermillion against blue-green is the pair that survives all three
+   own here — vermillion against blue-green is the pair that survives all three
    common kinds of colour blindness, and the rules further down add a shape cue
    wherever colour alone was doing the work. */
 :root[data-theme='contrast'] {
@@ -304,7 +304,7 @@
   --shadow: rgba(0, 0, 0, 0.9);
   --panel-rgb: 0 0 0;
   --panel-2-rgb: 16 16 20;
-  /* Blue for required, vermillion for ruled out â€” not green and red. */
+  /* Blue for required, vermillion for ruled out — not green and red. */
   --inc-rgb: 0 114 178;
   --exc-rgb: 213 94 0;
 
@@ -659,7 +659,7 @@ body {
 /*
  * Keypad on the right: the digits go under a right thumb and the action
  * buttons cross to the other side. Left is the default and the layout the
- * reference app uses. One flip covers both orientations â€” in landscape the
+ * reference app uses. One flip covers both orientations — in landscape the
  * controls sit beside the board, so reversing them lands the keypad out at
  * the edge on the same side.
  */
@@ -672,7 +672,7 @@ body {
  * out at the screen edge whichever side the controls are on, so their strips
  * reverse too. `direction` is what flips a grid's columns; each button is put
  * back to ltr so its own text is unaffected. The digits themselves never
- * mirror â€” 1-9 has one order.
+ * mirror — 1-9 has one order.
  */
 :root[data-keypad='right'] .controls .actions {
   direction: rtl;
@@ -1165,7 +1165,7 @@ body {
   text-align: center;
 }
 
-/* Which build is actually running â€” useful when a phone is holding a cached
+/* Which build is actually running — useful when a phone is holding a cached
    service worker. */
 .build-stamp {
   margin: 2px 0 0;
@@ -1188,7 +1188,7 @@ body {
   z-index: 50;
 }
 
-/* Just opened, and still ignoring the tail of the gesture that opened it â€” see
+/* Just opened, and still ignoring the tail of the gesture that opened it — see
    TAP_GUARD_MS. The backdrop keeps taking pointer events, so nothing falls
    through to the game underneath; only the panel's own controls are inert. */
 .overlay.guarded > * {
@@ -1517,7 +1517,7 @@ body {
   background: rgba(120, 210, 140, 0.16);
 }
 
-/* Unfinished games: the row picks the game up, the âœ• resets it. */
+/* Unfinished games: the row picks the game up, the ✕ resets it. */
 .unfinished-row {
   display: flex;
   gap: 5px;
@@ -1574,7 +1574,7 @@ body {
   font-size: 13px;
 }
 
-/* Says what the row wants, on the row itself â€” resuming is a long press, so
+/* Says what the row wants, on the row itself — resuming is a long press, so
    a stray tap while scrolling a long list cannot drop you into a puzzle. */
 .statrow .hold {
   color: var(--dim);
@@ -1654,7 +1654,7 @@ body {
 }
 
 /* Keypad beside the results. Both are fixed height so the panel never
-   changes size as combinations are filtered â€” otherwise the buttons
+   changes size as combinations are filtered — otherwise the buttons
    underneath move while you are aiming at them. */
 /* The keypad column and the combinations sit side by side, both bounded, so
    the panel is a fixed size whatever the list is doing. */
@@ -1665,7 +1665,7 @@ body {
   align-items: stretch;
 }
 
-/* The calculator's digits go on the same side as the ones you play with â€”
+/* The calculator's digits go on the same side as the ones you play with —
    placed explicitly rather than by direction, so the 3x3 pad inside is not
    itself mirrored. */
 :root[data-keypad='right'] .calc-body {
@@ -1761,7 +1761,7 @@ body {
 /*
  * Sat on the bottom edge rather than centred. Two reasons, both about the
  * footer: its buttons stay solid whatever the transparency slider says, so they
- * must not sit over the grid â€” down here they cover the keypad instead, which
+ * must not sit over the grid — down here they cover the keypad instead, which
  * is not in use while the calculator is open. And an anchored bottom keeps the
  * buttons still while the list of combinations above them changes, as well as
  * within reach of a thumb.
@@ -1826,7 +1826,7 @@ body {
 }
 
 /* Each digit is its own inline-block, and text-decoration does not reach into
-   those â€” so the strike is drawn as a rule across the whole row instead. */
+   those — so the strike is drawn as a rule across the whole row instead. */
 .calc .combo.struck {
   opacity: 0.5;
 }
@@ -1878,7 +1878,7 @@ body {
   color: var(--dim);
   font-size: 10.5px;
   margin-top: 2px;
-  /* A long label ("best Â· 3-N411") must not stretch its column. */
+  /* A long label ("best · 3-N411") must not stretch its column. */
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1953,7 +1953,7 @@ body {
 
 /*
  * Landscape on a phone: stacked, the controls end up a screen and a half below
- * the board and cannot be reached. Side by side instead â€” the board takes the
+ * the board and cannot be reached. Side by side instead — the board takes the
  * height it can get and the controls fill the width beside it. The board stays
  * square by being given the same value for width and height, worked out from
  * whichever of the two runs out first.
@@ -1983,7 +1983,7 @@ body {
   }
 
   /* Keypad on the left: the board moves across and the controls take its
-     place, so the keypad ends up at the left edge â€” the mirror image of the
+     place, so the keypad ends up at the left edge — the mirror image of the
      right-hand layout, where the controls reverse instead (.controls above). */
   :root[data-keypad='left'] .screen.play {
     grid-template-columns: minmax(0, 1fr) var(--board);
@@ -2053,8 +2053,8 @@ body {
 /*
  * Cards keep their own paper surface, warm rather than screen-white.
  *
- * The suits follow the four-colour deck a card player already knows â€” black
- * spade, red heart, blue diamond, green club â€” so a tiny club and spade never
+ * The suits follow the four-colour deck a card player already knows — black
+ * spade, red heart, blue diamond, green club — so a tiny club and spade never
  * collapse into the same mark, without inventing a palette nobody has seen on
  * a card before.
  */
@@ -2365,7 +2365,7 @@ body {
 /*
  * A four-colour deck: the pips are printed in the suit's own colour, not just
  * washed with it. Diamonds in blue and clubs in green is the convention every
- * card room uses to stop the two black suits collapsing into one another â€”
+ * card room uses to stop the two black suits collapsing into one another —
  * and it means the ink and the card edge finally agree.
  */
 .suit-0 { --suit-tint: var(--suit-spade); --suit-ink: var(--suit-spade); }
@@ -2377,7 +2377,7 @@ body {
  * The card edge carries the suit; the face stays paper.
  *
  * The wash used to be 23% of the suit colour, which on a heart left dark red
- * pips sitting on pink at 3.7:1 â€” below AA, and worse against dark baize than
+ * pips sitting on pink at 3.7:1 — below AA, and worse against dark baize than
  * it ever looked against the old blue. Sorting suits by tint was also doing a
  * job the four-colour pips now do outright, so the wash is only a whisper.
  */
@@ -2665,7 +2665,7 @@ body {
 }
 
 .deck-back::before {
-  content: 'â™ ';
+  content: '♠';
   position: absolute;
   inset: 4px;
   display: grid;
@@ -3266,7 +3266,7 @@ body {
 
 /* ---------- score track: progress, trophies, and the deal ceiling ---------- */
 
-/* Metals rather than highlighter â€” copper, pewter, gold leaf and a cut stone.
+/* Metals rather than highlighter — copper, pewter, gold leaf and a cut stone.
    Still saturated enough that at 18px a cup is read by its colour before its
    shape, but no longer the one neon note on a table of baize and brass. */
 :root {
@@ -3347,7 +3347,7 @@ body {
  * The tier colour is carried on the mark itself, so the line and the cup
  * inside it are the same colour without repeating it. Opacity is deliberately
  * never used here: it would cascade into the trophy and grey out the one
- * thing that has to stay legible â€” the line is softened through its own
+ * thing that has to stay legible — the line is softened through its own
  * alpha instead.
  */
 .scorebar-mark.tier-1 { color: var(--tier-1); }
@@ -3423,7 +3423,7 @@ body {
   width: 18px;
   height: 18px;
   transform: translateY(-50%);
-  /* Never greyed out â€” an unearned trophy still has to say which one it is. */
+  /* Never greyed out — an unearned trophy still has to say which one it is. */
   opacity: 0.72;
   filter: drop-shadow(0 0 1.5px var(--shadow));
 }
@@ -3578,8 +3578,8 @@ body {
 
 /*
  * Setting both joker variables on the card itself lets every rule already
- * written against them â€” the jester's colour, the card's wash, its border and
- * its inner ring â€” retint per variant without being touched. Two jokers side
+ * written against them — the jester's colour, the card's wash, its border and
+ * its inner ring — retint per variant without being touched. Two jokers side
  * by side in the hand are then told apart before either is read.
  */
 .joker.jv-0 { --joker: var(--joker-0); --joker-tint: var(--joker-0); }
@@ -3697,7 +3697,7 @@ body {
 
 /*
  * Printed clues are ink on the cloth, not on paper, so they take the felt's
- * own ink rather than the interface text colour â€” which in daylight is a
+ * own ink rather than the interface text colour — which in daylight is a
  * near-black that sat at 3.5:1 on green.
  */
 .cell .big.given {
@@ -3706,7 +3706,7 @@ body {
 }
 
 /* The clock closes the tray, sitting under the piles rather than in the
-   title bar â€” a thing to glance at between hands. */
+   title bar — a thing to glance at between hands. */
 .tray-clock {
   display: flex;
   justify-content: flex-end;
@@ -3775,4 +3775,57 @@ body {
    tables this is most of what separates it from the cloth. */
 .scard {
   box-shadow: 0 1px 2px var(--shadow);
+}
+
+/* Each table gets a row of its own: cloth, name and what it is going for. */
+.theme-tables {
+  display: grid;
+  gap: 6px;
+}
+
+.theme-table {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+  padding: 8px 10px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.theme-table.on {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+.theme-table[disabled] {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.theme-table .table-chip {
+  width: 30px;
+  height: 21px;
+}
+
+.theme-table-text b {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.theme-table-text small {
+  display: block;
+  color: var(--dim);
+  font-size: 11.5px;
+}
+
+.theme-note {
+  margin: 6px 0 0;
+  min-height: 18px;
 }

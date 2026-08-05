@@ -29,6 +29,7 @@ import { openScoring } from './ui/scoring.ts';
 import { closeTopOverlay, onOverlayOpen, openOverlay, toast } from './ui/overlay.ts';
 import { PlayScreen } from './ui/play.ts';
 import { openSettings } from './ui/settings.ts';
+import { openTheme } from './ui/theme.ts';
 import { openProgress } from './ui/progress.ts';
 import type { AppContext } from './ui/app-context.ts';
 
@@ -152,6 +153,10 @@ class App implements AppContext {
 
   openSettings(): void {
     openSettings(this);
+  }
+
+  openTheme(): void {
+    openTheme(this);
   }
 
   openProgress(): void {
