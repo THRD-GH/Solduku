@@ -35,8 +35,11 @@ export const SUIT_GLYPHS = ['♠', '♥', '♦', '♣'];
 export const isRedSuit = (suit: number): boolean => suit === 1 || suit === 2;
 
 /**
- * What a digit is called on a card. The 1 is the ace, as in any deck — it is
- * still the digit 1 to every rule in the game, and only ever wears the letter.
+ * What a digit is called *on a card*. The 1 is the ace, as in any deck.
+ *
+ * Only card faces use this. The grid underneath is a sudoku, and its printed
+ * givens stay plain digits 1-9 — the letter belongs to the deck, not to the
+ * puzzle.
  */
 export const rankLabel = (digit: number): string => (digit === 1 ? 'A' : String(digit));
 

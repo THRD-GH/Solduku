@@ -74,7 +74,9 @@
   --panel-2: #ece5d5;
   --line: #c4baa4;
   --line-strong: #565040;
-  --cell: #cfe0d2;
+  /* Baize stays darker than paper, or the cards vanish into the table: a pale
+     cloth put a card within 1.14:1 of its own face. */
+  --cell: #5d8b72;
   --text: #221f18;
   --dim: #6a6353;
   --accent: #175A39;
@@ -1904,10 +1906,11 @@ body {
  * a card before.
  */
 :root {
+  /* Dark enough to hold their own as ink on paper, not just as an edge. */
   --suit-spade: #23302a;
-  --suit-heart: #b8332c;
-  --suit-diamond: #1f5f9e;
-  --suit-club: #1c7a4d;
+  --suit-heart: #ad2f28;
+  --suit-diamond: #1b568f;
+  --suit-club: #176440;
   --card-black: #222c26;
   --card-red: #b8332c;
   --joker: #b98bff;
@@ -2209,14 +2212,20 @@ body {
 .suit-2 { --suit-tint: var(--suit-diamond); --suit-ink: var(--suit-diamond); }
 .suit-3 { --suit-tint: var(--suit-club); --suit-ink: var(--suit-club); }
 
-/* A coloured edge and whisper of tint let players sort suits before reading a
-   glyph. The large pip then confirms the suit at a glance. */
+/*
+ * The card edge carries the suit; the face stays paper.
+ *
+ * The wash used to be 23% of the suit colour, which on a heart left dark red
+ * pips sitting on pink at 3.7:1 — below AA, and worse against dark baize than
+ * it ever looked against the old blue. Sorting suits by tint was also doing a
+ * job the four-colour pips now do outright, so the wash is only a whisper.
+ */
 .scard:not(.joker),
 .pcard:not(.joker) {
   background: linear-gradient(
     145deg,
-    color-mix(in srgb, var(--suit-tint) 23%, var(--card-bg)),
-    color-mix(in srgb, var(--suit-tint) 6%, var(--card-bg)) 72%
+    color-mix(in srgb, var(--suit-tint) 9%, var(--card-bg)),
+    color-mix(in srgb, var(--suit-tint) 2%, var(--card-bg)) 72%
   );
   border-color: color-mix(in srgb, var(--suit-tint) 65%, var(--card-line));
   box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--suit-tint) 8%, transparent);
@@ -3526,4 +3535,23 @@ body {
    without pretending to be one. */
 .cell .big.given {
   color: color-mix(in srgb, var(--text) 84%, transparent);
+}
+
+/* The clock closes the tray, sitting under the piles rather than in the
+   title bar — a thing to glance at between hands. */
+.tray-clock {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  border-top: 1px solid var(--line);
+  margin: 2px -8px -4px;
+  padding: 5px 10px 0;
+}
+
+.tray-clock .timerbox {
+  color: var(--dim);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.5px;
+  min-width: 0;
 }

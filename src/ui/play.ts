@@ -285,6 +285,8 @@ export class PlayScreen {
     menuBtn.append(el('i'), el('i'), el('i'));
     menuBtn.addEventListener('click', () => openMainMenu(ctx));
 
+    // The clock lives under the tray, not in the title bar: it is something to
+    // glance at between hands rather than a number to play against.
     this.timerBox = el('span', { class: 'timerbox' }, '00:00');
     this.idBox = el('span', { class: 'id' }, formatPuzzleId(game.id));
     const titlebar = el(
@@ -293,7 +295,6 @@ export class PlayScreen {
       menuBtn,
       this.idBox,
       el('span', { class: 'lvl' }, LEVEL_NAMES[game.puzzle.difficulty]),
-      this.timerBox,
     );
 
     /*
@@ -410,6 +411,7 @@ export class PlayScreen {
         this.freeRow,
         this.freeSlotPile,
       ),
+      el('div', { class: 'tray-clock' }, this.timerBox),
     );
 
     // Undo, redo and pause are the controls reached for mid-thought, so they
@@ -544,7 +546,8 @@ export class PlayScreen {
       cell.replaceChildren();
       if (game.isGiven(i)) {
         // Givens wear the ace too, so a 1 reads the same printed as dealt.
-        cell.append(el('span', { class: 'big given' }, rankLabel(game.puzzle.givens[i])));
+        // A given is the printed puzzle, not a card: it stays a plain digit.
+        cell.append(el('span', { class: 'big given' }, String(game.puzzle.givens[i])));
       } else {
         const card = game.cardAt(i);
         if (card !== null) {
@@ -896,7 +899,7 @@ export class PlayScreen {
         const done = el('button', { class: 'btn primary wide' }, 'Got it');
         done.addEventListener('click', close);
         const focus = step.solved
-          ? `${cellName(step.solved.cell)} must be ${rankLabel(step.solved.digit)}.`
+          ? `${cellName(step.solved.cell)} must be ${step.solved.digit}.`
           : `Focus on ${step.cells.slice(0, 4).map(cellName).join(', ')}${step.cells.length > 4 ? '...' : ''}.`;
         return el(
           'div',
