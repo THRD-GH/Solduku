@@ -276,6 +276,7 @@ export class PlayScreen {
   private tickId: number;
   private lastTick = performance.now();
   private finished = false;
+  private pauseNode: HTMLElement | null = null;
 
   constructor(ctx: AppContext, game: Game) {
     this.ctx = ctx;
@@ -285,8 +286,8 @@ export class PlayScreen {
     menuBtn.append(el('i'), el('i'), el('i'));
     menuBtn.addEventListener('click', () => openMainMenu(ctx));
 
-    // The clock lives under the tray, not in the title bar: it is something to
-    // glance at between hands rather than a number to play against.
+    // The clock rides in the title bar next to Home, where it costs no height
+    // on a phone — the tray needs every row it has for cards.
     this.timerBox = el('span', { class: 'timerbox' }, '00:00');
     this.idBox = el('span', { class: 'id' }, formatPuzzleId(game.id));
     const titlebar = el(
@@ -295,6 +296,7 @@ export class PlayScreen {
       menuBtn,
       this.idBox,
       el('span', { class: 'lvl' }, LEVEL_NAMES[game.puzzle.difficulty]),
+      this.timerBox,
     );
 
     /*
@@ -395,23 +397,33 @@ export class PlayScreen {
     const tray = el(
       'div',
       { class: 'tray' },
+      /*
+       * Three rows, not two. The hand and the piles shared a row until a phone
+       * proved there was never width for both: the placeholders wrapped, the
+       * tray grew a line anyway, and the board was pushed off the screen. The
+       * piles now have a row of their own, which costs the same height and
+       * never wraps.
+       */
       el(
         'div',
         { class: 'tray-row' },
         el('span', { class: 'tray-label' }, 'Hand'),
         this.handRow,
-        this.deckPile,
-        this.jokerPile,
-        this.bankPile,
       ),
       el(
         'div',
         { class: 'tray-row' },
         el('span', { class: 'tray-label' }, 'Free'),
         this.freeRow,
+      ),
+      el(
+        'div',
+        { class: 'tray-row piles' },
+        this.deckPile,
+        this.jokerPile,
+        this.bankPile,
         this.freeSlotPile,
       ),
-      el('div', { class: 'tray-clock' }, this.timerBox),
     );
 
     // Undo, redo and pause are the controls reached for mid-thought, so they
@@ -463,7 +475,6 @@ export class PlayScreen {
     this.root = el(
       'div',
       { class: 'screen play' },
-      el('p', { class: 'build-stamp top' }, buildStamp()),
       titlebar,
       this.scoreTrack,
       this.doomBar,
@@ -472,6 +483,7 @@ export class PlayScreen {
       // The three icon controls lead the row, so the hand always knows where
       // to find them; the named buttons take the width that is left.
       el('div', { class: 'actions game-actions' }, this.undoBtn, this.redoBtn, pause, hint, restart, help),
+      el('p', { class: 'build-stamp' }, buildStamp()),
     );
 
     this.tickId = window.setInterval(() => this.tick(), 1000);
@@ -482,43 +494,52 @@ export class PlayScreen {
 
   destroy(): void {
     window.clearInterval(this.tickId);
+    this.pauseNode?.remove();
     if (!this.finished) this.save();
   }
 
-  private saveWhenHidden(): void {
-    // Nothing modal to show — just make sure the position is on disk.
-    this.save();
-  }
-
+  /**
+   * Pause the way the killer app does it: the board goes behind a full screen
+   * rather than behind a dialog.
+   *
+   * A panel with a Continue button left the grid on show around it, which is
+   * no pause at all if you have put the phone down mid-thought and someone
+   * else picks it up. Resuming takes a deliberate hold, so the tap that woke
+   * the screen cannot also give the puzzle back.
+   */
   pause(): void {
     if (this.isPaused || this.game.completed) {
-      this.saveWhenHidden();
+      this.save();
       return;
     }
     this.isPaused = true;
-    this.saveWhenHidden();
+    this.save();
+    // Put down mid-deal: let the screen behave normally again.
     this.ctx.applyWakeLock();
-    openOverlay(
-      (close) => {
-        const resume = el('button', { class: 'btn primary wide' }, 'Continue');
-        resume.addEventListener('click', close);
-        return el(
-          'div',
-          { class: 'panel won' },
-          el('h2', {}, 'Game paused'),
-          el('p', { class: 'summary' }, 'Your deal is safely saved. Take your time - the clock is stopped.'),
-          resume,
-        );
-      },
-      {
-        dismissable: false,
-        onClose: () => {
-          this.isPaused = false;
-          this.lastTick = performance.now();
-          this.ctx.applyWakeLock();
-        },
-      },
+
+    const node = el(
+      'div',
+      { class: 'paused', role: 'dialog', 'aria-label': 'Paused' },
+      el(
+        'div',
+        {},
+        el('h2', {}, 'PAUSED'),
+        el('p', {}, 'Hold (or press Escape) to continue'),
+      ),
     );
+    this.pauseNode = node;
+    bindTap(node, { onTap: () => toast('Hold to continue'), onLong: () => this.resume() });
+    document.body.append(node);
+  }
+
+  resume(): void {
+    if (!this.isPaused) return;
+    this.isPaused = false;
+    // The clock has been standing still; do not bill the player for it.
+    this.lastTick = performance.now();
+    this.pauseNode?.remove();
+    this.pauseNode = null;
+    this.ctx.applyWakeLock();
   }
 
   render(): void {
@@ -787,6 +808,10 @@ export class PlayScreen {
   }
 
   handleKey(e: KeyboardEvent): void {
+    if (this.isPaused) {
+      if (e.key === 'Escape') this.resume();
+      return;
+    }
     if (e.key === 'Escape') {
       this.game.selected = null;
       this.render();

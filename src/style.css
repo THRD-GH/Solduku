@@ -3829,3 +3829,95 @@ body {
   margin: 6px 0 0;
   min-height: 18px;
 }
+
+
+/* ---------- the tray, and fitting it on a phone ---------- */
+
+/* The piles sit together on their own row, pushed to the right so the row
+   reads as a shelf of resources rather than a fourth hand. */
+.tray-row.piles {
+  justify-content: flex-end;
+  gap: 10px;
+  min-height: 0;
+}
+
+/* The clock rides beside Home. Tabular figures so the bar does not twitch
+   every second. */
+.titlebar .timerbox {
+  margin-left: auto;
+  color: var(--dim);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.5px;
+}
+
+/* Home follows the clock, so only one of them claims the slack. */
+.titlebar .timerbox + .homebtn {
+  margin-left: 8px;
+}
+
+/*
+ * On a phone the play screen has to fit without scrolling, and the two things
+ * costing the most height were the tray labels and the card rows they sat
+ * beside. Turning the labels on their side gives the whole width back to the
+ * cards, which is what stopped the placeholders wrapping onto a line of their
+ * own and pushing the board off the screen.
+ */
+@media (max-width: 460px) {
+  .tray-label {
+    flex: 0 0 14px;
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    text-align: center;
+    letter-spacing: 1px;
+    font-size: 10px;
+    align-self: stretch;
+    display: grid;
+    place-items: center;
+  }
+
+  .tray-row {
+    gap: 6px;
+    min-height: 0;
+  }
+
+  .cardrow {
+    gap: 4px;
+    /* Never wrap: a second line here is what broke the layout. */
+    flex-wrap: nowrap;
+  }
+
+  .pcard {
+    width: 40px;
+    height: 54px;
+  }
+
+  .pcard .card-rank {
+    font-size: 19px;
+  }
+
+  .tray {
+    padding: 6px;
+    gap: 4px;
+  }
+
+  .screen {
+    padding: 6px 6px 10px;
+    gap: 6px;
+  }
+
+  .deckpile,
+  .jokerpile,
+  .bankpile,
+  .slotpile {
+    transform: scale(0.86);
+    transform-origin: center;
+    margin: -4px;
+  }
+}
+
+/* The build stamp closes the page rather than opening it: it is for telling
+   which build a phone is actually running, not the first thing to read. */
+.screen.play .build-stamp {
+  margin-top: 6px;
+}
