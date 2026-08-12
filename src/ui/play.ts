@@ -270,6 +270,7 @@ const ACHIEVEMENT_NAMES: Record<string, string> = {
 };
 
 const HINT_NAMES: Record<string, string> = {
+  'naked single': 'Naked single',
   'hidden single': 'Hidden single',
   'locked candidates': 'Locked candidates',
   'naked subset': 'Naked pair or triple',
@@ -278,6 +279,7 @@ const HINT_NAMES: Record<string, string> = {
 };
 
 const HINT_REASONS: Record<string, string> = {
+  'naked single': 'Every other number is already used in that cell’s row, column or box, so only one is left for it.',
   'hidden single': 'Only one cell in its row, column or box can take that number.',
   'locked candidates': 'A candidate is confined to one box-line intersection, so it can be removed from the rest of that line.',
   'naked subset': 'A small group of cells has claimed the same small set of candidates, ruling them out elsewhere in the unit.',
@@ -449,9 +451,11 @@ export class PlayScreen {
        */
       el(
         'div',
-        { class: 'tray-row' },
+        { class: 'tray-row hand-row' },
         el('span', { class: 'tray-label' }, 'Hand'),
         this.handRow,
+        // The draw pile belongs beside the hand it fills.
+        this.deckPile,
       ),
       el(
         'div',
@@ -462,7 +466,6 @@ export class PlayScreen {
       el(
         'div',
         { class: 'tray-row piles' },
-        this.deckPile,
         this.jokerPile,
         this.bankPile,
         this.freeSlotPile,

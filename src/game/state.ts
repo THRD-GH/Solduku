@@ -448,15 +448,46 @@ export class Game {
     return roles;
   }
 
-  /** The next named sudoku technique available on the current board. */
-  hintStep(): Step | null {
-    if (this.completed) return null;
-    const start = new Uint16Array(CELLS).fill(ALL_DIGITS);
+  /** Candidates for every cell, given only what is on the board. */
+  private candidatesNow(): Uint16Array {
+    const cand = new Uint16Array(CELLS).fill(ALL_DIGITS);
     for (let i = 0; i < CELLS; i++) {
       const digit = this.digitAt(i);
-      if (digit !== 0) start[i] = bit(digit);
+      if (digit !== 0) cand[i] = bit(digit);
     }
-    return nextStep(start, CLASSIC_CONS);
+    return cand;
+  }
+
+  /**
+   * The next sudoku step available on the current board.
+   *
+   * The technique stack treats a naked single as bookkeeping rather than a
+   * step worth naming, which is right when a hint is competing with cage
+   * arithmetic — but here it meant the easiest levels, the ones solvable by
+   * singles alone, could never produce a hint at all. Hint answered with a
+   * toast saying it had nothing, on exactly the deals where a player is most
+   * likely to ask. So when nothing further up the stack fires, fall back to
+   * naming the plainest step there is.
+   */
+  hintStep(): Step | null {
+    if (this.completed) return null;
+    const step = nextStep(this.candidatesNow(), CLASSIC_CONS);
+    if (step !== null) return step;
+
+    // Strike each placed digit from its peers and look for a cell with one
+    // candidate left — the same reasoning, just spelled out.
+    const cand = this.candidatesNow();
+    for (let i = 0; i < CELLS; i++) {
+      const digit = this.digitAt(i);
+      if (digit === 0) continue;
+      for (const peer of PEERS[i]) if (this.digitAt(peer) === 0) cand[peer] &= ~bit(digit);
+    }
+    for (let i = 0; i < CELLS; i++) {
+      if (this.digitAt(i) !== 0 || popcount(cand[i]) !== 1) continue;
+      const digit = maskToDigit(cand[i]);
+      return { technique: 'naked single', difficulty: 1, cells: [i], solved: { cell: i, digit } };
+    }
+    return null;
   }
 
   /** Whether anything at all can still be done from this position. */

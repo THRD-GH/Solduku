@@ -3912,3 +3912,50 @@ body {
 .screen.play .build-stamp {
   margin-top: 6px;
 }
+
+
+/*
+ * On a phone the draw pile sits in the hand row, so it has to be exactly as
+ * tall as a card. Stacking the count underneath the pile made the row 19px
+ * taller than the others and pushed the screen back off the bottom, so the
+ * number is printed on the pile instead — which is how a stack of cards with
+ * a count on it should read anyway.
+ */
+@media (max-width: 460px) {
+  .hand-row .deckpile {
+    position: relative;
+    width: 40px;
+    height: 54px;
+    flex: 0 0 auto;
+    transform: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .hand-row .deck-back {
+    width: 40px;
+    height: 54px;
+  }
+
+  .hand-row .deck-back::before {
+    font-size: 26px;
+  }
+
+  .hand-row .deck-count {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 3px;
+    justify-content: center;
+    gap: 0;
+    background: color-mix(in srgb, var(--panel) 82%, transparent);
+    border-radius: 3px;
+    padding: 0 2px;
+    line-height: 1.25;
+  }
+
+  /* No room for the word beside the number at this size. */
+  .hand-row .deck-count small {
+    display: none;
+  }
+}
