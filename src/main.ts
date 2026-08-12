@@ -2,7 +2,7 @@ import './style.css';
 import type { Level, PuzzleId } from './core/types.ts';
 import { formatPuzzleId } from './core/types.ts';
 import { getPuzzle, prefetch } from './game/generate.ts';
-import { deckWithJokers, JOKER_AID_COUNTS, LEVEL_CONFIG } from './core/classic.ts';
+import { deckWithJokers, JOKER_AID_EXTRA, LEVEL_CONFIG } from './core/classic.ts';
 import { registerServiceWorker, setThemeColour } from './game/pwa.ts';
 import { keepScreenAwake } from './game/wakelock.ts';
 import { Game } from './game/state.ts';
@@ -210,8 +210,7 @@ class App implements AppContext {
           this.settings.jokerSpend = 0;
           saveSettings(this.settings);
         }
-        const aidJokers =
-          aid === 'off' ? 0 : JOKER_AID_COUNTS[aid][id.level] - LEVEL_CONFIG[id.level].jokers;
+        const aidJokers = aid === 'off' ? 0 : JOKER_AID_EXTRA[aid][id.level];
         const adjusted = {
           ...puzzle,
           // Normal number cards always stay in the deck. Jokers are drawn

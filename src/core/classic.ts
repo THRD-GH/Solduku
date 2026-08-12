@@ -62,12 +62,19 @@ export const LEVEL_CONFIG: Record<Level, LevelConfig> = {
   6: { checkpoints: [24, 23], hand: 3, free: 1, jokers: 1 },
 };
 
-/** Total jokers in a deal when an accessibility aid is enabled. Harder levels
- * get more help because their smaller hand and free-cell counts are the real
- * source of the solitaire pressure. */
-export const JOKER_AID_COUNTS: Record<'assist' | 'generous', Record<Level, number>> = {
-  assist: { 1: 2, 2: 3, 3: 3, 4: 3, 5: 3, 6: 3 },
-  generous: { 1: 3, 2: 4, 3: 4, 4: 4, 5: 4, 6: 4 },
+/**
+ * Extra jokers a deal is dealt when an accessibility aid is on. Harder levels
+ * get more help, because their smaller hand and free-cell counts are the real
+ * source of the solitaire pressure.
+ *
+ * Counted as extras rather than totals. As totals they had to be read against
+ * each level's own allowance, and Assist on Gentle came to exactly the
+ * allowance already there — turning the setting on changed nothing at all.
+ * Expressed this way an aid cannot quietly amount to zero.
+ */
+export const JOKER_AID_EXTRA: Record<'assist' | 'generous', Record<Level, number>> = {
+  assist: { 1: 1, 2: 1, 3: 2, 4: 2, 5: 2, 6: 2 },
+  generous: { 1: 2, 2: 2, 3: 3, 4: 3, 5: 3, 6: 3 },
 };
 
 /** Classic sudoku has no cages; rows, columns and boxes carry everything. */

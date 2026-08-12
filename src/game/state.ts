@@ -185,6 +185,21 @@ export class Game {
   }
 
   /**
+   * Every helping hand this deal has had, counted rather than flagged.
+   *
+   * Three things add up here and only the last two used to register at all:
+   * the extra jokers an accessibility setting deals, the jokers spent from the
+   * bank before the deal, and the tokens spent into it during play. A deal
+   * played on Generous therefore reported no aid at all and kept a clean
+   * streak intact, and the fewest-aids record could not tell one spent joker
+   * from five.
+   */
+  get aidCount(): number {
+    const dealt = Math.max(0, this.initialJokers - LEVEL_CONFIG[this.puzzle.difficulty].jokers);
+    return dealt + this.bankedJokers + this.bonusSlots;
+  }
+
+  /**
    * What this grid is worth on a standard deal.
    *
    * Deliberately counted against the level's own joker allowance rather than

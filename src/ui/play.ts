@@ -1084,7 +1084,7 @@ export class PlayScreen {
     markFinished(this.ctx.history, game.id, game.score, Date.now(), {
       elapsedMs: game.elapsedMs,
       flushes: game.flushUnits.size,
-      aids: game.bankedJokers + game.bonusSlots,
+      aids: game.aidCount,
       trophy: earned,
     });
     saveHistory(this.ctx.history);
@@ -1096,7 +1096,7 @@ export class PlayScreen {
             level: game.puzzle.difficulty,
             score: game.score,
             flushes: game.flushUnits.size,
-            usedAid: game.usedBankedAid,
+            usedAid: game.aidCount > 0,
             riskBonuses: game.riskBonuses,
             questComplete: game.questComplete,
             rescuedWithJoker: game.rescuedWithJoker,
