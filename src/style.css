@@ -2471,30 +2471,20 @@ body {
 
 /* The jester cap, sized against its card: em on the board, px in the tray. */
 .scard .jhat {
-  width: 0.62em;
-  height: 0.62em;
-  color: var(--joker);
+  width: 0.74em;
+  height: 0.74em;
   display: block;
 }
 
-.scard.joker .jhat {
-  padding: 0.04em;
-  border-radius: 50%;
-  background: color-mix(in srgb, var(--joker-tint) 13%, transparent);
-}
+
 
 .pcard .jhat {
-  width: 31px;
-  height: 31px;
-  color: var(--joker);
+  width: 34px;
+  height: 34px;
   display: block;
 }
 
-.pcard.joker .jhat {
-  padding: 2px;
-  border-radius: 50%;
-  background: color-mix(in srgb, var(--joker-tint) 13%, transparent);
-}
+
 
 /* ---------- the tray: hand, free cells, deck ---------- */
 
@@ -3556,17 +3546,18 @@ body {
  * at one and mean that one.
  */
 :root {
-  --joker-0: #b98bff;
-  --joker-1: #43d9b0;
-  --joker-2: #ff7fbf;
-  --joker-3: #ffb638;
+  /* Each one matches the jester printed on it, so card and face agree. */
+  --joker-0: #d4483d;
+  --joker-1: #8464c0;
+  --joker-2: #d4548a;
+  --joker-3: #e6963a;
 }
 
 :root[data-theme$='-day'] {
-  --joker-0: #6b2fc9;
-  --joker-1: #0a7f66;
-  --joker-2: #bd2a72;
-  --joker-3: #a8600a;
+  --joker-0: #b02f27;
+  --joker-1: #5b3f8c;
+  --joker-2: #ab2f66;
+  --joker-3: #b56a12;
 }
 
 :root[data-theme='contrast'] {

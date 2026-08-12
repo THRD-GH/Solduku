@@ -37,88 +37,131 @@ import type { Step } from '../core/techniques.ts';
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
 /**
- * The jesters. A deal's jokers are interchangeable in every rule the game
- * has, so they are told apart by face and colour instead — four of them, so
- * "the star one" is a thing a player can say about a card in their hand.
+ * The jesters.
  *
- * Drawn rather than shipped as images, so each recolours with its variant and
- * with the theme.
+ * Four court fools in the same hand: belled cap, gold crown, painted face and
+ * a scalloped ruff, each in its own pair of colours. They are drawn rather
+ * than shipped as artwork because a joker is never bigger than about thirty
+ * pixels here — an illustration with real hatching in it would be mud at that
+ * size, so what survives is the silhouette and the colour, which is all a
+ * player needs to say "the green one" about a card in their hand.
+ *
+ * The colours are printed on, not inherited: a playing card does not change
+ * its face because the room got darker.
  */
+interface JesterPalette {
+  /** The two halves of the cap and ruff. */
+  a: string;
+  b: string;
+  /** Bells, crown and trim. */
+  gold: string;
+}
+
+const JESTERS: JesterPalette[] = [
+  { a: '#c8382f', b: '#2b3a63', gold: '#e8b53a' },
+  { a: '#6b4b9e', b: '#1f8a76', gold: '#e8b53a' },
+  { a: '#c23a72', b: '#334155', gold: '#e8b53a' },
+  { a: '#d98324', b: '#1f6b45', gold: '#e8b53a' },
+];
+
+const JESTER_INK = '#1e2436';
+const JESTER_SKIN = '#f6efe0';
+
 function jesterCap(variant = 0): SVGSVGElement {
+  const v = jokerVariant({ digit: 0, suit: JOKER_SUIT, variant });
+  const paint = JESTERS[v];
   const svg = document.createElementNS(SVG_NS, 'svg');
-  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('viewBox', '0 0 48 48');
   svg.setAttribute('class', 'jhat');
   svg.setAttribute('aria-hidden', 'true');
 
-  const add = (tag: string, attrs: Record<string, string>): SVGElement => {
+  const add = (tag: string, attrs: Record<string, string>): void => {
     const part = document.createElementNS(SVG_NS, tag);
     for (const [key, value] of Object.entries(attrs)) part.setAttribute(key, value);
     svg.append(part);
-    return part;
   };
-  const bell = (cx: number, cy: number, r = 1.55): void => {
-    add('circle', { cx: String(cx), cy: String(cy), r: String(r), fill: 'currentColor' });
-    add('circle', { cx: String(cx), cy: String(cy), r: String(r * 0.27), fill: 'var(--card-bg)' });
-  };
-  const eyes = (y: number): void => {
-    add('circle', { cx: '10.35', cy: String(y), r: '0.7', fill: 'currentColor' });
-    add('circle', { cx: '13.65', cy: String(y), r: '0.7', fill: 'currentColor' });
+  const horn = (d: string, fill: string): void =>
+    add('path', { d, fill, stroke: JESTER_INK, 'stroke-width': '1.1', 'stroke-linejoin': 'round' });
+  const bell = (cx: number, cy: number, r = 3.2): void => {
+    add('circle', { cx: String(cx), cy: String(cy), r: String(r), fill: paint.gold, stroke: JESTER_INK, 'stroke-width': '1.1' });
+    add('circle', { cx: String(cx), cy: String(cy + r * 0.28), r: String(r * 0.3), fill: JESTER_INK });
   };
 
-  switch (jokerVariant({ digit: 0, suit: JOKER_SUIT, variant })) {
-    case 1: {
-      // Two-horned cap, worn over a wide grin.
-      add('path', {
-        d: 'M4.2 12.6 C3.4 9 4.2 6 5.6 4 C7.8 6.4 9.8 8.4 12 9.6 C14.2 8.4 16.2 6.4 18.4 4 C19.8 6 20.6 9 19.8 12.6 Z',
-        fill: 'currentColor',
+  // ---- the cap, which is what tells the four of them apart at a glance ----
+  switch (v) {
+    case 1:
+      // Two tall horns swept out wide.
+      horn('M18 22 Q6 20 4 7 Q13 10 24 18 Z', paint.a);
+      horn('M30 22 Q42 20 44 7 Q35 10 24 18 Z', paint.b);
+      bell(4, 7);
+      bell(44, 7);
+      break;
+    case 2:
+      // A low bonnet of three round lobes.
+      horn('M13 22 Q6 16 9 8 Q17 11 22 19 Z', paint.a);
+      horn('M35 22 Q42 16 39 8 Q31 11 26 19 Z', paint.b);
+      horn('M18 19 Q24 5 30 19 Z', paint.a);
+      bell(9, 7.5, 2.9);
+      bell(39, 7.5, 2.9);
+      bell(24, 5, 2.9);
+      break;
+    case 3:
+      // Two horns around a star, for the wildest of the four.
+      horn('M17 22 Q7 19 6 9 Q14 12 23 19 Z', paint.b);
+      horn('M31 22 Q41 19 42 9 Q34 12 25 19 Z', paint.a);
+      add('polygon', {
+        points: '24,2 26.4,8.6 33.4,8.6 27.8,12.9 29.9,19.6 24,15.5 18.1,19.6 20.2,12.9 14.6,8.6 21.6,8.6',
+        fill: paint.gold,
+        stroke: JESTER_INK,
+        'stroke-width': '1.1',
+        'stroke-linejoin': 'round',
       });
-      add('rect', { x: '4.4', y: '12.4', width: '15.2', height: '2.5', rx: '1.2', fill: 'currentColor' });
-      add('ellipse', { cx: '12', cy: '17.6', rx: '5', ry: '4.6', fill: 'var(--card-bg)', stroke: 'currentColor', 'stroke-width': '1.25' });
-      eyes(16.6);
-      add('path', { d: 'M8.9 18.6 C10.4 21 13.6 21 15.1 18.6 Z', fill: 'currentColor' });
-      bell(5.2, 3.6, 1.5);
-      bell(18.8, 3.6, 1.5);
+      bell(6, 9, 2.9);
+      bell(42, 9, 2.9);
       break;
-    }
-    case 2: {
-      // Harlequin: a lozenge of diamonds behind a masked face.
-      add('path', { d: 'M12 1.6 20.4 12 12 22.4 3.6 12Z', fill: 'currentColor', opacity: '0.28' });
-      add('path', { d: 'M12 4.4 17.6 12 12 19.6 6.4 12Z', fill: 'none', stroke: 'currentColor', 'stroke-width': '1.1' });
-      add('circle', { cx: '12', cy: '12', r: '4.4', fill: 'var(--card-bg)', stroke: 'currentColor', 'stroke-width': '1.25' });
-      add('path', { d: 'M8.1 10.4 C9.6 9.2 14.4 9.2 15.9 10.4 L15.9 12 C14.4 13 9.6 13 8.1 12 Z', fill: 'currentColor' });
-      add('path', { d: 'M9.8 14.4 C10.9 15.4 13.1 15.4 14.2 14.4', fill: 'none', stroke: 'currentColor', 'stroke-width': '1.05', 'stroke-linecap': 'round' });
-      break;
-    }
-    case 3: {
-      // A star-faced joker: the wild card at its most literal.
-      const points: string[] = [];
-      for (let k = 0; k < 10; k++) {
-        const radius = k % 2 === 0 ? 10.2 : 4.3;
-        const angle = ((k * 36 - 90) * Math.PI) / 180;
-        points.push(`${(12 + radius * Math.cos(angle)).toFixed(2)},${(12 + radius * Math.sin(angle)).toFixed(2)}`);
-      }
-      add('polygon', { points: points.join(' '), fill: 'currentColor' });
-      add('circle', { cx: '12', cy: '12.2', r: '3.9', fill: 'var(--card-bg)' });
-      eyes(11.4);
-      add('path', { d: 'M9.9 13.4 C11 14.6 13 14.6 14.1 13.4', fill: 'none', stroke: 'currentColor', 'stroke-width': '1.05', 'stroke-linecap': 'round' });
-      break;
-    }
-    default: {
-      // The three-pronged cap, tongue out.
-      add('path', {
-        d: 'M4 13.7 C3.8 10.4 3.3 7.8 4.5 5.7 C6.4 7.7 8.2 9.2 9.8 10.5 C10.2 7.1 11.2 4.3 12 2.8 C12.8 4.3 13.8 7.1 14.2 10.5 C15.8 9.2 17.6 7.7 19.5 5.7 C20.7 7.8 20.2 10.4 20 13.7 Z',
-        fill: 'currentColor',
-      });
-      add('path', { d: 'M5.5 14.2 H18.5 L16.6 17.1 L14.6 15.8 L12 18.1 L9.4 15.8 L7.4 17.1 Z', fill: 'currentColor' });
-      add('ellipse', { cx: '12', cy: '15.2', rx: '4.5', ry: '5.1', fill: 'var(--card-bg)', stroke: 'currentColor', 'stroke-width': '1.25' });
-      eyes(14.5);
-      add('path', { d: 'M10 17 C11.15 18 12.85 18 14 17', fill: 'none', stroke: 'currentColor', 'stroke-width': '1.05', 'stroke-linecap': 'round' });
-      add('path', { d: 'M10.5 20.2 L12 18.1 L13.5 20.2', fill: 'none', stroke: 'currentColor', 'stroke-width': '1.35', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' });
-      bell(4.4, 5.6);
-      bell(12, 2.8);
-      bell(19.6, 5.6);
-    }
+    default:
+      // The classic three points, two out and one up.
+      horn('M15 21 Q5 19 4 8 Q12 11 23 18 Z', paint.a);
+      horn('M33 21 Q43 19 44 8 Q36 11 25 18 Z', paint.b);
+      horn('M18 19 Q24 3 30 19 Z', paint.a);
+      bell(4, 8);
+      bell(44, 8);
+      bell(24, 3.5);
   }
+
+  // ---- ruff, face, then the crown over the brow ----
+  add('path', {
+    d: 'M7 38 Q11 48 16 39 Q20 48 24 39.5 Q28 48 32 39 Q37 48 41 38 L41 34 L7 34 Z',
+    fill: paint.b,
+    stroke: JESTER_INK,
+    'stroke-width': '1.1',
+    'stroke-linejoin': 'round',
+  });
+  add('path', { d: 'M16 39 Q20 48 24 39.5 Q28 48 32 39 L32 34 L16 34 Z', fill: paint.a });
+  add('path', {
+    d: 'M7 38 Q11 48 16 39 Q20 48 24 39.5 Q28 48 32 39 Q37 48 41 38',
+    fill: 'none',
+    stroke: paint.gold,
+    'stroke-width': '1.6',
+    'stroke-linecap': 'round',
+  });
+
+  add('ellipse', {
+    cx: '24', cy: '29', rx: '9', ry: '9.8',
+    fill: JESTER_SKIN, stroke: JESTER_INK, 'stroke-width': '1.2',
+  });
+  // Painted diamonds over each eye, and a grin.
+  add('path', { d: 'M20.4 26.6 21.8 23.4 23.2 26.6 21.8 29Z', fill: paint.a });
+  add('path', { d: 'M24.8 26.6 26.2 23.4 27.6 26.6 26.2 29Z', fill: paint.a });
+  add('path', { d: 'M19.6 32.4 Q24 36.4 28.4 32.4 Q24 34 19.6 32.4Z', fill: '#b8332c', stroke: JESTER_INK, 'stroke-width': '0.9', 'stroke-linejoin': 'round' });
+
+  add('path', {
+    d: 'M13.5 24.5 L16 18.5 L19.5 22.5 L24 16 L28.5 22.5 L32 18.5 L34.5 24.5 Z',
+    fill: paint.gold,
+    stroke: JESTER_INK,
+    'stroke-width': '1.1',
+    'stroke-linejoin': 'round',
+  });
   return svg;
 }
 
