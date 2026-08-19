@@ -1,13 +1,12 @@
-import { LEVEL_CONFIG, LEVELS, LEVEL_LOGIC, LEVEL_NAMES } from '../core/classic.ts';
+import { LEVEL_CONFIG, LEVELS, LEVEL_GRADE, LEVEL_LOGIC, LEVEL_NAMES, LEVEL_RANK_NOTE } from '../core/classic.ts';
 import type { Level } from '../core/types.ts';
 import { formatPuzzleId } from '../core/types.ts';
 import { POOL_SIZE, allSaves, freeSlotBank, jokerBank, levelHighScores, levelStats, levelTrophy, progression, trophyForRecord, TROPHY_NAMES, unplayedNumbers } from '../game/storage.ts';
 import { buildStamp, el } from './dom.ts';
-import { trophyIcon } from './glyphs.ts';
+import { beltMark, trophyIcon } from './glyphs.ts';
 import { clear } from './dom.ts';
 import { openOverlay, toast } from './overlay.ts';
 import { bindTap } from './pointer.ts';
-import { stars } from './stars.ts';
 import type { AppContext } from './app-context.ts';
 import { openUnfinishedPicker } from './unfinished-picker.ts';
 
@@ -166,8 +165,13 @@ function buildLevelRow(ctx: AppContext, level: Level, trophyTier: number): HTMLE
   const levelHead = el(
     'button',
     { class: 'level-head level-info', title: `About ${LEVEL_NAMES[level]} difficulty` },
-    stars(level, 10),
-    el('span', { class: 'name' }, LEVEL_NAMES[level]),
+    beltMark(level),
+    el(
+      'span',
+      { class: 'name' },
+      LEVEL_NAMES[level],
+      el('small', {}, `${LEVEL_GRADE[level]} · ${LEVEL_RANK_NOTE[level]}`),
+    ),
     trophies,
   );
   levelHead.addEventListener('click', () => openLevelInfo(level));
@@ -200,8 +204,8 @@ function openLevelInfo(level: Level): void {
     return el(
       'div',
       { class: 'panel level-guide' },
-      el('p', { class: 'intro-kicker' }, `LEVEL ${level}`),
-      el('h2', {}, LEVEL_NAMES[level]),
+      el('p', { class: 'intro-kicker' }, `${LEVEL_GRADE[level]} · ${LEVEL_RANK_NOTE[level]}`),
+      el('h2', { class: 'belt-heading' }, beltMark(level), LEVEL_NAMES[level]),
       el('p', { class: 'summary' }, `Sudoku focus: ${LEVEL_LOGIC[level]}.`),
       el('h3', {}, 'What changes'),
       el('p', {}, LEVEL_GUIDE[level]),

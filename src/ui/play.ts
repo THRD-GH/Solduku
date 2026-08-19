@@ -1,5 +1,5 @@
 import { CELLS, colOf, rowOf } from '../core/grid.ts';
-import { LEVEL_NAMES } from '../core/classic.ts';
+import { LEVEL_GRADE, LEVEL_NAMES } from '../core/classic.ts';
 import {
   JOKER_SUIT,
   SUIT_GLYPHS,
@@ -26,7 +26,7 @@ import {
   winsToNextFreeSlot,
 } from '../game/storage.ts';
 import { SUPERSTAR_TIER, trophyBands, trophyForTarget } from '../core/scoring.ts';
-import { trophyIcon } from './glyphs.ts';
+import { beltMark, trophyIcon } from './glyphs.ts';
 import { buildStamp, el, formatTime } from './dom.ts';
 import { confirmDialog, openOverlay, toast } from './overlay.ts';
 import { bindTap } from './pointer.ts';
@@ -340,7 +340,16 @@ export class PlayScreen {
       { class: 'titlebar' },
       menuBtn,
       this.idBox,
-      el('span', { class: 'lvl' }, LEVEL_NAMES[game.puzzle.difficulty]),
+      el(
+        'span',
+        {
+          class: 'lvl',
+          title: `${LEVEL_NAMES[game.puzzle.difficulty]} · ${LEVEL_GRADE[game.puzzle.difficulty]}`,
+          role: 'img',
+          'aria-label': `${LEVEL_NAMES[game.puzzle.difficulty]}, ${LEVEL_GRADE[game.puzzle.difficulty]}`,
+        },
+        beltMark(game.puzzle.difficulty),
+      ),
       this.timerBox,
     );
 

@@ -17,13 +17,38 @@ import type { Card, Level, Puzzle } from './types.ts';
 
 export const LEVELS: Level[] = [1, 2, 3, 4, 5, 6];
 
+/**
+ * The six levels wear judo belts, matching the ladder the other DanDoku games
+ * use. The names are display only — a deal is still keyed by its level number,
+ * so nothing saved depends on what a level is called.
+ */
 export const LEVEL_NAMES: Record<Level, string> = {
-  1: 'Gentle',
-  2: 'Easy',
-  3: 'Steady',
-  4: 'Tricky',
-  5: 'Tough',
-  6: 'Brutal',
+  1: 'White belt',
+  2: 'Yellow belt',
+  3: 'Green belt',
+  4: 'Blue belt',
+  5: 'Brown belt',
+  6: 'Black belt',
+};
+
+/** The grade behind the belt. Only the last is a dan rather than a kyū. */
+export const LEVEL_GRADE: Record<Level, string> = {
+  1: '5th Kyū',
+  2: '4th Kyū',
+  3: '3rd Kyū',
+  4: '2nd Kyū',
+  5: '1st Kyū',
+  6: '1st Dan',
+};
+
+/** What the grade means, in a word or two. */
+export const LEVEL_RANK_NOTE: Record<Level, string> = {
+  1: 'Foundations',
+  2: 'Developing',
+  3: 'Confident',
+  4: 'Advanced',
+  5: 'Expert',
+  6: 'Dan challenge',
 };
 
 /** What each rung demands of the sudoku, shown on the menu and in Help. */
