@@ -41,14 +41,14 @@ and storage model.
 Difficulty is graded by the solving techniques the underlying sudoku demands,
 using the shared technique stack (`src/core/techniques.ts`):
 
-| Level | Name   | Logic required            | Hand | Free | Jokers |
-| ----- | ------ | ------------------------- | ---- | ---- | ------ |
-| 1     | Gentle | singles only              | 5    | 3    | 2      |
-| 2     | Easy   | locked candidates         | 4    | 3    | 2      |
-| 3     | Steady | subsets and x-wing        | 4    | 2    | 1      |
-| 4     | Tricky | one branch beyond logic   | 4    | 2    | 1      |
-| 5     | Tough  | two branches beyond logic | 3    | 2    | 1      |
-| 6     | Brutal | deep trial and error      | 3    | 1    | 1      |
+| Level | Belt   | Grade   | Logic required            | Hand | Free | Jokers |
+| ----- | ------ | ------- | ------------------------- | ---- | ---- | ------ |
+| 1     | White  | 5th Kyū | singles only              | 5    | 3    | 2      |
+| 2     | Yellow | 4th Kyū | locked candidates         | 4    | 3    | 2      |
+| 3     | Green  | 3rd Kyū | subsets and x-wing        | 4    | 2    | 1      |
+| 4     | Blue   | 2nd Kyū | one branch beyond logic   | 4    | 2    | 1      |
+| 5     | Brown  | 1st Kyū | two branches beyond logic | 3    | 2    | 1      |
+| 6     | Black  | 1st Dan | deep trial and error      | 3    | 1    | 1      |
 
 Each grid is graded at several dig depths (`digLadder`) and the generator
 keeps the rung closest to the level's ask, so the givens count floats with
@@ -62,10 +62,18 @@ order and jokers, so deal numbers can be shared (`?p=3-10` links work).
 ```
 npm install
 npm run dev        # vite dev server
+npm test           # game, scoring and completability regressions
 npm run typecheck  # tsc --noEmit
 npm run build      # typecheck + vite build + service worker
 npm run icons      # regenerate public/icons/*.png
 ```
+
+`npm test` runs the rules that are easy to break and hard to notice: that undo
+always rewinds a deal, that `canUndo` never offers an undo `undo` refuses, that
+a restart keeps bank tokens already spent, that every trophy band is reachable
+and none is free, that aids are counted from all three sources, and — the one
+that has caught the most — that a deal played straight to its solution is never
+declared unwinnable, jokers included.
 
 No runtime dependencies; the UI is hand-built DOM. Generation runs on a web
 worker with a localStorage cache, and the built site is an offline-capable PWA.
