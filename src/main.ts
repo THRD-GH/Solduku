@@ -40,7 +40,7 @@ import type { AppContext } from './ui/app-context.ts';
  */
 function chromeColour(): string {
   const bg = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
-  return bg === '' ? '#14161a' : bg;
+  return bg === '' ? '#f2efe6' : bg;
 }
 
 class App implements AppContext {

@@ -89,7 +89,9 @@ export interface Settings {
 }
 
 export const DEFAULT_SETTINGS: Settings = {
-  theme: 'night',
+  /* Newsprint by daylight: a printed puzzle page is what the game is, and it
+     is the brighter of the two to open on. Night is one tap away in Theme. */
+  theme: 'day',
   palette: 'newsprint',
   highlightLegal: true,
   showSafeMoves: false,
