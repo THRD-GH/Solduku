@@ -23,7 +23,6 @@ export function buildMenu(ctx: AppContext): HTMLElement {
   menuBtn.addEventListener('click', () => openMainMenu(ctx));
 
   screen.append(
-    el('p', { class: 'build-stamp top' }, buildStamp()),
     el('div', { class: 'titlebar' }, menuBtn, el('span', { class: 'id' }, 'SOLDUKU')),
     el(
       'div',
@@ -78,6 +77,9 @@ export function buildMenu(ctx: AppContext): HTMLElement {
       { class: 'hint-line' },
       'Sudoku rules place the cards; solitaire luck deals them. Levels grade the logic the grid demands.',
     ),
+    // Which build a phone is actually running is worth being able to check,
+    // but it is the last thing worth reading — so it closes the page.
+    el('p', { class: 'build-stamp' }, buildStamp()),
   );
   return screen;
 }
